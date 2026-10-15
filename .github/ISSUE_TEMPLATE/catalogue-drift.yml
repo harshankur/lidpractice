@@ -1,0 +1,55 @@
+name: The official catalogue has changed
+description: The BAMF published a new edition of the Gesamtfragenkatalog, or changed questions, answers or pictures.
+title: "Catalogue changed: "
+labels: ["catalogue-drift"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The trainer is based on the **Gesamtfragenkatalog, Stand 07.05.2025**. The BAMF updates it from time to time. Thank you for telling us when it does.
+
+        The official page is https://www.bamf.de/SharedDocs/Anlagen/DE/Integration/Einbuergerung/gesamtfragenkatalog-lebenindeutschland.html?nn=917926
+
+        You can also report by email: hello@lidpractice.de
+  - type: input
+    id: edition
+    attributes:
+      label: Stand (edition date) of the new catalogue
+      description: Printed on the cover of the PDF, below the title.
+      placeholder: "01.01.2027"
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Where did you find it?
+      description: The link to the BAMF page or PDF. Please use bamf.de, not a copy.
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of change is it?
+      multiple: true
+      options:
+        - Questions added
+        - Questions removed
+        - Question or answer wording changed
+        - Pictures changed
+        - Answers changed (for example a new Chancellor, head of state or parliament)
+        - Questions of a federal state changed
+        - I am not sure
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Which questions changed?
+      description: Question numbers and what changed, as far as you know. A rough idea is enough.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send
+      options:
+        - label: The PDF comes from bamf.de.
+          required: true

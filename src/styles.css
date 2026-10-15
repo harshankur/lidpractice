@@ -1,0 +1,1313 @@
+/* Layout: one working column with a slim progress sidebar; the sidebar drops below the question on phones. */
+/* Fonts are served from this site (public/fonts, SIL Open Font License), never from a font host. The Latin Extended files carry the Turkish letters (ğ ş İ) and are only fetched when a page shows such a letter. Noto Sans covers Cyrillic (Ukrainian), Noto Sans Arabic and Noto Sans Devanagari their scripts, each only fetched by a page that shows that script. */
+@font-face {
+    font-family: "Public Sans Variable";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url(fonts/public-sans-latin-ext-wght-normal.woff2) format("woff2");
+    unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+    font-family: "Public Sans Variable";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url(fonts/public-sans-latin-wght-normal.woff2) format("woff2");
+    unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+    font-family: "Bricolage Grotesque Variable";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 200 800;
+    src: url(fonts/bricolage-grotesque-latin-ext-wght-normal.woff2) format("woff2");
+    unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+    font-family: "Bricolage Grotesque Variable";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 200 800;
+    src: url(fonts/bricolage-grotesque-latin-wght-normal.woff2) format("woff2");
+    unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+    font-family: "Noto Sans Variable";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url(fonts/noto-sans-cyrillic-wght-normal.woff2) format("woff2");
+    unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+}
+@font-face {
+    font-family: "Noto Sans Arabic";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 400;
+    src: url(fonts/noto-sans-arabic-arabic-400-normal.woff2) format("woff2");
+    unicode-range: U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC;
+}
+@font-face {
+    font-family: "Noto Sans Arabic";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 700;
+    src: url(fonts/noto-sans-arabic-arabic-700-normal.woff2) format("woff2");
+    unicode-range: U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC;
+}
+@font-face {
+    font-family: "Noto Sans Devanagari";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 400;
+    src: url(fonts/noto-sans-devanagari-devanagari-400-normal.woff2) format("woff2");
+    unicode-range: U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF;
+}
+@font-face {
+    font-family: "Noto Sans Devanagari";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 700;
+    src: url(fonts/noto-sans-devanagari-devanagari-700-normal.woff2) format("woff2");
+    unicode-range: U+0900-097F,U+1CD0-1CF9,U+200C-200D,U+20A8,U+20B9,U+20F0,U+25CC,U+A830-A839,U+A8E0-A8FF;
+}
+
+/*
+ * Design tokens. Everything else reads these, a theme only re-defines them.
+ *   Brand: --brand, --gold, --flag-red      Background: --bg        Surface: --surface, --surface-2
+ *   Border: --line                          Text: --fg, --fg-muted
+ *   Status: --ok (success), --bad (danger), --warn (warning)
+ * The theme is chosen by a class on the root element: none follows the system, .theme-light and .theme-dark force one.
+ */
+:root {
+    --brand: #14171f;
+    --bg: #f2f3f6;
+    --surface: #ffffff;
+    --surface-2: #eaecf1;
+    --fg: #14171f;
+    --fg-muted: #5a6172;
+    --line: #d5d9e2;
+    --ink: var(--brand);
+    --on-ink: #f6f7fa;
+    --gold: #c79a1d;
+    --flag-red: #c8321f;
+    --ok: #1d7a46;
+    --ok-bg: #e2f3e9;
+    --bad: #b3261e;
+    --bad-bg: #fbe7e5;
+    --warn: #8a5a00;
+    --warn-bg: #fdf1d6;
+    --caution: #e0a800;
+    --focus: #2b5fd9;
+    --font-body: "Public Sans Variable", "Public Sans", "Noto Sans Variable", "Noto Sans Arabic", "Noto Sans Devanagari", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-display: "Bricolage Grotesque Variable", "Bricolage Grotesque", "Public Sans Variable", "Noto Sans Variable", "Noto Sans Arabic", "Noto Sans Devanagari", system-ui, sans-serif;
+    --radius: 12px;
+    --radius-control: 8px;
+    --radius-sm: 6px;
+    --shadow-popover: 0 18px 48px rgba(0, 0, 0, 0.3);
+    --h-control: 40px;
+    --h-control-sm: 32px;
+    --h-tag: 24px;
+    --bw-control: 1.5px;
+    --bw-current: 3px;
+    --inset: 20px;
+    --line-strong: #7d8699;
+    --tag-bg: #eaecf1;
+    --tag-fg: #4b5262;
+    --tag-strong-bg: #14171f;
+    --tag-strong-fg: #f6f7fa;
+    --state-tag-bg: #fbf1d3;
+    --state-tag-fg: #6b4a00;
+    --era-ns: #5a4a42;
+    --era-occupation: #7350b8;
+    --era-west: #1c6aa8;
+    --era-east: #c2542d;
+    --era-unity: #9a7400;
+    --era-europe: #1f3d99;
+    --map-land: #d9dee8;
+    --map-far: #eceef3;
+}
+
+/* Touch screens get bigger targets, and a narrow screen a smaller inset. */
+@media (pointer: coarse) {
+    :root { --h-control: 44px; --h-control-sm: 40px; }
+}
+@media (max-width: 520px) {
+    :root { --inset: 16px; }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not(.theme-light) {
+        --brand: #eceef4;
+        --bg: #101319;
+        --surface: #181c24;
+        --surface-2: #222733;
+        --fg: #eceef4;
+        --fg-muted: #9aa2b4;
+        --line: #2c3342;
+        --on-ink: #101319;
+        --gold: #d9ac2c;
+        --flag-red: #e0503b;
+        --ok: #5fd08d;
+        --ok-bg: #14301f;
+        --bad: #ff8a80;
+        --bad-bg: #3a1a18;
+        --warn: #f0b84a;
+        --warn-bg: #3a2c0c;
+        --caution: #f2c230;
+        --focus: #7ea2ff;
+        --line-strong: #6b7488;
+        --tag-bg: #262c39;
+        --tag-fg: #b4bbcb;
+        --tag-strong-bg: #2f3646;
+        --tag-strong-fg: #eceef4;
+        --state-tag-bg: #3a2c0c;
+        --state-tag-fg: #f0c766;
+        --era-ns: #b5a399;
+        --era-occupation: #b49cf2;
+        --era-west: #6cb2ee;
+        --era-east: #f0906a;
+        --era-unity: #dfb53a;
+        --era-europe: #9db0ff;
+        --map-land: #3a4254;
+        --map-far: #232936;
+        color-scheme: dark;
+    }
+}
+
+:root.theme-dark {
+    --brand: #eceef4;
+    --bg: #101319;
+    --surface: #181c24;
+    --surface-2: #222733;
+    --fg: #eceef4;
+    --fg-muted: #9aa2b4;
+    --line: #2c3342;
+    --on-ink: #101319;
+    --gold: #d9ac2c;
+    --flag-red: #e0503b;
+    --ok: #5fd08d;
+    --ok-bg: #14301f;
+    --bad: #ff8a80;
+    --bad-bg: #3a1a18;
+    --warn: #f0b84a;
+    --warn-bg: #3a2c0c;
+    --caution: #f2c230;
+    --focus: #7ea2ff;
+    --line-strong: #6b7488;
+    --tag-bg: #262c39;
+    --tag-fg: #b4bbcb;
+    --tag-strong-bg: #2f3646;
+    --tag-strong-fg: #eceef4;
+    --state-tag-bg: #3a2c0c;
+    --state-tag-fg: #f0c766;
+    --era-ns: #b5a399;
+    --era-occupation: #b49cf2;
+    --era-west: #6cb2ee;
+    --era-east: #f0906a;
+    --era-unity: #dfb53a;
+    --era-europe: #9db0ff;
+    --map-land: #3a4254;
+    --map-far: #232936;
+    color-scheme: dark;
+}
+
+:root.theme-light { color-scheme: light; }
+
+* { box-sizing: border-box; }
+
+body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    padding-inline: 16px;
+    padding-block: 0 48px;
+    min-height: 100%;
+}
+
+/* Black, red, gold: the three bands of the flag, as a thin top edge. */
+body::before {
+    content: "";
+    display: block;
+    height: 6px;
+    margin-inline: -16px;
+    background: linear-gradient(to bottom, var(--ink) 0 2px, var(--flag-red) 2px 4px, var(--gold) 4px 6px);
+}
+
+#app { max-width: 1040px; margin-inline: auto; }
+
+h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+
+button { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* ----- header ----- */
+.top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding-block: 24px 0;
+}
+.brand { min-width: 0; }
+.brand h1 { font-size: 1.75rem; line-height: 1.1; letter-spacing: -0.01em; }
+.brand-sub { margin: 4px 0 0; color: var(--fg-muted); font-size: 0.875rem; }
+.header-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* Tabs: underlined, one row under the header. */
+.tabs {
+    display: flex;
+    flex: 1 1 100%;
+    gap: 4px;
+    margin-top: 12px;
+    border-bottom: 1px solid var(--line);
+    /* Where the tabs are wider than a narrow screen they scroll sideways, without a bar: the tab that is cut off says there is more, and the open tab is always brought into view. */
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+    display: inline-flex;
+    align-items: center;
+    height: var(--h-control);
+    border: 0;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+    background: transparent;
+    padding: 0 16px;
+    font-weight: 600;
+    color: var(--fg-muted);
+    white-space: nowrap;
+}
+.tab:focus-visible { outline-offset: -3px; }
+.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--flag-red); }
+.tab:not([aria-selected="true"]):hover:not(:disabled) { color: var(--fg); }
+.tab:disabled { opacity: 0.45; cursor: not-allowed; }
+.tab[aria-selected="true"]:disabled { opacity: 0.7; }
+
+.icon { width: 1.125em; height: 1.125em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ----- layout ----- */
+main.layout { margin-top: 20px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 248px; gap: 24px; align-items: start; }
+.stage { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: var(--inset);
+    min-width: 0;
+}
+
+/* ----- listbox (replaces the native select) ----- */
+.listbox { position: relative; max-width: 100%; min-width: 0; }
+.listbox-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    height: var(--h-control-sm);
+    padding-block: 0;
+    padding-inline: 12px 10px;
+    text-align: start;
+    background: var(--surface);
+    border: var(--bw-control) solid var(--line-strong);
+    border-radius: var(--radius-control);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.listbox-button:hover:not(:disabled) { border-color: var(--fg-muted); }
+.listbox-button:disabled { opacity: 0.45; cursor: not-allowed; }
+.listbox-button[aria-expanded="true"] { border-color: var(--ink); }
+.listbox-button .icon { color: var(--fg-muted); }
+.listbox-button .clamp { flex: 1; min-width: 0; }
+.listbox-prefix { color: var(--fg-muted); font-weight: 400; white-space: nowrap; }
+.listbox-prefix::after { content: ":"; }
+.listbox-chevron { flex: none; display: inline-flex; color: var(--fg-muted); transition: transform 0.15s; }
+.listbox-chevron .icon { width: 16px; height: 16px; }
+.listbox-button[aria-expanded="true"] .listbox-chevron { transform: rotate(180deg); }
+.listbox-up .listbox-list { top: auto; bottom: calc(100% + 4px); }
+.listbox-end .listbox-list { inset-inline-start: auto; inset-inline-end: 0; }
+.listbox-description { display: block; font-size: 0.8125rem; font-weight: 400; color: var(--fg-muted); white-space: normal; max-width: 26ch; }
+.listbox-note { padding: 8px 10px 4px; margin-top: 4px; border-top: 1px solid var(--line); font-size: 0.75rem; color: var(--fg-muted); max-width: 26ch; white-space: normal; }
+.listbox-list {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 4px);
+    inset-inline-start: 0;
+    min-width: 100%;
+    width: max-content;
+    max-width: min(280px, calc(100vw - 32px));
+    max-height: min(340px, 60vh);
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-popover);
+    padding: 4px;
+}
+.listbox-list[hidden] { display: none; }
+.listbox-list:focus { outline: none; }
+.listbox-list:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.listbox-option { padding: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; }
+.listbox-option.is-active { background: var(--surface-2); }
+.listbox-option[aria-selected="true"] { font-weight: 700; }
+.clamp {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--clamp-lines, 2);
+    line-clamp: var(--clamp-lines, 2);
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+/* ----- round bar, panel ----- */
+.round-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 24px;
+    padding: 12px var(--inset);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+.round-fact { display: inline-flex; gap: 8px; align-items: baseline; min-width: 0; }
+.round-label { color: var(--fg-muted); font-size: 0.8125rem; }
+.round-bar > button { margin-inline-start: auto; }
+.round-bar > button + button { margin-inline-start: 0; }
+
+.panel { display: flex; flex-direction: column; gap: 20px; }
+.panel-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.panel-head h2 { font-size: 1.25rem; }
+.panel-head h2:focus { outline: none; }
+.panel-esc { color: var(--fg-muted); font-size: 0.8125rem; }
+@media (pointer: coarse) { .panel-esc { display: none; } }
+.panel-heading { margin: 0 0 8px; padding: 0; font-size: 0.8125rem; font-weight: 700; letter-spacing: var(--label-track, 0.04em); text-transform: var(--label-case, uppercase); color: var(--fg-muted); font-family: var(--font-body); }
+.panel-section { margin: 0; padding: 0; border: 0; min-width: 0; }
+.preset-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+/* The chosen chip keeps its fill under the pointer: the hover of a plain button would put its light text on a light ground. */
+.chip-button[aria-pressed="true"], .chip-button[aria-pressed="true"]:hover:not(:disabled) { background: var(--ink); color: var(--on-ink); }
+.topic-group { margin: 0 0 12px; padding: 0; border: 0; min-width: 0; }
+.topic-group legend { padding: 0; margin-bottom: 8px; font-weight: 700; font-size: 0.875rem; }
+.topic-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 40px; }
+.topic { display: flex; align-items: center; gap: 8px; padding: 4px 2px; min-width: 0; cursor: pointer; }
+.topic input, .order-option input { width: 18px; height: 18px; flex: none; accent-color: var(--ink); margin: 0; }
+.topic .clamp { flex: 1; min-width: 0; --clamp-lines: 2; }
+.topic-count { color: var(--fg-muted); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
+.state-choice .topic-list { margin-top: 10px; }
+.order-choice { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.order-choice legend { width: 100%; }
+.order-option { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.order-option > span { display: flex; flex-direction: column; }
+.order-hint { color: var(--fg-muted); font-size: 0.8125rem; font-weight: 400; }
+.panel-section + .panel-section { margin-top: 0; }
+.panel-foot { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 14px; }
+.panel-count { margin: 0; font-weight: 600; }
+.panel-consequence { margin: 0; color: var(--warn); font-size: 0.875rem; }
+.panel-actions { justify-content: flex-end; }
+
+/* ----- timeline ----- */
+.timeline { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px var(--inset); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.timeline-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; font-size: 0.875rem; }
+.timeline-progress { color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+.timeline-counts { display: inline-flex; gap: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.count-correct { color: var(--ok); }
+.count-wrong { color: var(--bad); }
+.count-skipped { color: var(--warn); }
+.timeline-legend-toggle { margin-inline-start: auto; align-self: center; }
+.timeline-body { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.timeline-scroll {
+    flex: none;
+    width: 36px;
+    height: var(--h-control);
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: var(--bw-control) solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--fg);
+}
+.timeline-scroll .icon { width: 18px; height: 18px; stroke-width: 2; }
+.timeline-scroll:hover:not(:disabled) { border-color: var(--fg-muted); }
+.timeline-scroll:disabled { opacity: 0.4; }
+.timeline-strip {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    padding-block: 2px;
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+    mask-image: linear-gradient(var(--fade-to), black 0, black calc(100% - 16px), transparent 100%);
+}
+.timeline-list { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; width: max-content; align-items: center; }
+.timeline-list > li { scroll-snap-align: start; }
+.slot {
+    position: relative;
+    min-width: 44px;
+    height: var(--h-control);
+    padding: 0 6px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: var(--bw-control) solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--fg-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.slot-number { white-space: nowrap; }
+.slot-glyph { position: absolute; inset-inline: 0; bottom: 4px; font-size: 0.625rem; line-height: 1; text-align: center; }
+.slot.is-correct { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+.slot.is-wrong { background: var(--bad-bg); border-color: var(--bad); color: var(--bad); }
+.slot.is-skipped { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); border-style: dashed; }
+.slot.is-resume { border-color: var(--line-strong); color: var(--fg); }
+/* The current question has a bolder border of its own. Nothing is drawn outside the box, so nothing overlaps and nothing is cut off. */
+.slot.is-current { border-width: var(--bw-current); border-style: solid; border-color: var(--ink); padding: 0 4.5px 4.5px; color: var(--fg); }
+.slot:focus-visible { outline: 2px solid var(--focus); outline-offset: -6px; }
+@media (hover: hover) { .slot:not(.is-current):hover { border-color: var(--fg-muted); } }
+.slot-unknown, .slot-more { flex: none; display: flex; align-items: center; justify-content: center; min-width: 44px; height: var(--h-control); border: var(--bw-control) dashed var(--line); border-radius: var(--radius-sm); color: var(--fg-muted); font-weight: 700; font-size: 0.8125rem; padding-inline: 8px; white-space: nowrap; }
+.slot-more { border-style: none; }
+.timeline-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; list-style: none; margin: 0; padding: 0; font-size: 0.8125rem; color: var(--fg-muted); }
+.timeline-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 24px; height: 24px; display: grid; place-items: center; border: var(--bw-control) solid var(--line); border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 700; }
+.legend-swatch.is-correct { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+.legend-swatch.is-wrong { background: var(--bad-bg); border-color: var(--bad); color: var(--bad); }
+.legend-swatch.is-skipped { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); border-style: dashed; }
+.legend-swatch.is-current { border-width: var(--bw-current); border-color: var(--ink); }
+.legend-swatch.is-resume { border-color: var(--line-strong); color: var(--fg); }
+.legend-swatch.is-next { border-style: dashed; }
+
+.banner { margin: 0; padding: 8px 12px; border-radius: var(--radius-control); font-size: 0.875rem; font-weight: 600; }
+.banner-review { background: var(--surface-2); }
+.banner-skipped { background: var(--warn-bg); color: var(--warn); }
+.banner-back { display: flex; align-items: center; gap: 8px; background: var(--warn-bg); color: var(--warn); }
+.banner-back .icon { width: 18px; height: 18px; }
+.train-note { margin: 0; padding: 8px 12px; border-radius: var(--radius-control); font-size: 0.875rem; font-weight: 600; background: var(--surface-2); }
+.train-note.ok { color: var(--ok); }
+.train-note.bad { color: var(--bad); }
+.train-topics summary { cursor: pointer; font-size: 0.875rem; color: var(--fg-muted); }
+.train-topics ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.train-topics li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; align-items: baseline; font-size: 0.8125rem; }
+.train-topic-name { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.train-topic-count { color: var(--fg-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.train-back { display: inline-flex; color: var(--warn); }
+.train-back .icon { width: 14px; height: 14px; }
+.train-topics progress { grid-column: 1 / -1; width: 100%; height: 6px; accent-color: var(--ink); }
+
+.end-card h2 { font-size: 1.5rem; margin-bottom: 8px; }
+.end-card p { margin: 0 0 8px; }
+.end-actions { justify-content: flex-start; margin-top: 12px; }
+
+/* ----- question card ----- */
+.meta { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; margin-bottom: 8px; min-width: 0; }
+.meta .tag { flex: none; }
+.meta .tag-topic { flex: 0 1 auto; min-width: 0; }
+/* The button keeps the width of its text. When the row is tight, the topic is the part that is cut short. */
+.meta .original-btn { flex: none; }
+.card-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; min-width: 0; }
+.card-tools .translation-split { flex: none; }
+.card-tools .original-btn { flex: none; }
+/* The translation: a button that shows or hides it, and joined to it an arrow that opens the list of languages. */
+.translation-split { display: inline-flex; align-items: stretch; }
+.translation-split .translation-toggle { border-start-end-radius: 0; border-end-end-radius: 0; }
+.translation-split .translation-box { flex: none; }
+.translation-split .translation-box .listbox-button { width: var(--h-control-sm); padding: 0; justify-content: center; border-start-start-radius: 0; border-end-start-radius: 0; margin-inline-start: -1px; }
+.unofficial-note { margin: -6px 0 14px; color: var(--fg-muted); font-size: 0.8125rem; }
+.intro-translation { margin: 0 0 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.intro-translation .hint { max-width: 60ch; }
+.setting-label { font-weight: 600; }
+/* A tag only informs: no border, a tint, and nothing happens when it is pressed. */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    height: var(--h-tag);
+    padding: 0 8px;
+    border-radius: var(--radius-sm);
+    background: var(--tag-bg);
+    color: var(--tag-fg);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: default;
+}
+.tag-strong { background: var(--tag-strong-bg); color: var(--tag-strong-fg); font-weight: 700; font-variant-numeric: tabular-nums; }
+.tag-state { background: var(--state-tag-bg); color: var(--state-tag-fg); }
+.tag-topic { overflow: hidden; }
+.tag-topic .clamp { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; -webkit-line-clamp: unset; line-clamp: unset; }
+
+.question { font-size: 1.375rem; line-height: 1.3; font-weight: 600; margin-bottom: 16px; overflow-wrap: anywhere; }
+.question.small { font-size: 1rem; margin: 0 0 10px; font-family: var(--font-body); }
+.question:focus { outline: none; }
+
+.bi { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bi-main, .bi-sub { overflow-wrap: anywhere; hyphens: auto; }
+.bi-sub { font-size: 0.875em; font-weight: 400; color: var(--fg-muted); }
+
+.picture { margin: 0 0 18px; }
+.caption { margin: 6px 0 0; font-size: 0.8125rem; color: var(--fg-muted); }
+.picture img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    max-height: 360px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #fff;
+}
+
+.options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.option {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    text-align: start;
+    background: var(--surface);
+    border: var(--bw-control) solid var(--line);
+    border-radius: var(--radius-control);
+    padding: 12px;
+    font-weight: 500;
+}
+@media (hover: hover) { .option:not(:disabled):hover { border-color: var(--line-strong); background: var(--bg); } }
+.option .option-text { flex: 1; overflow-wrap: anywhere; }
+.letter {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--surface-2);
+    font-size: 0.8125rem;
+    font-weight: 700;
+}
+/* The chosen option has a bolder edge. It is a line drawn over the edge, inside the box, and not a wider edge: a wider edge would take its room
+   from the padding, and a screen that rounds the two to whole pixels makes the option a pixel taller when it is chosen. */
+.option.is-selected { border-color: var(--ink); outline: var(--bw-current) solid var(--ink); outline-offset: calc(-1 * var(--bw-current)); }
+.option.is-selected:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.option.is-selected .letter { background: var(--ink); color: var(--on-ink); }
+.option.is-correct { border-color: var(--ok); outline-color: var(--ok); background: var(--ok-bg); }
+.option.is-correct .letter { background: var(--ok); color: var(--bg); }
+.option.is-wrong { border-color: var(--bad); outline-color: var(--bad); background: var(--bad-bg); }
+.option.is-wrong .letter { background: var(--bad); color: var(--bg); }
+.option:disabled { color: var(--fg); }
+.mark { flex: none; font-size: 0.75rem; font-weight: 700; letter-spacing: var(--label-track, 0.04em); text-transform: var(--label-case, uppercase); align-self: center; }
+.is-correct .mark { color: var(--ok); }
+.is-wrong .mark { color: var(--bad); }
+
+.verdict { margin: 16px 0 0; font-weight: 700; }
+.verdict.ok { color: var(--ok); }
+.verdict.bad { color: var(--bad); }
+
+/* ----- buttons ----- */
+.footer-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.primary, .secondary, .danger, .ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: var(--h-control);
+    padding: 0 16px;
+    border-radius: var(--radius-control);
+    border: var(--bw-control) solid var(--ink);
+    font-weight: 700;
+    white-space: nowrap;
+}
+.primary .icon, .secondary .icon, .danger .icon, .ghost .icon { width: 18px; height: 18px; }
+.sm { height: var(--h-control-sm); padding: 0 12px; font-size: 0.875rem; }
+.primary { background: var(--ink); color: var(--on-ink); }
+.secondary { background: transparent; color: var(--fg); }
+.danger { background: var(--bad); border-color: var(--bad); color: var(--bg); }
+.ghost { background: transparent; border-color: transparent; color: var(--fg-muted); font-weight: 600; }
+.danger-text { color: var(--bad); border-color: var(--line-strong); font-weight: 600; }
+.primary:hover:not(:disabled) { background: color-mix(in srgb, var(--ink) 86%, var(--surface)); }
+.secondary:hover:not(:disabled), .ghost:hover:not(:disabled) { background: var(--surface-2); }
+.ghost:hover:not(:disabled) { color: var(--fg); }
+.primary:active:not(:disabled), .secondary:active:not(:disabled), .danger:active:not(:disabled) { transform: translateY(1px); }
+.primary:disabled, .secondary:disabled, .danger:disabled { opacity: 0.45; cursor: not-allowed; }
+.original-btn { min-width: 0; }
+.footer-row .primary, .footer-row .secondary { min-width: 120px; }
+/* The buttons that move between questions stay at the bottom edge of the window, in reach whatever the height of the question. */
+.nav-row { position: sticky; bottom: 0; z-index: 1; margin-block: -8px; padding-block: 8px; background: var(--bg); }
+
+/* ----- sidebar ----- */
+.aside { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.widget { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--inset); display: flex; flex-direction: column; gap: 12px; }
+.widget h2 { font-size: 1rem; }
+.widget dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; }
+.widget dt { color: var(--fg-muted); font-size: 0.875rem; }
+.widget dd { margin: 0; text-align: end; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.widget dd.is-empty { font-weight: 400; color: var(--fg-muted); }
+.widget .sm { align-self: flex-start; }
+.widget-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.widget-actions .sm { align-self: auto; }
+/* A button that needs a second press keeps the size of its longer text, so arming it moves nothing. */
+.two-step { display: inline-grid; place-items: center; max-width: 100%; font-weight: 700; }
+.two-step > .swap { grid-area: 1 / 1; white-space: nowrap; }
+.two-step > .swap.is-off { visibility: hidden; }
+.icon-only { width: var(--h-control-sm); padding: 0; }
+.clock-modes { display: flex; flex-wrap: wrap; gap: 8px; }
+.clock-display {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    line-height: 1.1;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.clock-minutes { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.875rem; font-weight: 600; }
+.clock-minutes input {
+    width: 96px;
+    height: var(--h-control-sm);
+    padding: 0 10px;
+    border: var(--bw-control) solid var(--line-strong);
+    border-radius: var(--radius-control);
+    background: var(--surface);
+    color: var(--fg);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+}
+.clock-minutes input:disabled { opacity: 0.45; }
+/* The count down gets more urgent: a colour nudge with 15 minutes left, a yellow border with 5, a red border with 1. */
+.clock-widget.level-nudge .clock-display { color: var(--warn); }
+.clock-widget.level-warn { border: 3px solid var(--caution); padding: calc(var(--inset) - 2px); }
+.clock-widget.level-warn .clock-display { color: var(--warn); }
+.clock-widget.level-critical { border: 3px solid var(--bad); padding: calc(var(--inset) - 2px); }
+.clock-widget.level-critical .clock-display { color: var(--bad); }
+/* The time of a running clock above the question, for one column only (see the narrow screens below). */
+.clock-strip { display: none; }
+.kbd-help summary { cursor: pointer; font-size: 0.875rem; color: var(--fg-muted); }
+.kbd-help .hint { margin-top: 6px; }
+@media (hover: none) { .kbd-help { display: none; } }
+.hint { margin: 0; color: var(--fg-muted); font-size: 0.8125rem; }
+
+/* ----- empty and intro ----- */
+.empty h2, .intro h2 { font-size: 1.5rem; margin-bottom: 8px; }
+.empty p, .intro p { margin: 0 0 16px; max-width: 60ch; }
+.facts { margin: 0 0 20px; padding-inline-start: 20px; display: flex; flex-direction: column; gap: 4px; }
+
+/* ----- exam ----- */
+.exam-bar { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+.exam-progress { font-weight: 700; }
+.exam-answered { color: var(--fg-muted); font-size: 0.875rem; }
+.clock { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.25rem; }
+.clock.is-low { color: var(--warn); }
+
+.navigator { display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 6px; }
+.nav-dot {
+    position: relative;
+    height: 34px;
+    border-radius: 6px;
+    border: 1.5px solid var(--line);
+    background: var(--surface);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding: 0;
+}
+.nav-dot.is-done { background: var(--surface-2); border-color: var(--fg-muted); }
+.nav-dot.is-current { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+/* A mark for review is a small corner flag, a shape and not only a colour. */
+.nav-dot.is-marked::after {
+    content: "";
+    position: absolute;
+    inset-block-start: -1px;
+    inset-inline-end: -1px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 12px 12px 0;
+    border-color: transparent var(--flag-red) transparent transparent;
+    border-top-right-radius: 6px;
+}
+.confirm p { margin: 0 0 12px; font-weight: 600; }
+
+/* ----- results ----- */
+.result { text-align: center; padding-block: 32px; }
+.result-label { margin: 0; font-weight: 700; letter-spacing: calc(var(--label-track, 0.04em) * 2); text-transform: var(--label-case, uppercase); font-size: 0.875rem; }
+.result-score { margin: 4px 0; font-family: var(--font-display); font-size: 3.5rem; line-height: 1.1; font-weight: 700; font-variant-numeric: tabular-nums; }
+.result-note { margin: 0 0 20px; color: var(--fg-muted); }
+.result-timeup { margin: 0 0 12px; font-weight: 600; color: var(--warn); }
+.result .footer-row { justify-content: center; }
+.result.pass { border-color: var(--ok); }
+.result.pass .result-label { color: var(--ok); }
+.result.fail { border-color: var(--bad); }
+.result.fail .result-label { color: var(--bad); }
+
+.review { display: flex; flex-direction: column; gap: 12px; }
+.review h2 { font-size: 1.25rem; }
+/* The heading of the list and the button that lists every answer or only the mistakes. The button keeps one width for both of its texts. */
+.review-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.review-head h2 { margin: 0; }
+.review-head .swap-box { place-items: center; max-width: 100%; }
+.review-item { padding: 18px; }
+.line { margin: 6px 0 0; display: flex; gap: 10px; align-items: baseline; }
+/* The two tags share a width so the answers line up. It is a least width, in the size of the tag text, so a longer word widens its tag and never runs into the answer. */
+.line .tag { flex: none; font-size: 0.6875rem; font-weight: 700; letter-spacing: calc(var(--label-track, 0.04em) * 1.5); text-transform: var(--label-case, uppercase); min-width: 6.25em; }
+.line.bad .tag { color: var(--bad); }
+.line.ok .tag { color: var(--ok); }
+.line .bi { flex: 1; }
+.pic-link { display: inline-block; margin-bottom: 4px; font-size: 0.875rem; color: var(--focus); }
+
+/* ----- toast ----- */
+#toast {
+    position: fixed;
+    inset-inline: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    max-width: 480px;
+    margin-inline: auto;
+    background: var(--bad);
+    color: var(--bg);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+
+/* ----- footer ----- */
+.link-button {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.link-button:hover { color: var(--fg); }
+.site-footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--fg-muted);
+    font-size: 0.875rem;
+}
+.footer-state { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-bottom: 16px; color: var(--fg); }
+.footer-state .state-box { flex: none; }
+.footer-state-note { margin: 0; color: var(--fg-muted); }
+.site-footer-note { margin: 0 0 8px; }
+.site-footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.site-copyright { margin: 16px 0 0; }
+.site-footer a { color: inherit; text-underline-offset: 3px; }
+.site-footer a:hover { color: var(--fg); }
+
+/* ----- dialog (one blocking modal for the whole page) ----- */
+body.modal-open { overflow: hidden; }
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(10, 12, 18, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+.modal {
+    width: min(720px, 100%);
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    color: var(--fg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-popover);
+}
+.modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid var(--line);
+}
+.modal-title { margin: 0; font-size: 1.1875rem; line-height: 1.3; overflow-wrap: anywhere; }
+.modal-title:focus { outline: none; }
+.modal-close {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: transparent;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+.modal-close:hover { border-color: var(--fg-muted); }
+.modal-body { padding: 16px 20px 20px; overflow-y: auto; overscroll-behavior: contain; }
+/* A dialog never changes its size while it is open: it has one height, and what is inside it scrolls. An open FAQ item, a picture that arrives or a
+   language of other length change the content, not the frame, so what the user is aiming at stays where it is. */
+.modal-fixed { height: min(720px, 100%); }
+.modal-fixed .modal-body { flex: 1 1 auto; min-height: 0; }
+.modal-body h3 { margin: 20px 0 8px; font-size: 1rem; }
+.modal-body > :first-child { margin-top: 0; }
+.modal-body p { margin: 0 0 12px; overflow-wrap: anywhere; }
+.modal-body a { color: inherit; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.muted { color: var(--fg-muted); font-size: 0.9375rem; }
+.modal-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.link-list { margin: 0 0 8px; padding-inline-start: 20px; display: flex; flex-direction: column; gap: 6px; }
+.original-figure { margin: 0 0 16px; }
+.original-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+}
+.original-missing { padding: 24px; border: 1px dashed var(--line); border-radius: 8px; text-align: center; }
+.choice { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+.choice h3 { margin: 0 0 4px; }
+.choice p { margin: 0 0 12px; }
+.button-link {
+    display: inline-block;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 700;
+    border: 1.5px solid var(--ink);
+    text-decoration: none;
+}
+.modal-body a.primary { color: var(--on-ink); }
+.modal-body a.secondary { color: var(--fg); }
+.faq { display: flex; flex-direction: column; gap: 8px; }
+.faq-item { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; }
+.faq-item summary { cursor: pointer; font-weight: 600; }
+.faq-item[open] summary { margin-bottom: 8px; }
+.faq-item p:last-child { margin-bottom: 0; }
+
+/* ----- setup dialog of the first visit ----- */
+.modal-setup .modal-body { display: flex; flex-direction: column; overflow: visible; }
+.modal-setup .setup { flex: 1 1 auto; }
+.modal-setup .setup .modal-actions { margin-top: auto; padding-top: 20px; }
+/* On a short screen the lists open inside a scrolling body instead of hanging out of the dialog. */
+@media (max-height: 760px) { .modal-setup .modal-body { overflow-y: auto; } }
+.setup { display: flex; flex-direction: column; gap: 16px; }
+.setup > p { margin: 0; }
+/* The sentence that tells nothing is final is underlined, not bold, so it stands out without shouting. */
+.setup-later { text-decoration: underline; text-decoration-color: var(--flag-red); text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.setup-row { display: flex; flex-direction: column; gap: 6px; }
+.setup-label { font-weight: 700; font-size: 0.875rem; }
+.setup-check { display: flex; align-items: center; gap: 10px; }
+.setup-box .listbox-button { height: var(--h-control); font-size: 1rem; }
+
+/* ----- learn: the list of lessons ----- */
+/* Text that is there for a screen reader only. */
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.learn h3, .why h3 { margin: 0; }
+.learn-top h2, .learn-wait h2 { font-size: 1.5rem; margin-bottom: 8px; }
+.learn h2:focus, .learn h3:focus { outline: none; }
+/* A section that a link led to takes the keyboard focus so that reading goes on there. It is at the top of the window, which says enough: no ring around a whole section. */
+.learn [data-anchor]:focus { outline: none; }
+.learn-intro { margin: 0 0 8px; max-width: 62ch; }
+.learn-coverage { margin: 0 0 16px; font-weight: 600; }
+.learn-next { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px; background: var(--surface-2); border-radius: var(--radius-control); }
+/* A button whose text is a sentence or a title may take two lines; it never gets narrower than its row allows. */
+.learn-next .primary, .lesson-end > .primary { height: auto; min-height: var(--h-control); padding-block: 8px; white-space: normal; text-align: start; overflow-wrap: anywhere; }
+/* What the next step is changes when a lesson is ticked off in the list below. The button and its hint each have the room of two lines
+   whatever they say, and a longer title is cut, so the list never moves under the pointer. */
+/* Two lines, the padding above and below, and the two edges. */
+.learn-next .primary { min-height: calc(3em + 16px + 2 * var(--bw-control)); min-height: calc(2lh + 16px + 2 * var(--bw-control)); }
+.learn-next .hint, .learn-coverage { min-height: 3em; min-height: 2lh; }
+.learn-refs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+/* The room of the first card while the course is on its way, so little moves when it arrives. */
+.learn-wait { min-height: 17rem; }
+.learn-wait p { margin: 0 0 12px; }
+.learn-chapter { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.learn-chapter-title, .block-title, .unit-title { font-family: var(--font-display); text-wrap: balance; }
+.learn-chapter-title { font-size: 1.1875rem; }
+.block-title { font-size: 1.125rem; font-weight: 700; margin: 0 0 6px; }
+.learn .block-title { margin-bottom: 6px; }
+.lesson-list { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+/* A lesson of the list: the tick that marks it as done, and next to it the link that opens it. */
+.lesson-item { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: stretch; gap: 4px; }
+/* The label around the tick is its target: as wide as a control, as high as the row. */
+.lesson-tick { display: grid; place-items: center; width: var(--h-control); cursor: pointer; }
+.done-box { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--ok); cursor: pointer; }
+.lesson-row {
+    color: inherit;
+    text-decoration: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "title tags" "meta tags";
+    gap: 2px 12px;
+    align-items: center;
+    padding: 12px 14px;
+    text-align: start;
+    background: var(--surface);
+    border: var(--bw-control) solid var(--line);
+    border-radius: var(--radius-control);
+}
+@media (hover: hover) { .lesson-row:hover { border-color: var(--line-strong); } }
+.lesson-title { grid-area: title; font-weight: 700; overflow-wrap: anywhere; }
+.lesson-meta { color: var(--fg-muted); font-size: 0.8125rem; }
+.lesson-row .lesson-meta { grid-area: meta; }
+.lesson-tags { grid-area: tags; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.lesson-state { gap: 4px; }
+.lesson-state .icon { width: 14px; height: 14px; stroke-width: 2.4; }
+.lesson-state.is-read { background: var(--ok-bg); color: var(--ok); }
+.lesson-state.is-secure { background: var(--ok); color: var(--bg); }
+.lesson-weak { background: var(--warn-bg); color: var(--warn); }
+.ready-list { list-style: none; margin: 8px 0 10px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ready-list li { display: flex; align-items: flex-start; gap: 8px; color: var(--fg-muted); }
+.ready-list .icon { margin-top: 0.2em; }
+.ready-list .is-met { color: var(--fg); }
+.ready-list .is-met .icon { color: var(--ok); stroke-width: 2.6; }
+.ready-verdict { margin: 0; color: var(--fg-muted); font-size: 0.875rem; }
+.ready-verdict.ok, .check-result.ok { color: var(--ok); font-weight: 700; }
+
+/* ----- learn: a lesson ----- */
+.learn-bar { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.learn-bar .secondary { flex: none; color: var(--fg); text-decoration: none; }
+.learn-crumb { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg-muted); font-size: 0.875rem; font-weight: 600; }
+.lesson-head h2 { font-size: 1.5rem; }
+/* The heading of a page of the tab, and the button that hands its address over at the end of the line. */
+.lesson-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.lesson-top h2 { min-width: 0; font-size: 1.5rem; overflow-wrap: anywhere; }
+.share-button { flex: none; }
+/* Texts that take turns in one place lie over each other, so the place keeps the size of the longest. */
+.swap-box { display: inline-grid; }
+.swap-box > .swap { grid-area: 1 / 1; white-space: nowrap; }
+.swap-box > .swap.is-off { visibility: hidden; }
+.lesson-linked { margin: 12px 0 0; max-width: 62ch; }
+/* The link shown to be copied by hand, where the page may not copy it itself. */
+.share-manual { display: flex; flex-direction: column; gap: 8px; }
+.share-url { width: 100%; height: var(--h-control); padding: 0 10px; border: var(--bw-control) solid var(--line-strong); border-radius: var(--radius-control); background: var(--surface); color: var(--fg); font: inherit; }
+/* The link of a section, next to its heading. It has its room from the start, so the heading never moves; it shows when the pointer is on
+   the heading or the keyboard is on the link, and it always shows where there is no pointer to hover with. */
+.unit-title, .block-title { display: flex; align-items: baseline; gap: 8px; }
+.unit-title > span, .block-title > span { min-width: 0; }
+.section-link { flex: none; align-self: center; display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: var(--radius-sm); color: var(--fg-muted); opacity: 0; }
+.section-link .icon { width: 18px; height: 18px; }
+.unit-title:hover .section-link, .block-title:hover .section-link, .section-link:focus-visible, .section-link.is-noted { opacity: 1; }
+.section-link:hover { background: var(--surface-2); color: var(--fg); }
+.section-link.is-noted { color: var(--ok); }
+@media (hover: none) { .section-link { opacity: 0.6; } }
+/* The tick at the end of a lesson. */
+.lesson-done { display: flex; flex-direction: column; gap: 6px; }
+.done-label { display: flex; align-items: center; gap: 10px; min-height: var(--h-control); font-weight: 700; cursor: pointer; }
+.lesson-head .lesson-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 14px; }
+.lesson-big { margin: 0; max-width: 62ch; padding-inline-start: 12px; border-inline-start: 4px solid var(--gold); font-size: 1.0625rem; font-weight: 600; }
+.lesson-body { display: flex; flex-direction: column; gap: 28px; }
+.lesson-body figure { margin: 0; }
+.unit, .watch, .recall, .chain { max-width: 68ch; }
+.unit { display: flex; flex-direction: column; gap: 8px; scroll-margin-top: 16px; }
+.unit-title { font-size: 1.1875rem; line-height: 1.3; }
+.unit-tags { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+/* A German word inside a text of another language: set apart by its weight, never by a colour alone. */
+.de-term { font-weight: 600; }
+/* A word that carries a trap of the test, such as "not": bold and underlined in the red of the flag, so it is not taken for a German term. */
+.learn strong, .modal-cards .flashcard strong, .why strong { font-weight: 700; text-decoration: underline; text-decoration-color: var(--flag-red); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.term { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; padding: 8px 12px; background: var(--surface-2); border-radius: var(--radius-control); }
+.term-word { font-size: 1.0625rem; font-weight: 700; }
+.term-dot { color: var(--flag-red); font-weight: 700; padding-inline: 1px; }
+.term-meaning { color: var(--fg-muted); font-size: 0.9375rem; }
+.unit-label { margin-inline-end: 8px; color: var(--fg-muted); font-size: 0.75rem; font-weight: 700; letter-spacing: var(--label-track, 0.04em); text-transform: var(--label-case, uppercase); }
+.unit-asked { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1px dashed var(--line-strong); border-radius: var(--radius-control); font-weight: 600; }
+.unit-body, .unit-case, .unit-asof { margin: 0; }
+.unit-case { padding-inline-start: 12px; border-inline-start: 3px solid var(--line-strong); }
+.caption .de-term { color: var(--fg); }
+
+/* A table that sets things side by side. Below 620px every row is a small box of its own, see the narrow screens. */
+.compare table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.compare th, .compare td { padding: 8px 10px; border: 1px solid var(--line); text-align: start; vertical-align: top; overflow-wrap: anywhere; }
+.compare thead th { background: var(--surface-2); font-size: 0.875rem; }
+.compare thead td { border: 0; }
+.compare tbody th { font-weight: 700; }
+.cell-head { display: none; }
+
+.chain ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; max-width: 34em; }
+.chain-step { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: var(--bw-control) solid var(--line-strong); border-radius: var(--radius-control); }
+.chain-term { font-weight: 700; }
+.chain-text { color: var(--fg-muted); font-size: 0.875rem; }
+.chain-link { display: flex; align-items: center; gap: 8px; padding: 4px 12px; color: var(--fg-muted); font-size: 0.8125rem; font-weight: 600; }
+.lesson-picture .picture { margin: 0; }
+
+.watch { padding: 12px 14px; background: var(--warn-bg); border-inline-start: 4px solid var(--caution); border-radius: var(--radius-control); }
+.watch-label { display: inline-flex; align-items: center; gap: 6px; color: var(--warn); font-size: 0.8125rem; font-weight: 700; letter-spacing: var(--label-track, 0.04em); text-transform: var(--label-case, uppercase); }
+.watch p { margin: 4px 0 0; }
+.recall-list { margin: 10px 0 0; padding-inline-start: 22px; display: flex; flex-direction: column; gap: 14px; }
+.recall-q { margin: 0 0 6px; font-weight: 600; }
+.recall-a { margin: 0; }
+
+/* Something that is covered until it is asked for. What is covered is laid out from the start and only not painted, and the button lies over it
+   in the same cell: uncovering changes no size and moves nothing. */
+.reveal { display: grid; }
+.reveal-content { grid-area: 1 / 1; min-width: 0; min-height: calc(var(--h-control-sm) + 16px); padding: 10px 12px; background: var(--surface-2); border-radius: var(--radius-control); }
+.reveal:not(.is-open) .reveal-content { visibility: hidden; }
+.reveal-cover { grid-area: 1 / 1; height: auto; min-height: var(--h-control-sm); border-style: dashed; border-color: var(--line-strong); white-space: normal; }
+
+/* A catalogue question inside a lesson. The line under the options is always there, two lines high, so an answer moves nothing. */
+.mini-q { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); min-width: 0; }
+/* The words "Correct" and "Your answer" sit on the top edge of their option, like the legend of a box: they take no room inside it,
+   so the text of an option never wraps anew when an answer is given. */
+.mini-q .option { position: relative; }
+.mini-q .mark { position: absolute; inset-block-start: 0; inset-inline-end: 10px; transform: translateY(-50%); padding: 0 6px; background: var(--surface); border-radius: var(--radius-sm); line-height: 1.5; }
+.mini-q-note { margin: 10px 0 0; min-height: 3em; min-height: 2lh; font-size: 0.9375rem; font-weight: 600; color: var(--fg-muted); }
+.mini-q-note.ok { color: var(--ok); }
+.mini-q-note.bad { color: var(--bad); }
+.lesson-pre .hint, .lesson-check .hint { max-width: 62ch; }
+.lesson-check .card-tools { margin: 12px 0 0; }
+.lesson-cards p { margin: 0 0 12px; max-width: 62ch; }
+.check-result { margin: 16px 0 0; min-height: 3em; min-height: 2lh; padding-top: 12px; border-top: 1px solid var(--line); font-weight: 600; color: var(--fg-muted); }
+.lesson-end { display: flex; flex-direction: column; gap: 12px; }
+.lesson-end > .primary { align-self: flex-start; }
+/* The way from a wrong answer to the lesson that explains it. */
+.verdict { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+.learn-why { color: var(--fg); font-weight: 600; }
+.review-item .learn-why { margin-top: 10px; }
+/* The explanation of a question in the dialog: where it comes from, the unit of the lesson, and the way to the whole lesson. */
+.why { display: flex; flex-direction: column; gap: 12px; }
+.why-from { margin: 0; }
+.why .unit { margin: 0; }
+.why .footer-row { margin-top: 4px; }
+.why .footer-row a { text-decoration: none; }
+
+/* ----- learn: flash cards ----- */
+/* The flash cards are shown in the dialog, which has one height. The card fills it and its buttons sit at its bottom edge, so they are in the
+   same place from card to card, and the page below stays where the user left it. */
+.modal-cards .modal-body { display: flex; flex-direction: column; }
+.modal-cards h3 { margin: 0; }
+/* It grows to the height of the dialog and never gets smaller than its content: a long card makes the dialog scroll, not the card overflow. */
+.flashcard { flex: 1 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.flash-meta { margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--fg-muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.flash-lesson { margin: 0; color: var(--fg-muted); font-size: 0.8125rem; font-weight: 600; }
+.modal-cards .flash-front { min-height: 2.6em; font-family: var(--font-display); font-size: 1.375rem; line-height: 1.3; overflow-wrap: anywhere; }
+.flashcard .reveal { flex: 1 1 auto; }
+.flashcard .reveal-content { min-height: 11rem; display: flex; flex-direction: column; gap: 6px; padding: 14px; }
+.flashcard .reveal-cover { font-size: 1rem; }
+.flash-german { margin: 0; font-size: 1.25rem; line-height: 1.3; font-weight: 700; }
+.flash-back { margin: 0; font-size: 1.0625rem; }
+.flash-note { margin: 0; color: var(--fg-muted); font-size: 0.9375rem; }
+.flash-source { margin: auto 0 0; padding-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.flash-actions .primary, .flash-actions .secondary { flex: 1; }
+.flash-keys { text-align: center; }
+@media (hover: none) { .flash-keys { display: none; } }
+.modal-cards .flash-end h3 { font-size: 1.25rem; margin-bottom: 8px; }
+.flash-end p { margin: 0 0 8px; }
+.flash-end .footer-row { justify-content: flex-start; margin-top: 12px; }
+
+/* ----- learn: eras and the timeline ----- */
+/* An era is told by three things at once: its colour, its pattern and its German name. */
+.era-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; font-weight: 700; }
+.era-swatch { flex: none; width: 14px; height: 14px; border-radius: 3px; }
+.era-ns .era-swatch, .group-ns .rail-west { background: var(--era-ns); }
+.era-occupation .era-swatch, .group-occupation .rail-west { background: repeating-linear-gradient(to bottom, var(--era-occupation) 0 4px, transparent 4px 7px); }
+.era-west .era-swatch, .group-division .rail-west { background: var(--era-west); }
+.era-east .era-swatch, .group-division .rail-east { background: repeating-linear-gradient(135deg, var(--era-east) 0 3px, transparent 3px 6px); }
+.era-unity .era-swatch, .group-unity .rail-west { background: linear-gradient(to right, var(--era-unity) 0 34%, transparent 34% 66%, var(--era-unity) 66%); }
+.era-legend { list-style: none; margin: 14px 0 18px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 16px; }
+.era-legend li { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.era-note { color: var(--fg-muted); font-size: 0.8125rem; }
+.chrono-box { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.map-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+/* The hint next to a covering button changes with it. Both of its texts lie in one cell and only one is painted, so the hint is as
+   high as the longer text needs in any language and at any width, and the change moves nothing. */
+.map-tools .hint { flex: 1 1 14em; display: grid; align-items: center; }
+.map-tools .hint > .swap { grid-area: 1 / 1; }
+.map-tools .hint > .swap.is-off { visibility: hidden; }
+
+.chrono { --rail: 26px; list-style: none; margin: 0; padding: 0; }
+.chrono > li { position: relative; display: grid; grid-template-columns: var(--rail) minmax(0, 10em) minmax(0, 1fr); column-gap: 12px; }
+/* The rail runs through every row without a gap. West is the left stripe and east the right one in every language, as on a map. */
+.chrono-rail { grid-column: 1; grid-row: 1 / span 2; position: relative; display: flex; justify-content: center; gap: 4px; direction: ltr; }
+.chrono-rail > .rail-west, .chrono-rail > .rail-east { width: 10px; }
+.chrono-rail > .rail-east { display: none; }
+.group-division .chrono-rail > .rail-east { display: block; }
+.rail-dot { position: absolute; top: calc(6px + var(--h-control-sm) / 2 - 8px); left: calc(50% - 8px); width: 16px; height: 16px; border-radius: 50%; background: var(--surface); border: 4px solid var(--fg); }
+.era-west .rail-dot { left: calc(50% - 15px); }
+.era-east .rail-dot { left: calc(50% - 1px); }
+.chrono-era { margin-top: 10px; }
+.chrono-era:first-child { margin-top: 0; }
+.chrono-era .chrono-rail > span { border-start-start-radius: 5px; border-start-end-radius: 5px; margin-top: 6px; }
+.chrono-era-names { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 4px 16px; padding-top: 8px; }
+.chrono-era > .era-note { grid-column: 2 / -1; padding-bottom: 6px; }
+.chrono-gap-text { grid-column: 2 / -1; padding-block: 2px; color: var(--fg-muted); font-size: 0.75rem; font-style: italic; }
+/* The date and the button that uncovers it share one place: the button lies over the date, which keeps its room. */
+.chrono-when { grid-column: 2; align-self: start; position: relative; display: flex; align-items: center; min-height: var(--h-control-sm); margin-top: 6px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.chrono-date.is-off { visibility: hidden; }
+.chrono-show { position: absolute; inset-block-start: 0; inset-inline-start: 0; min-width: 3.5em; border-style: dashed; border-color: var(--line-strong); }
+.chrono-body { grid-column: 3; display: flex; flex-direction: column; gap: 2px; min-width: 0; padding-block: calc(6px + (var(--h-control-sm) - 1.5em) / 2) 12px; }
+.chrono-term { font-weight: 700; overflow-wrap: anywhere; }
+.chrono-text { color: var(--fg-muted); font-size: 0.9375rem; }
+.chrono-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.side-tag.era-west { background: color-mix(in srgb, var(--era-west) 16%, var(--surface)); color: var(--fg); }
+.side-tag.era-east { background: color-mix(in srgb, var(--era-east) 16%, var(--surface)); color: var(--fg); }
+.europe-tag { background: var(--era-europe); color: var(--surface); }
+
+/* ----- learn: maps ----- */
+.atlas-map .block-title { margin-bottom: 12px; }
+.map-figure { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "map tools" "map legend" "map list"; grid-template-rows: auto auto 1fr; gap: 12px 24px; align-items: start; min-width: 0; }
+.map { grid-area: map; display: block; width: 100%; height: auto; }
+.map-legend { grid-area: legend; }
+.map-figure .map-tools { grid-area: tools; }
+.map-list { grid-area: list; }
+.region { stroke: var(--surface); stroke-width: 1.5; stroke-linejoin: round; }
+.region.g-plain { fill: var(--map-land); }
+.region.g-other { fill: var(--map-far); }
+.region.g-home { fill: var(--gold); }
+.region.g-west, .region.g-zone-us { fill: color-mix(in srgb, var(--era-west) 55%, var(--surface)); }
+.region.is-entry, .map-label { cursor: pointer; }
+/* A picked region is filled with ink. A style wins over the pattern the region names in its attribute. */
+.map .region.is-picked { fill: var(--ink); }
+.pat-bg { fill: var(--map-land); }
+.pat-ink { fill: none; stroke-width: 3; stroke-linecap: square; }
+.pat-east .pat-ink, .pat-zone-su .pat-ink { stroke: var(--era-east); }
+.pat-zone-uk .pat-ink { stroke: var(--era-west); }
+.pat-zone-fr .pat-dot { fill: var(--era-west); }
+.pat-berlin .pat-ink { stroke: var(--fg); stroke-width: 2; }
+.map-dot { fill: var(--fg); opacity: 0.5; pointer-events: none; }
+.map-label circle { fill: var(--surface); stroke: var(--fg); stroke-width: 1.5; }
+/* The size of a number is in the units of the drawing, so it grows and shrinks with the map. */
+.map-label text { fill: var(--fg); font-family: var(--font-body); font-size: 22px; font-weight: 700; user-select: none; }
+.map-label.is-picked circle { stroke-width: 4; }
+.map-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.875rem; }
+.map-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.map-swatch { flex: none; width: 18px; height: 18px; border: 1px solid var(--line-strong); border-radius: 3px; }
+.map-swatch .region { stroke: none; }
+.map-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.map-entry { width: 100%; display: flex; align-items: center; gap: 10px; min-height: var(--h-control); padding: 4px 8px; text-align: start; background: transparent; border: var(--bw-control) solid transparent; border-radius: var(--radius-control); }
+@media (hover: hover) { .map-entry:hover { background: var(--surface-2); } }
+.map-entry.is-picked { border-color: var(--ink); background: var(--surface-2); }
+.map-no { flex: none; display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; min-width: 1.6em; font-weight: 700; font-variant-numeric: tabular-nums; }
+/* The numbers stand in one column, with or without a swatch in front of them. */
+.map-no > span { min-width: 1.5em; text-align: end; }
+.has-swatches .map-no { min-width: calc(24px + 1.5em); }
+/* The name and the words that stand for it while it is covered share one cell, so a line keeps its height. */
+.map-name { flex: 1; min-width: 0; display: grid; align-items: center; }
+.map-name-text { grid-area: 1 / 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; min-width: 0; }
+.map-name-text.is-off { visibility: hidden; }
+.map-hidden { grid-area: 1 / 1; color: var(--fg-muted); font-size: 0.875rem; }
+.map-term { font-weight: 600; }
+.map-text { color: var(--fg-muted); font-size: 0.875rem; }
+.map-detail { margin-inline-start: auto; color: var(--fg-muted); font-size: 0.8125rem; }
+
+/* ----- learn: the widget at the side ----- */
+.box-row { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.box-row li { display: flex; flex-direction: column; align-items: center; padding: 4px 0; border: 1px solid var(--line); border-radius: var(--radius-sm); font-variant-numeric: tabular-nums; line-height: 1.3; }
+.box-no { color: var(--fg-muted); font-size: 0.6875rem; }
+
+/* ----- narrow screens ----- */
+@media (max-width: 820px) {
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    .aside { order: 2; }
+    .brand h1 { font-size: 1.5rem; }
+    /* The clock widget is below the question here, so a running clock also shows in a strip that stays at the top edge. */
+    .clock-strip {
+        display: flex;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: var(--h-control-sm);
+        margin: 0;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+    .clock-strip-label { color: var(--fg-muted); font-weight: 400; font-size: 0.875rem; }
+    .clock-strip.level-nudge, .clock-strip.level-warn { color: var(--warn); }
+    .clock-strip.level-warn { border-color: var(--caution); }
+    .clock-strip.level-critical { color: var(--bad); border-color: var(--bad); }
+    /* While the strip shows, what is scrolled to (the timeline or the question) stops below it. */
+    .clock-strip ~ .card, .clock-strip ~ .timeline { scroll-margin-top: calc(var(--h-control-sm) + 8px); }
+}
+@media (max-width: 520px) {
+    .modal-backdrop { padding: 8px; }
+    .modal-head { padding: 14px 14px 10px; }
+    .modal-body { padding: 14px; }
+    .modal-actions > * { flex: 1 1 100%; text-align: center; }
+    .question { font-size: 1.1875rem; }
+    /* Four tabs in one row of a phone: no room between them, and a slightly smaller word. They never get narrower than their word; a row that is still too wide scrolls. */
+    .tabs { gap: 0; }
+    .tab { flex: 1 0 auto; justify-content: center; padding-inline: 6px; font-size: 0.9375rem; }
+    .header-tools { flex: 1 1 100%; display: grid; grid-template-columns: 1fr 1fr; }
+    .header-box .listbox-prefix, .translation-box .listbox-prefix { display: none; }
+    .round-bar { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: baseline; }
+    .round-fact { display: contents; }
+    .round-bar > button { grid-column: 1 / -1; width: 100%; margin: 8px 0 0; }
+    /* Buttons in a row share the width, but none gets narrower than its text: a row that does not fit wraps. */
+    .panel-actions > * { flex: 1; min-width: max-content; }
+    .result-score { font-size: 2.75rem; }
+    .footer-row .primary, .footer-row .secondary, .footer-row .danger { flex: 1; min-width: max-content; }
+    /* A verdict with a word about the guess takes a third line on a narrow screen. */
+    .mini-q-note { min-height: 4.5em; min-height: 3lh; }
+    .lesson-row { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "meta" "tags"; }
+    .lesson-tags { flex-direction: row; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+    .learn-refs > * { flex: 1; min-width: max-content; }
+    .modal-cards .flash-front { font-size: 1.1875rem; }
+    .lesson-tick { width: var(--h-control-sm); }
+    .lesson-end > .primary { align-self: stretch; text-align: center; }
+    /* The date goes above its event, so the text has the whole width. */
+    .chrono > li { grid-template-columns: var(--rail) minmax(0, 1fr); }
+    .chrono-when, .chrono-body { grid-column: 2; }
+    .chrono-body { padding-block: 2px 14px; }
+}
+/* A table of a lesson as boxes: every row is a box, and every value has the head of its column in front of it. The head row stays for screen readers. */
+@media (max-width: 620px) {
+    .compare thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .compare table, .compare tbody { display: block; }
+    .compare tbody tr { display: block; margin-bottom: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-control); }
+    .compare tbody th { display: block; padding: 0 0 6px; border: 0; }
+    .compare tbody td { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 10px; padding: 6px 0; border: 0; border-top: 1px solid var(--line); }
+    .cell-head { display: block; color: var(--fg-muted); font-size: 0.8125rem; font-weight: 600; }
+}
+/* A map above its list where there is no room for the two side by side. */
+@media (max-width: 700px) {
+    .map-figure { grid-template-columns: minmax(0, 1fr); grid-template-areas: "map" "legend" "tools" "list"; grid-template-rows: none; }
+    .map { max-width: 420px; justify-self: center; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .option, .tab, .slot, .nav-dot, .lesson-row, .map-entry { transition: background-color 0.12s, border-color 0.12s, color 0.12s; }
+    .section-link { transition: opacity 0.12s; }
+}
+
+/* ----- other scripts: Arabic and Hindi are never spaced out or put in capitals, and need more room between the lines ----- */
+:root:lang(ar), :root:lang(hi) { --label-case: none; --label-track: 0em; }
+:root:lang(ar) body, :root:lang(hi) body { line-height: 1.7; }
+:root:lang(ar) .question, :root:lang(hi) .question, :root:lang(ar) .modal-title, :root:lang(hi) .modal-title { line-height: 1.55; }
+:root:lang(ar), .bi-sub:lang(ar) { font-synthesis: none; }
+/* A translation in Arabic or Hindi is set a little larger than a Latin one at the same size, and needs the room for its marks above and below the line. */
+.bi-sub:lang(ar), .bi-sub:lang(hi) { font-size: 1em; line-height: 1.7; }
+:root:lang(ar) .clamp, :root:lang(hi) .clamp, .clamp:lang(ar), .clamp:lang(hi) { line-height: 1.6; padding-block: 0.1em; }
+:root:lang(ar) .unit-title, :root:lang(hi) .unit-title, :root:lang(ar) .flash-front, :root:lang(hi) .flash-front, :root:lang(ar) .flash-german, :root:lang(hi) .flash-german { line-height: 1.55; }
+/* Slanted text does not exist in these scripts. */
+:root:lang(ar) .chrono-gap-text, :root:lang(hi) .chrono-gap-text { font-style: normal; }
+
+/* ----- right to left (the site in Arabic): what a logical property cannot mirror ----- */
+:root[dir="rtl"] .timeline-strip { mask-image: linear-gradient(270deg, black 0, black calc(100% - 16px), transparent 100%); }
+/* The flag in the corner of a marked exam question sits in the corner at the end of the row: one mirrored triangle, its rounded corner with it. */
+:root[dir="rtl"] .nav-dot.is-marked::after { transform: scaleX(-1); }
+/* Arrows that mean back, forward, earlier and later point the other way. The play, flag and book icons are objects and stay. */
+:root[dir="rtl"] .icon-dir { transform: scaleX(-1); }
+:root[dir="rtl"] .slot.is-resume .slot-glyph, :root[dir="rtl"] .legend-swatch.is-resume { transform: scaleX(-1); }
+/* A German text in a right to left page stays left to right and sits against the badge, not at the far edge of the line. */
+:root[dir="rtl"] .bi-main { align-self: flex-start; max-inline-size: 100%; }
+:root[dir="rtl"] .chrono-term, :root[dir="rtl"] .chain-term { align-self: flex-start; max-inline-size: 100%; }
+/* The names of languages in their own script keep their direction, and are aligned with the page. */
+.listbox-option [dir], .listbox-button [dir] { text-align: left; }
+:root[dir="rtl"] .listbox-option [dir], :root[dir="rtl"] .listbox-button [dir] { text-align: right; }
+/* The numbers on a map and a date are read from the left. */
+.map-label text { direction: ltr; unicode-bidi: isolate; }
+/* Clock and counters are read from the left whatever the page does. */
+.clock-display, .clock, #clock-strip-time { direction: ltr; unicode-bidi: isolate; }

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LiD Practice">
+    <defs>
+        <clipPath id="shape"><rect width="512" height="512" rx="112"/></clipPath>
+    </defs>
+    <g clip-path="url(#shape)">
+        <rect width="512" height="171" fill="#14171f"/>
+        <rect y="171" width="512" height="171" fill="#c8321f"/>
+        <rect y="342" width="512" height="170" fill="#d9ac2c"/>
+    </g>
+    <circle cx="256" cy="256" r="148" fill="#ffffff"/>
+    <path d="M176 262l58 58 110-126" fill="none" stroke="#14171f" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

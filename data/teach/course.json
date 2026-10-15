@@ -1,0 +1,694 @@
+{
+    "eras": [
+        {"id": "ns", "from": 1933, "to": 1945, "term": "NS-Diktatur"},
+        {"id": "occupation", "from": 1945, "to": 1949, "term": "Besatzungszeit"},
+        {"id": "west", "from": 1949, "to": 1990, "term": "Bundesrepublik (West)"},
+        {"id": "east", "from": 1949, "to": 1990, "term": "DDR (Ost)"},
+        {"id": "unity", "from": 1990, "to": null, "term": "Vereintes Deutschland"}
+    ],
+    "events": [
+        {"id": "hitler-kanzler", "date": "1933", "era": "ns", "questions": [152, 155, 156, 157, 158], "term": "Hitler wird Reichskanzler"},
+        {"id": "pogrom", "date": "1938-11-09", "era": "ns", "questions": [163, 164], "term": "Pogromnacht"},
+        {"id": "kriegsbeginn", "date": "1939", "era": "ns", "questions": [160], "term": "Beginn des Zweiten Weltkriegs"},
+        {"id": "stauffenberg", "date": "1944-07-20", "era": "ns", "questions": [162], "term": "Attentat auf Hitler"},
+        {"id": "auschwitz", "date": "1945-01-27", "era": "ns", "questions": [220], "term": "Befreiung von Auschwitz"},
+        {"id": "kriegsende", "date": "1945-05-08", "era": "ns", "questions": [153, 154, 179], "term": "Ende des Zweiten Weltkriegs in Europa"},
+        {"id": "besatzungszonen", "date": "1945", "era": "occupation", "questions": [167, 168, 175, 176, 177], "term": "Vier Besatzungszonen"},
+        {"id": "luftbruecke", "date": "1948/1949", "era": "occupation", "questions": [178], "term": "Berliner Luftbrücke"},
+        {"id": "brd-gruendung", "date": "1949", "era": "west", "questions": [169, 165, 180], "term": "Gründung der Bundesrepublik Deutschland"},
+        {"id": "ddr-gruendung", "date": "1949", "era": "east", "questions": [174, 172, 217], "term": "Gründung der DDR"},
+        {"id": "wirtschaftswunder", "date": "1950s", "era": "west", "questions": [183], "term": "Wirtschaftswunder"},
+        {"id": "gastarbeiter", "date": "1955", "era": "west", "questions": [299, 300], "term": "Anwerbung von Gastarbeitern"},
+        {"id": "volksaufstand", "date": "1953-06-17", "era": "east", "questions": [186, 210], "term": "Volksaufstand in der DDR"},
+        {"id": "roemische-vertraege", "date": "1957", "era": "west", "europe": true, "questions": [237, 239, 173], "term": "Römische Verträge"},
+        {"id": "mauerbau", "date": "1961", "era": "east", "questions": [151, 188, 189, 193], "term": "Bau der Berliner Mauer"},
+        {"id": "kniefall", "date": "1970", "era": "west", "questions": [181, 211], "term": "Kniefall von Warschau"},
+        {"id": "montagsdemos", "date": "1989", "era": "east", "questions": [166, 196], "term": "Montagsdemonstrationen"},
+        {"id": "mauerfall", "date": "1989", "era": "east", "questions": [191], "term": "Öffnung der Berliner Mauer"},
+        {"id": "einheit", "date": "1990-10-03", "era": "unity", "questions": [194, 204, 215, 218, 219, 228, 205], "term": "Deutsche Einheit"},
+        {"id": "euro", "date": "2002", "era": "unity", "europe": true, "questions": [240], "term": "Euro-Bargeld"}
+    ],
+    "places": {
+        "de": "Deutschland",
+        "dk": "Dänemark",
+        "pl": "Polen",
+        "cz": "Tschechien",
+        "at": "Österreich",
+        "ch": "die Schweiz",
+        "fr": "Frankreich",
+        "lu": "Luxemburg",
+        "be": "Belgien",
+        "nl": "die Niederlande",
+        "strasbourg": "Straßburg",
+        "luxembourg": "Luxemburg",
+        "brussels": "Brüssel",
+        "zone-uk": "Britische Zone",
+        "zone-su": "Sowjetische Zone",
+        "zone-us": "Amerikanische Zone",
+        "zone-fr": "Französische Zone",
+        "berlin-sectors": "Berlin: vier Sektoren",
+        "west": "Bundesrepublik (West)",
+        "east": "DDR (Ost)",
+        "berlin-divided": "Berlin: geteilte Stadt"
+    },
+    "chapters": [
+        {
+            "id": "staatssymbole",
+            "lessons": [
+                {
+                    "id": "symbole", "minutes": 5, "pre": 212, "check": [212, 40, 216],
+                    "blocks": [
+                        {"type": "unit", "id": "name", "questions": [212], "term": "die Bundes·republik Deutschland", "de": "Bundesrepublik Deutschland"},
+                        {"type": "watch", "id": "falle-bundes"},
+                        {"type": "unit", "id": "einwohner", "questions": [213], "asOf": 2025, "de": "84 Millionen"},
+                        {"type": "unit", "id": "flagge", "questions": [214], "term": "schwarz-rot-gold", "de": "schwarz-rot-gold"},
+                        {"type": "unit", "id": "hymne", "questions": [40], "term": "die National·hymne", "de": "Einigkeit und Recht und Freiheit"},
+                        {"type": "unit", "id": "adler", "questions": [29, 21, 216], "term": "der Bundes·adler", "de": "der Adler (Bundesadler), im Plenarsaal des Bundestages"},
+                        {"type": "picture", "id": "wappen", "question": 21},
+                        {"type": "picture", "id": "plenarsaal", "question": 216},
+                        {"type": "watch", "id": "falle-reich"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "grundrechte",
+            "lessons": [
+                {
+                    "id": "wuerde", "minutes": 6, "pre": 10, "check": [10, 18, 12], "review": 40,
+                    "blocks": [
+                        {"type": "unit", "id": "wuerde", "questions": [18], "term": "die Menschen·würde", "de": "die Unantastbarkeit der Menschenwürde"},
+                        {"type": "watch", "id": "falle-rechte"},
+                        {"type": "unit", "id": "gleich-gesetz", "questions": [8, 17], "term": "die Gleich·heit vor dem Gesetz", "de": "Alle sind vor dem Gesetz gleich."},
+                        {"type": "unit", "id": "zwangsarbeit", "questions": [15], "term": "die Zwangs·arbeit", "de": "Zwangsarbeit"},
+                        {"type": "unit", "id": "strafe", "questions": [10], "term": "die Geld·strafe", "de": "die Geldstrafe"},
+                        {"type": "unit", "id": "grundrecht-fest", "questions": [12], "term": "das Grund·recht", "de": "Nein, ein Grundrecht kann nicht abgeschafft werden."},
+                        {"type": "watch", "id": "falle-mehrheit"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "freiheiten", "minutes": 8, "pre": 243, "check": [243, 16, 274], "review": 18,
+                    "blocks": [
+                        {"type": "unit", "id": "meinung", "questions": [1, 4, 14], "term": "die Meinungs·freiheit", "de": "Meinungsfreiheit"},
+                        {"type": "watch", "id": "falle-faust"},
+                        {"type": "unit", "id": "meinung-grenze", "questions": [16], "de": "bei der öffentlichen Verbreitung falscher Behauptungen über einzelne Personen"},
+                        {"type": "unit", "id": "glaube", "questions": [7], "term": "die Glaubens- und Gewissens·freiheit", "de": "Glaubens- und Gewissensfreiheit"},
+                        {"type": "unit", "id": "religionsunterricht", "questions": [2], "term": "der Religions·unterricht", "de": "Religionsunterricht"},
+                        {"type": "unit", "id": "freizuegigkeit", "questions": [19], "term": "die Frei·zügigkeit", "de": "Freizügigkeit: Man darf sich den Wohnort selbst aussuchen."},
+                        {"type": "unit", "id": "demo", "questions": [243], "term": "die Versammlungs·freiheit", "de": "die Demonstration anmelden"},
+                        {"type": "unit", "id": "briefgeheimnis", "questions": [274], "term": "das Brief·geheimnis", "de": "das Briefgeheimnis"},
+                        {"type": "watch", "id": "falle-schweigen"},
+                        {"type": "compare", "id": "freiheiten-nebeneinander", "columns": 3, "rows": 5},
+                        {"type": "unit", "id": "asyl", "questions": [9], "term": "das Asyl", "de": "Asyl"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "gleichbehandlung", "minutes": 5, "pre": 278, "check": [278, 262, 281], "review": 274,
+                    "blocks": [
+                        {"type": "unit", "id": "gleichbehandlung", "questions": [262], "term": "die Gleich·behandlung", "de": "Niemand darf z.B. wegen einer Behinderung benachteiligt werden."},
+                        {"type": "unit", "id": "bewerbung", "questions": [277, 278, 289], "term": "die Diskriminierung", "de": "wenn man nur Mutter ist, im Rollstuhl sitzt oder dunkle Haut hat"},
+                        {"type": "compare", "id": "bewerbung-vergleich", "columns": 3, "rows": 3},
+                        {"type": "watch", "id": "falle-nur-deshalb"},
+                        {"type": "unit", "id": "schwimmbad", "questions": [281], "term": "das Recht auf Gleichbehandlung", "de": "das Recht auf Gleichbehandlung"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "demokratie-und-rechtsstaat",
+            "lessons": [
+                {
+                    "id": "staatsform", "minutes": 6, "pre": 26, "check": [26, 34, 33], "review": 281,
+                    "blocks": [
+                        {"type": "unit", "id": "grundgesetz", "questions": [6, 11], "term": "das Grund·gesetz", "de": "das Grundgesetz"},
+                        {"type": "unit", "id": "republik", "questions": [22, 34], "term": "die Republik", "de": "Republik, nicht Monarchie"},
+                        {"type": "unit", "id": "bundesstaat", "questions": [27, 38, 26], "term": "der Bundes·staat", "de": "ein demokratischer und sozialer Bundesstaat"},
+                        {"type": "compare", "id": "staatsformen", "columns": 4, "rows": 3},
+                        {"type": "watch", "id": "falle-verbund"},
+                        {"type": "unit", "id": "religion", "questions": [33], "term": "die Religions·gemeinschaft", "de": "Staat und Religionsgemeinschaften sind getrennt."},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "gewalten", "minutes": 7, "pre": 52, "check": [52, 54, 63], "review": 34,
+                    "blocks": [
+                        {"type": "unit", "id": "volkssouveraenitaet", "questions": [52, 61], "term": "die Volks·souveränität", "de": "Alle Staatsgewalt geht vom Volke aus."},
+                        {"type": "unit", "id": "gewaltenteilung", "questions": [54, 32], "term": "die Gewalten·teilung", "de": "Legislative, Exekutive, Judikative"},
+                        {"type": "compare", "id": "drei-gewalten", "columns": 4, "rows": 3},
+                        {"type": "watch", "id": "falle-vierte"},
+                        {"type": "unit", "id": "legislative", "questions": [60], "term": "die Legislative", "de": "die Legislative: Bundestag und Bundesrat"},
+                        {"type": "unit", "id": "exekutive", "questions": [63], "term": "die Exekutive", "de": "zur Judikative"},
+                        {"type": "unit", "id": "pressezensur", "questions": [30], "term": "die Presse·zensur", "de": "die Pressezensur"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "rechtsstaat", "minutes": 6, "pre": 3, "check": [3, 51, 43], "review": 63,
+                    "blocks": [
+                        {"type": "unit", "id": "rechtsstaat", "questions": [3, 53], "term": "der Rechts·staat", "de": "Der Staat muss die Gesetze einhalten."},
+                        {"type": "watch", "id": "falle-recht"},
+                        {"type": "unit", "id": "keine-willkuer", "questions": [51], "de": "Nein. Eine Verhaftung braucht einen Grund."},
+                        {"type": "unit", "id": "parteiverbot", "questions": [20, 43], "term": "verfassungs·widrig", "de": "wenn sie gegen die Verfassung kämpft"},
+                        {"type": "watch", "id": "falle-kritik"},
+                        {"type": "chain", "id": "lehre-1933", "terms": ["die Diktatur", "das Grundgesetz", "der Rechtsstaat"]},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "parteien-und-wahlen",
+            "lessons": [
+                {
+                    "id": "wahlgrundsaetze", "minutes": 6, "pre": 125, "check": [125, 122, 5], "review": 3,
+                    "blocks": [
+                        {"type": "unit", "id": "wechsel", "questions": [125], "term": "der Regierungs·wechsel", "de": "einen Wechsel der Regierung ermöglichen"},
+                        {"type": "unit", "id": "recht", "questions": [114], "term": "das Recht", "de": "ein Recht"},
+                        {"type": "unit", "id": "drei-grundsaetze", "questions": [122, 112], "term": "frei, gleich, geheim", "de": "frei, gleich, geheim"},
+                        {"type": "watch", "id": "falle-grundsaetze"},
+                        {"type": "unit", "id": "frei", "questions": [5, 119], "term": "die freie Wahl", "de": "ohne Zwang entscheiden, ob und wen man wählt"},
+                        {"type": "watch", "id": "falle-frei"},
+                        {"type": "unit", "id": "meiste", "questions": [113], "de": "die Partei mit den meisten Stimmen"},
+                        {"type": "unit", "id": "mehrere-parteien", "questions": [41], "term": "die Partei", "de": "weil dadurch die unterschiedlichen Meinungen der Bürger vertreten werden"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "waehlen", "minutes": 8, "pre": 94, "check": [94, 116, 282], "review": 122,
+                    "blocks": [
+                        {"type": "unit", "id": "alter", "questions": [94, 108], "term": "wahl·berechtigt", "de": "Bürger der Bundesrepublik Deutschland, mindestens 18 Jahre alt"},
+                        {"type": "unit", "id": "aktives-wahlrecht", "questions": [115, 116], "term": "das aktive Wahl·recht", "de": "aktives Wahlrecht"},
+                        {"type": "watch", "id": "falle-wahlwoerter"},
+                        {"type": "unit", "id": "wahlbenachrichtigung", "questions": [126], "term": "die Wahl·benachrichtigung", "de": "eine Wahlbenachrichtigung von der Gemeinde"},
+                        {"type": "unit", "id": "briefwahl", "questions": [133], "term": "die Brief·wahl", "de": "durch Briefwahl"},
+                        {"type": "unit", "id": "stimmzettel", "questions": [130], "term": "der Stimm·zettel", "de": "ein Kreuz bei der Erststimme, ein Kreuz bei der Zweitstimme"},
+                        {"type": "picture", "id": "stimmzettel-bild", "question": 130},
+                        {"type": "unit", "id": "wahlhelfer", "questions": [105, 106], "term": "der Wahl·helfer", "de": "Sie zählen die Stimmen nach dem Ende der Wahl."},
+                        {"type": "unit", "id": "ehrenamt", "questions": [282], "term": "das Ehren·amt", "de": "Wahlhelferin/Wahlhelfer"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "bundestagswahl", "minutes": 6, "pre": 28, "check": [28, 124, 44], "review": 282,
+                    "blocks": [
+                        {"type": "unit", "id": "volk-waehlt", "questions": [28, 129], "term": "das wahl·berechtigte Volk", "de": "den Bundestag"},
+                        {"type": "chain", "id": "wahlkette", "terms": ["das Volk", "der Bundestag"]},
+                        {"type": "unit", "id": "bundestagswahl", "questions": [124], "term": "die Bundes·tags·wahl", "de": "das Parlament für Deutschland"},
+                        {"type": "unit", "id": "landtagswahl", "questions": [62], "term": "die Land·tags·wahl", "de": "Landtagswahl"},
+                        {"type": "compare", "id": "wahlen-vergleich", "columns": 3, "rows": 3},
+                        {"type": "unit", "id": "vier-jahre", "questions": [107, 109, 110], "term": "alle vier Jahre", "de": "für 4 Jahre"},
+                        {"type": "unit", "id": "abgeordnete", "questions": [128], "term": "die Abgeordneten", "de": "Abgeordnete"},
+                        {"type": "unit", "id": "bundespraesident", "questions": [44], "term": "der Bundes·präsident", "de": "die Bundespräsidentin/der Bundespräsident"},
+                        {"type": "watch", "id": "falle-personen"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "zweitstimme", "minutes": 6, "pre": 117, "check": [117, 127, 93], "review": 28,
+                    "blocks": [
+                        {"type": "unit", "id": "zweitstimme", "questions": [93], "term": "die Zweit·stimme", "de": "wie viele Sitze die Partei im Parlament erhält"},
+                        {"type": "compare", "id": "erst-zweit", "columns": 3, "rows": 3},
+                        {"type": "unit", "id": "huerde", "questions": [117, 121, 123], "term": "die 5%-Hürde", "de": "die 5%-Hürde: mindestens 5 Prozent der Zweitstimmen"},
+                        {"type": "watch", "id": "falle-huerde"},
+                        {"type": "unit", "id": "huerde-grund", "questions": [127], "term": "die Regierungs·bildung", "de": "weil viele kleine Parteien die Regierungsbildung erschweren"},
+                        {"type": "unit", "id": "wahlsystem", "questions": [120], "term": "das Mehrheits- und Verhältnis·wahlrecht", "de": "Mehrheits- und Verhältniswahlrecht"},
+                        {"type": "watch", "id": "falle-wahlrechte"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "parteien", "minutes": 7, "pre": 76, "check": [76, 31, 103], "review": 127,
+                    "blocks": [
+                        {"type": "unit", "id": "kuerzel", "questions": [76, 78, 79, 92], "term": "die Abkürzung", "de": "Christlich Demokratische Union, Christlich Soziale Union, Sozialdemokratische Partei Deutschlands, Freie Demokratische Partei"},
+                        {"type": "compare", "id": "partei-namen", "columns": 3, "rows": 4},
+                        {"type": "watch", "id": "falle-kuerzel"},
+                        {"type": "unit", "id": "fraktion", "questions": [89], "term": "die Fraktion", "de": "Fraktion"},
+                        {"type": "unit", "id": "koalition", "questions": [31], "term": "die Koalition", "de": "Koalition"},
+                        {"type": "compare", "id": "fraktion-koalition", "columns": 3, "rows": 2},
+                        {"type": "unit", "id": "ampel", "questions": [103], "term": "die Ampel·koalition", "de": "SPD, FDP und Bündnis 90/Die Grünen in einer Regierung"},
+                        {"type": "unit", "id": "groesste-fraktionen", "questions": [73], "term": "die größten Fraktionen", "asOf": 2025, "de": "CDU/CSU und AfD"},
+                        {"type": "unit", "id": "buergerinitiative", "questions": [134], "term": "die Bürger·initiative", "de": "sich an einer Bürgerinitiative beteiligen oder selbst eine gründen"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "staatsorgane",
+            "lessons": [
+                {
+                    "id": "bundestag", "minutes": 7, "pre": 74, "check": [74, 65, 98], "review": 31,
+                    "blocks": [
+                        {"type": "unit", "id": "bundestag", "questions": [74, 42], "term": "der Bundes·tag", "de": "der Bundestag"},
+                        {"type": "watch", "id": "falle-bundes"},
+                        {"type": "unit", "id": "sitz", "questions": [55], "term": "der Bundestags·sitz", "de": "in Berlin, im Reichstagsgebäude, mit Glaskuppel"},
+                        {"type": "picture", "id": "reichstag", "question": 55},
+                        {"type": "unit", "id": "praesident", "questions": [57], "term": "der Bundestags·präsident", "de": "aus der stärksten Fraktion"},
+                        {"type": "unit", "id": "aufgaben", "questions": [65], "de": "Gesetze entwerfen, die Regierung kontrollieren; nicht: das Kabinett bilden"},
+                        {"type": "watch", "id": "falle-nicht"},
+                        {"type": "unit", "id": "opposition", "questions": [13, 88], "term": "die Opposition", "de": "alle Abgeordneten, die nicht zu den Regierungsparteien gehören; sie kontrolliert die Regierung"},
+                        {"type": "unit", "id": "mehrheit", "questions": [98], "term": "die Mehrheit", "de": "Die Regierung kann ihre Mehrheit verlieren."},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "regierung", "minutes": 8, "pre": 81, "check": [81, 70, 86], "review": 65,
+                    "blocks": [
+                        {"type": "unit", "id": "kanzler", "questions": [81, 83, 82], "term": "der Bundes·kanzler", "de": "Der Bundestag wählt die Bundeskanzlerin/den Bundeskanzler, sie/er leitet das Kabinett."},
+                        {"type": "chain", "id": "wahlkette", "terms": ["das Volk", "der Bundestag", "der Bundeskanzler"]},
+                        {"type": "unit", "id": "kanzleramt", "questions": [71], "term": "das Bundes·kanzler·amt", "de": "in Berlin, weil dort das Bundeskanzleramt und der Bundestag sind"},
+                        {"type": "unit", "id": "kanzler-name", "questions": [72], "asOf": 2025, "de": "Friedrich Merz"},
+                        {"type": "unit", "id": "staatsoberhaupt", "questions": [87, 84], "term": "das Staats·oberhaupt", "de": "der Bundespräsident; er repräsentiert das Land"},
+                        {"type": "watch", "id": "falle-praesident"},
+                        {"type": "unit", "id": "praesident-name", "questions": [75], "asOf": 2025, "de": "Frank-Walter Steinmeier"},
+                        {"type": "unit", "id": "ernennung", "questions": [70, 58], "term": "die Ernennung", "de": "Sie/Er schlägt die Kanzlerin/den Kanzler zur Wahl vor und ernennt die Ministerinnen/Minister."},
+                        {"type": "picture", "id": "ernennungsurkunde", "question": 70},
+                        {"type": "unit", "id": "praesident-wahl", "questions": [86], "term": "die Bundes·versammlung", "de": "die Bundesversammlung"},
+                        {"type": "compare", "id": "praesident-kanzler", "columns": 3, "rows": 4},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "bundesrat-gericht", "minutes": 6, "pre": 85, "check": [85, 48, 80], "review": 86,
+                    "blocks": [
+                        {"type": "unit", "id": "bundesrat", "questions": [85], "term": "der Bundes·rat", "de": "die Regierungsvertreter der Bundesländer"},
+                        {"type": "compare", "id": "bundes-woerter", "columns": 3, "rows": 4},
+                        {"type": "unit", "id": "verfassungsorgane", "questions": [48], "term": "die Verfassungs·organe", "de": "Bundestag, Bundesrat, Bundespräsident, Bundesregierung, Bundesverfassungsgericht"},
+                        {"type": "watch", "id": "falle-buerger"},
+                        {"type": "unit", "id": "verfassungsgericht", "questions": [80], "term": "das Bundes·verfassungs·gericht", "de": "das Bundesverfassungsgericht in Karlsruhe"},
+                        {"type": "watch", "id": "falle-gericht"},
+                        {"type": "unit", "id": "bundeswehr", "questions": [77], "term": "die Bundes·wehr", "de": "die deutsche Armee"},
+                        {"type": "unit", "id": "staatsaufgaben", "questions": [46, 47], "de": "Straßen und Schulen bauen; keine Urlaubsreisen bezahlen"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "bund-laender-gemeinden",
+            "lessons": [
+                {
+                    "id": "ebenen", "minutes": 7, "pre": 64, "check": [64, 39, 91], "review": 80,
+                    "blocks": [
+                        {"type": "unit", "id": "stufen", "questions": [64, 69], "term": "die Gemeinde", "de": "Bund, Länder, Gemeinden (Kommunen)"},
+                        {"type": "unit", "id": "bundeslaender", "questions": [24, 25], "term": "das Bundes·land", "de": "16 Bundesländer"},
+                        {"type": "map", "id": "karte", "map": "states"},
+                        {"type": "unit", "id": "landesregierung", "questions": [39], "term": "die Landes·regierung", "de": "eine eigene Regierung (Landesregierung)"},
+                        {"type": "unit", "id": "ministerpraesident", "questions": [37], "term": "der Minister·präsident", "de": "Ministerpräsidentin/Ministerpräsident"},
+                        {"type": "watch", "id": "falle-titel"},
+                        {"type": "unit", "id": "schulpolitik", "questions": [49, 67], "term": "die Schul·politik", "de": "die Bundesländer"},
+                        {"type": "unit", "id": "bundesrat", "questions": [90, 91], "term": "der Bundes·rat", "de": "durch den Bundesrat"},
+                        {"type": "watch", "id": "falle-bundesrat"},
+                        {"type": "unit", "id": "buergermeister", "questions": [131], "term": "der Bürger·meister", "de": "eine Gemeinde"},
+                        {"type": "compare", "id": "bund-land-gemeinde", "columns": 4, "rows": 3},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "aemter", "minutes": 5, "pre": 253, "check": [253, 56, 283], "review": 39,
+                    "blocks": [
+                        {"type": "unit", "id": "ordnungsamt", "questions": [56], "term": "das Ordnungs·amt", "de": "das Ordnungsamt"},
+                        {"type": "unit", "id": "einwohnermeldeamt", "questions": [253], "term": "das Einwohner·melde·amt", "de": "zum Einwohnermeldeamt"},
+                        {"type": "unit", "id": "standesamt", "questions": [265], "term": "das Standes·amt", "de": "zum Standesamt"},
+                        {"type": "compare", "id": "wohin", "columns": 3, "rows": 3},
+                        {"type": "unit", "id": "beschwerde", "questions": [276], "term": "die Behörde", "de": "bei der Behördenleiterin/beim Behördenleiter"},
+                        {"type": "unit", "id": "widerspruch", "questions": [283], "term": "der Widerspruch", "de": "Widerspruch bei der Behörde einlegen"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "bundesland",
+            "lessons": [
+                {
+                    "id": "land", "minutes": 6, "pre": 9, "check": [9, 3, 10], "template": "state", "review": 253,
+                    "blocks": [
+                        {"type": "unit", "id": "hauptstadt", "task": 7, "term": "die Landes·haupt·stadt", "variants": {"city": {"term": "der Stadt·staat", "de": "ein Stadtstaat"}}},
+                        {"type": "unit", "id": "lage", "task": 8},
+                        {"type": "picture", "id": "lage-bild", "task": 8},
+                        {"type": "map", "id": "lage-karte", "map": "home"},
+                        {"type": "unit", "id": "wappen", "task": 1, "term": "das Landes·wappen"},
+                        {"type": "picture", "id": "wappen-bild", "task": 1},
+                        {"type": "unit", "id": "flagge", "task": 5, "term": "die Landes·flagge"},
+                        {"type": "unit", "id": "landtag", "task": 3, "term": "der Land·tag", "variants": {"city": {"term": "das Landes·parlament"}}},
+                        {"type": "unit", "id": "regierungschef", "task": 9},
+                        {"type": "unit", "id": "aussenminister", "task": 10},
+                        {"type": "unit", "id": "wahlalter", "task": 4, "term": "die Kommunal·wahl", "variants": {"bremen": {"term": "die Bürgerschaft"}}},
+                        {"type": "unit", "id": "politische-bildung", "task": 6, "term": "die Landes·zentrale für politische Bildung", "variants": {"sh": {"term": "die Landes·beauftragte für politische Bildung"}}},
+                        {"type": "unit", "id": "kreis", "task": 2},
+                        {"type": "recall", "id": "erinnern", "items": 3}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "nationalsozialismus",
+            "lessons": [
+                {
+                    "id": "diktatur", "minutes": 6, "pre": 152, "check": [152, 159, 161], "review": 56,
+                    "blocks": [
+                        {"type": "unit", "id": "zeitraum", "questions": [152, 155], "term": "der National·sozialismus", "era": "ns", "de": "1933 bis 1945"},
+                        {"type": "timeline", "id": "zeit", "events": ["hitler-kanzler", "kriegsbeginn", "kriegsende"]},
+                        {"type": "unit", "id": "kanzler", "questions": [156], "term": "der Reichs·kanzler", "era": "ns", "de": "1933"},
+                        {"type": "unit", "id": "diktatur", "questions": [157, 158], "term": "die Diktatur", "era": "ns", "de": "eine Diktatur"},
+                        {"type": "unit", "id": "merkmale", "questions": [159, 170], "de": "keine freien Wahlen; Verbot von Parteien"},
+                        {"type": "compare", "id": "fehlte", "columns": 3, "rows": 4},
+                        {"type": "watch", "id": "falle-verneinung"},
+                        {"type": "unit", "id": "rassismus", "questions": [161], "term": "der staatliche Rassismus", "de": "staatlicher Rassismus"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "verfolgung-krieg", "minutes": 6, "pre": 164, "check": [164, 162, 153], "review": 159,
+                    "blocks": [
+                        {"type": "unit", "id": "pogrom", "questions": [163, 164], "term": "die Pogrom·nacht", "era": "ns", "de": "Synagogen und jüdische Geschäfte, durch Nationalsozialisten und ihre Anhänger"},
+                        {"type": "watch", "id": "falle-polen"},
+                        {"type": "unit", "id": "weltkrieg", "questions": [160], "term": "der Zweite Welt·krieg", "era": "ns", "de": "der Zweite Weltkrieg"},
+                        {"type": "unit", "id": "stauffenberg", "questions": [162], "term": "das Attentat", "era": "ns", "de": "das Attentat auf Hitler"},
+                        {"type": "unit", "id": "kriegsende", "questions": [153, 154], "term": "das Kriegs·ende", "era": "ns", "de": "8. Mai 1945"},
+                        {"type": "timeline", "id": "zeit", "events": ["pogrom", "kriegsbeginn", "stauffenberg", "kriegsende"]},
+                        {"type": "unit", "id": "kapitulation", "questions": [179], "term": "die bedingungs·lose Kapitulation", "era": "ns", "de": "durch die bedingungslose Kapitulation Deutschlands"},
+                        {"type": "watch", "id": "falle-hitler-tod"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "erinnerung", "minutes": 7, "pre": 206, "check": [206, 96, 111], "review": 153,
+                    "blocks": [
+                        {"type": "unit", "id": "stolpersteine", "questions": [206], "term": "der Stolper·stein", "de": "die Opfer des Nationalsozialismus"},
+                        {"type": "unit", "id": "gedenktag", "questions": [220], "term": "der Gedenk·tag", "era": "ns", "de": "die Opfer des Nationalsozialismus (Befreiung von Auschwitz)"},
+                        {"type": "timeline", "id": "zeit", "events": ["auschwitz"]},
+                        {"type": "watch", "id": "falle-gedenktag"},
+                        {"type": "unit", "id": "holocaust", "questions": [96], "term": "die Holocaust·leugnung", "de": "Freiheitsstrafe bis zu fünf Jahren oder Geldstrafe"},
+                        {"type": "unit", "id": "antisemitismus", "questions": [149], "term": "der Anti·semitismus", "de": "den Holocaust leugnen"},
+                        {"type": "unit", "id": "israel-aufruf", "questions": [111], "term": "der Aufruf zur Vernichtung Israels", "de": "der öffentliche Aufruf zur Vernichtung Israels"},
+                        {"type": "watch", "id": "falle-kritik"},
+                        {"type": "unit", "id": "verantwortung", "questions": [288], "term": "die Verantwortung", "de": "die nationalsozialistischen Verbrechen gegen Juden"},
+                        {"type": "unit", "id": "israel-gruendung", "questions": [184], "term": "die Vereinten Nationen", "de": "eine Resolution der Vereinten Nationen"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "nachkriegszeit-ddr-einheit",
+            "lessons": [
+                {
+                    "id": "besatzung", "minutes": 6, "pre": 178, "check": [178, 176, 168], "review": 111,
+                    "blocks": [
+                        {"type": "unit", "id": "besatzungsmaechte", "questions": [167, 168], "term": "die Besatzungs·mächte", "era": "occupation", "de": "USA, Sowjetunion, Großbritannien, Frankreich"},
+                        {"type": "unit", "id": "zonen", "questions": [175, 176], "term": "die Besatzungs·zone", "era": "occupation", "de": "Großbritannien, Sowjetunion, USA, Frankreich"},
+                        {"type": "picture", "id": "zonen-bild", "question": 176},
+                        {"type": "unit", "id": "sowjetzone", "questions": [172], "term": "die sowjetische Besatzungs·zone", "era": "occupation", "de": "die sowjetische Besatzungszone"},
+                        {"type": "unit", "id": "berlin", "questions": [177], "term": "der Sektor", "era": "occupation", "de": "Berlin"},
+                        {"type": "map", "id": "karte-zonen", "map": "zones"},
+                        {"type": "unit", "id": "luftbruecke", "questions": [178], "term": "die Luft·brücke", "era": "occupation", "de": "Die Sowjetunion unterbrach den gesamten Verkehr auf dem Landwege."},
+                        {"type": "watch", "id": "falle-luftbruecke"},
+                        {"type": "timeline", "id": "zeit", "events": ["besatzungszonen", "luftbruecke"]},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "zwei-staaten", "minutes": 6, "pre": 165, "check": [165, 190, 181], "review": 176,
+                    "blocks": [
+                        {"type": "unit", "id": "brd-gruendung", "questions": [169], "era": "west", "de": "1949"},
+                        {"type": "unit", "id": "adenauer", "questions": [165, 180], "term": "der Bundes·kanzler", "era": "west", "de": "Konrad Adenauer"},
+                        {"type": "unit", "id": "wirtschaftswunder", "questions": [183], "term": "das Wirtschafts·wunder", "era": "west", "de": "50er Jahre"},
+                        {"type": "unit", "id": "ddr-name", "questions": [190], "term": "die Deutsche Demokratische Republik", "era": "east", "de": "Deutsche Demokratische Republik"},
+                        {"type": "watch", "id": "falle-ddr"},
+                        {"type": "unit", "id": "ddr-zeit", "questions": [174, 217], "era": "east", "de": "1949 bis 1990"},
+                        {"type": "unit", "id": "kniefall", "questions": [181], "term": "der Kniefall", "era": "west", "de": "Er bat Polen und die polnischen Juden um Vergebung."},
+                        {"type": "picture", "id": "kniefall-bild", "question": 181},
+                        {"type": "watch", "id": "falle-kniefall"},
+                        {"type": "unit", "id": "ostvertraege", "questions": [211], "term": "die Ost·verträge", "era": "west", "de": "Willy Brandt"},
+                        {"type": "timeline", "id": "zeit", "events": ["brd-gruendung", "ddr-gruendung", "wirtschaftswunder", "kniefall"]},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "ddr", "minutes": 7, "pre": 207, "check": [207, 203, 186], "review": 181,
+                    "blocks": [
+                        {"type": "unit", "id": "eiserner-vorhang", "questions": [185], "term": "der Eiserne Vorhang", "era": "east", "de": "der Warschauer Pakt"},
+                        {"type": "unit", "id": "warschauer-pakt", "questions": [202, 207], "term": "der Warschauer Pakt", "era": "east", "de": "im Warschauer Pakt"},
+                        {"type": "watch", "id": "falle-bund"},
+                        {"type": "unit", "id": "planwirtschaft", "questions": [203], "term": "die Plan·wirtschaft", "era": "east", "de": "Planwirtschaft"},
+                        {"type": "compare", "id": "bund-ddr", "columns": 3, "rows": 4},
+                        {"type": "unit", "id": "stasi", "questions": [199, 208], "term": "die Stasi", "era": "east", "de": "die Stasi, das Ministerium für Staatssicherheit"},
+                        {"type": "unit", "id": "volksaufstand", "questions": [186, 210], "term": "der Volks·aufstand", "era": "east", "de": "17. Juni: landesweite Streiks und ein Volksaufstand"},
+                        {"type": "watch", "id": "falle-daten"},
+                        {"type": "timeline", "id": "zeit", "events": ["volksaufstand", "mauerbau"]},
+                        {"type": "unit", "id": "ddr-wappen", "questions": [187, 209], "term": "das DDR-Wappen", "era": "east", "de": "Hammer, Zirkel und Ährenkranz"},
+                        {"type": "picture", "id": "flagge-bild", "question": 187},
+                        {"type": "picture", "id": "wappen-bild", "question": 209},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "mauer-wende", "minutes": 5, "pre": 151, "check": [151, 196, 166], "review": 207,
+                    "blocks": [
+                        {"type": "unit", "id": "mauerbau", "questions": [151, 188, 189], "term": "die Mauer", "era": "east", "de": "die DDR, 1961"},
+                        {"type": "unit", "id": "berlin-geteilt", "questions": [193], "era": "east", "de": "von 1961 bis 1989"},
+                        {"type": "unit", "id": "montagsdemos", "questions": [166], "term": "die Montags·demonstrationen", "era": "east", "de": "bei den Montagsdemonstrationen 1989 in der DDR"},
+                        {"type": "watch", "id": "falle-1953"},
+                        {"type": "unit", "id": "wende", "questions": [196], "term": "die Wende", "era": "east", "de": "von einer Diktatur zur Demokratie"},
+                        {"type": "unit", "id": "mauerfall", "questions": [191], "era": "east", "de": "1989"},
+                        {"type": "timeline", "id": "zeit", "events": ["mauerbau", "montagsdemos", "mauerfall"]},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "einheit", "minutes": 8, "pre": 204, "check": [204, 201, 219], "review": 196,
+                    "blocks": [
+                        {"type": "unit", "id": "einheitstag", "questions": [194], "term": "der Tag der Deutschen Einheit", "era": "unity", "de": "Tag der Deutschen Einheit"},
+                        {"type": "unit", "id": "beitritt", "questions": [204, 228, 205], "term": "die Wieder·vereinigung", "era": "unity", "de": "Beitritt: Deutsche Wiedervereinigung"},
+                        {"type": "timeline", "id": "zeit", "events": ["mauerfall", "einheit"]},
+                        {"type": "watch", "id": "falle-richtung"},
+                        {"type": "watch", "id": "falle-erweiterung"},
+                        {"type": "unit", "id": "fuenf-laender", "questions": [218, 192, 195, 197, 198, 200, 201], "term": "die neuen Bundes·länder", "era": "unity", "de": "Brandenburg, Mecklenburg-Vorpommern, Sachsen, Sachsen-Anhalt, Thüringen"},
+                        {"type": "map", "id": "karte-osten", "map": "east"},
+                        {"type": "unit", "id": "grenzen", "questions": [219], "era": "unity", "de": "seit 1990"},
+                        {"type": "unit", "id": "kohl", "questions": [215], "term": "der Kanzler der Deutschen Einheit", "era": "unity", "de": "Helmut Kohl"},
+                        {"type": "compare", "id": "kanzler", "columns": 4, "rows": 3},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "europa",
+            "lessons": [
+                {
+                    "id": "nachbarn", "minutes": 4, "pre": 227, "check": [227, 233, 225], "review": 204,
+                    "blocks": [
+                        {"type": "unit", "id": "nachbarn", "questions": [222, 223, 227, 229, 233], "term": "das Nachbar·land", "de": "Dänemark, Polen, Tschechien, Österreich, Schweiz, Frankreich, Luxemburg, Belgien, Niederlande"},
+                        {"type": "map", "id": "karte-nachbarn", "map": "neighbours"},
+                        {"type": "watch", "id": "falle-fern"},
+                        {"type": "unit", "id": "oesterreich", "questions": [225], "term": "deutsch·sprachig", "de": "Österreich"},
+                        {"type": "recall", "id": "erinnern", "items": 3}
+                    ]
+                },
+                {
+                    "id": "eu", "minutes": 7, "pre": 173, "check": [173, 231, 239], "review": 233,
+                    "blocks": [
+                        {"type": "unit", "id": "eu-name", "questions": [224], "term": "die Europäische Union", "de": "Europäische Union"},
+                        {"type": "unit", "id": "integration", "questions": [231], "term": "die europäische Integration", "de": "Zusammenschluss europäischer Staaten zur EU"},
+                        {"type": "watch", "id": "falle-integration"},
+                        {"type": "unit", "id": "roemische-vertraege", "questions": [237, 239], "term": "die Römischen Verträge", "era": "west", "de": "Europäische Wirtschaftsgemeinschaft (EWG)"},
+                        {"type": "unit", "id": "gruendungsmitglied", "questions": [173], "term": "das Gründungs·mitglied", "de": "der Europäischen Union (EU)"},
+                        {"type": "timeline", "id": "zeit", "events": ["roemische-vertraege", "euro"]},
+                        {"type": "unit", "id": "mitgliedstaaten", "questions": [236], "term": "der Mitglied·staat", "asOf": 2025, "de": "27"},
+                        {"type": "unit", "id": "eu-flagge", "questions": [226], "term": "die Flagge der EU", "de": "blau mit einem Kreis aus goldenen Sternen"},
+                        {"type": "picture", "id": "bild-flagge", "question": 226},
+                        {"type": "unit", "id": "frieden", "questions": [235], "term": "Frieden und Sicherheit", "de": "Frieden und Sicherheit in den Ländern der EU"},
+                        {"type": "picture", "id": "bild-verdun", "question": 235},
+                        {"type": "watch", "id": "falle-reisefreiheit"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "eu-alltag", "minutes": 6, "pre": 221, "check": [221, 232, 238], "review": 239,
+                    "blocks": [
+                        {"type": "unit", "id": "schengen", "questions": [221], "term": "das Schengener Abkommen", "de": "Reisen in viele Länder Europas ohne Passkontrolle"},
+                        {"type": "watch", "id": "falle-schengen"},
+                        {"type": "unit", "id": "euro-bargeld", "questions": [240], "term": "das Euro·bargeld", "era": "unity", "de": "seit 2002"},
+                        {"type": "unit", "id": "europawahl-takt", "questions": [230], "term": "die Europa·wahl", "de": "alle 5 Jahre"},
+                        {"type": "unit", "id": "europawahl-wen", "questions": [232], "term": "die Abgeordneten", "de": "die Abgeordneten des Europäischen Parlaments"},
+                        {"type": "chain", "id": "wahlkette", "terms": ["die Wählerinnen und Wähler", "die Abgeordneten", "das Europäische Parlament"]},
+                        {"type": "unit", "id": "parlament-orte", "questions": [234, 238], "term": "das Europäische Parlament", "de": "Straßburg, Luxemburg und Brüssel"},
+                        {"type": "map", "id": "karte-parlament", "map": "parliament"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "recht-und-justiz",
+            "lessons": [
+                {
+                    "id": "gerichte", "minutes": 7, "pre": 146, "check": [146, 143, 140], "review": 232,
+                    "blocks": [
+                        {"type": "unit", "id": "prozess", "questions": [139, 146], "term": "der Prozess", "de": "der Prozess, wenn jemand eine Straftat begangen hat und angeklagt wird"},
+                        {"type": "unit", "id": "richter", "questions": [142, 147], "term": "die Richterin, der Richter", "de": "arbeitet an einem Gericht und spricht Urteile (Recht sprechen)"},
+                        {"type": "unit", "id": "gewalt", "questions": [143, 144, 145], "term": "die Judikative", "de": "die Judikative, die rechtsprechende Gewalt, die Rechtsprechung"},
+                        {"type": "compare", "id": "gewalten", "columns": 4, "rows": 3},
+                        {"type": "watch", "id": "falle-gewalt"},
+                        {"type": "unit", "id": "schoeffe", "questions": [140, 150], "term": "der Schöffe, die Schöffin", "de": "ein ehrenamtlicher Richter, der mit den Richtern über Schuld und Strafe entscheidet"},
+                        {"type": "unit", "id": "anwalt", "questions": [141], "term": "der Rechts·anwalt", "de": "eine Rechtsanwältin, ein Rechtsanwalt"},
+                        {"type": "compare", "id": "gericht-rollen", "columns": 4, "rows": 3},
+                        {"type": "watch", "id": "falle-schoeffe"},
+                        {"type": "unit", "id": "polizei", "questions": [148], "de": "die Einhaltung von Gesetzen überwachen"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "familienrecht", "minutes": 6, "pre": 245, "check": [245, 263, 254], "review": 143,
+                    "blocks": [
+                        {"type": "unit", "id": "volljaehrig", "questions": [246], "term": "voll·jährig", "de": "mit 18 Jahren"},
+                        {"type": "unit", "id": "strafmuendig", "questions": [263], "term": "straf·mündig", "de": "ab 14 Jahren (strafmündig)"},
+                        {"type": "compare", "id": "alter-14-18", "columns": 3, "rows": 3},
+                        {"type": "unit", "id": "paar", "questions": [245], "de": "ein Kind und ein Erwachsener, zum Beispiel 13 und 25 Jahre"},
+                        {"type": "watch", "id": "falle-paar"},
+                        {"type": "unit", "id": "kinder-schutz", "questions": [251], "de": "Man kann dafür bestraft werden."},
+                        {"type": "unit", "id": "eine-ehe", "questions": [252, 272], "de": "nur eine Ehepartnerin oder einen Ehepartner gleichzeitig"},
+                        {"type": "unit", "id": "trennungsjahr", "questions": [254], "term": "das Trennungs·jahr", "de": "meistens mindestens ein Jahr (Trennungsjahr)"},
+                        {"type": "watch", "id": "falle-trennungsjahr"},
+                        {"type": "unit", "id": "scheidung", "questions": [275], "term": "die Ehe·scheidung", "de": "eine Anwältin oder ein Anwalt"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "arbeit-und-soziales",
+            "lessons": [
+                {
+                    "id": "sozialstaat", "minutes": 6, "pre": 171, "check": [171, 99, 100], "review": 254,
+                    "blocks": [
+                        {"type": "unit", "id": "marktwirtschaft", "questions": [50, 171], "term": "die soziale Markt·wirtschaft", "de": "soziale Marktwirtschaft: Angebot und Nachfrage, aber der Staat sorgt für sozialen Ausgleich"},
+                        {"type": "unit", "id": "beschaeftigte", "questions": [23], "term": "der Arbeit·nehmer", "de": "bei einer Firma oder Behörde"},
+                        {"type": "unit", "id": "sozialversicherung", "questions": [97, 35, 99], "term": "die Sozial·versicherung", "de": "Arbeitgeber und Arbeitnehmer, mit Sozialabgaben"},
+                        {"type": "unit", "id": "versicherungen", "questions": [36, 45, 100], "de": "Krankenversicherung, Pflegeversicherung, Rentenversicherung, Arbeitslosenversicherung, Unfallversicherung"},
+                        {"type": "compare", "id": "sozial-oder-privat", "columns": 3, "rows": 4},
+                        {"type": "watch", "id": "falle-pflege"},
+                        {"type": "unit", "id": "gehalt", "questions": [285], "term": "die Umsatz·steuer", "de": "die Umsatzsteuer"},
+                        {"type": "watch", "id": "falle-nicht"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "arbeitsrecht", "minutes": 7, "pre": 104, "check": [104, 286, 138], "review": 99,
+                    "blocks": [
+                        {"type": "unit", "id": "gewerkschaft", "questions": [101, 135], "term": "die Gewerkschaft", "de": "für Arbeitnehmerinnen und Arbeitnehmer"},
+                        {"type": "unit", "id": "betriebsrat", "questions": [286], "term": "der Betriebs·rat", "de": "der Betriebsrat"},
+                        {"type": "compare", "id": "gewerkschaft-betriebsrat", "columns": 3, "rows": 4},
+                        {"type": "watch", "id": "falle-betriebs"},
+                        {"type": "unit", "id": "mutterschutz", "questions": [104, 247], "term": "der Mutter·schutz", "de": "Mutterschutz"},
+                        {"type": "watch", "id": "falle-eltern"},
+                        {"type": "unit", "id": "kuendigungsfrist", "questions": [287], "term": "die Kündigungs·frist", "de": "die Kündigungsfrist"},
+                        {"type": "unit", "id": "arbeitsgericht", "questions": [136, 137], "term": "das Arbeits·gericht", "de": "das Arbeitsgericht"},
+                        {"type": "unit", "id": "kuendigungsschutzklage", "questions": [138], "term": "die Kündigungs·schutz·klage", "de": "Kündigungsschutzklage erheben"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "alltag-behoerden", "minutes": 5, "pre": 290, "check": [290, 280, 259], "review": 138,
+                    "blocks": [
+                        {"type": "unit", "id": "gaststaette", "questions": [256], "term": "die Gaststätten·erlaubnis", "de": "eine Gaststättenerlaubnis von der zuständigen Behörde"},
+                        {"type": "unit", "id": "biz", "questions": [259], "term": "das Berufs·informations·zentrum", "de": "das Berufsinformationszentrum (BIZ)"},
+                        {"type": "unit", "id": "weiterlernen", "questions": [284], "de": "Erwachsene müssen auch nach der Ausbildung weiter lernen."},
+                        {"type": "unit", "id": "einspruch", "questions": [280], "term": "der Einspruch", "de": "Einspruch einlegen"},
+                        {"type": "unit", "id": "reklamation", "questions": [290], "term": "reklamieren", "de": "reklamieren (beim Geschäft)"},
+                        {"type": "compare", "id": "drei-wege", "columns": 4, "rows": 4},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "familie-bildung-alltag",
+            "lessons": [
+                {
+                    "id": "kinder-eltern", "minutes": 7, "pre": 242, "check": [242, 241, 267], "review": 290,
+                    "blocks": [
+                        {"type": "unit", "id": "erziehung", "questions": [248, 249], "term": "die Kinder·erziehung", "de": "die Eltern"},
+                        {"type": "unit", "id": "kindergarten", "questions": [242, 269], "term": "der Kinder·garten", "de": "die Eltern; einen Kindergartenplatz"},
+                        {"type": "unit", "id": "elterngeld", "questions": [241], "term": "die Eltern·geld·stelle", "de": "einen Antrag bei der Elterngeldstelle stellen"},
+                        {"type": "unit", "id": "jugendamt", "questions": [255, 273, 258], "term": "das Jugend·amt", "de": "das Jugendamt"},
+                        {"type": "watch", "id": "falle-aemter"},
+                        {"type": "watch", "id": "falle-jugendamt"},
+                        {"type": "unit", "id": "volljaehrig", "questions": [267], "term": "volljährig", "de": "die Entscheidung der volljährigen Tochter respektieren"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "schule", "minutes": 8, "pre": 95, "check": [95, 68, 257], "review": 241,
+                    "blocks": [
+                        {"type": "unit", "id": "schulpflicht", "questions": [95, 260], "term": "die Schul·pflicht", "de": "Schulpflicht, Anwesenheitspflicht"},
+                        {"type": "watch", "id": "falle-pflicht"},
+                        {"type": "unit", "id": "schulaufsicht", "questions": [68], "term": "das Schul·wesen", "de": "Weil es nach dem Grundgesetz seine Aufgabe ist."},
+                        {"type": "unit", "id": "abitur", "questions": [244, 257, 261], "term": "das Abitur", "de": "das Abitur; an einem Abendgymnasium"},
+                        {"type": "watch", "id": "falle-hochschule"},
+                        {"type": "unit", "id": "weiterbildung", "questions": [270], "term": "die Volks·hoch·schule", "de": "eine Einrichtung zur Weiterbildung"},
+                        {"type": "unit", "id": "ausbildung", "questions": [250], "term": "die Aus·bildung", "de": "wenn man gut ausgebildet ist"},
+                        {"type": "unit", "id": "fuehrerschein", "questions": [268], "term": "der Führer·schein", "de": "die Theorie-Prüfung vielleicht in ihrer Muttersprache machen"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "zusammenleben", "minutes": 5, "pre": 266, "check": [266, 132, 102], "review": 257,
+                    "blocks": [
+                        {"type": "unit", "id": "nachtruhe", "questions": [266], "term": "die Nacht·ruhe", "de": "um 22 Uhr"},
+                        {"type": "unit", "id": "hausordnung", "questions": [279], "term": "die Haus·ordnung", "de": "Regeln, an die sich alle Bewohnerinnen und Bewohner halten müssen"},
+                        {"type": "unit", "id": "ehrenamt", "questions": [132], "term": "das Ehren·amt", "de": "freiwillig und unbezahlt in Vereinen und Verbänden arbeiten"},
+                        {"type": "unit", "id": "verdienstkreuz", "questions": [102], "term": "das Bundes·verdienst·kreuz", "de": "das Bundesverdienstkreuz"},
+                        {"type": "watch", "id": "falle-ehrung"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "religion-vielfalt-migration",
+            "lessons": [
+                {
+                    "id": "religion-feste", "minutes": 7, "pre": 292, "check": [292, 291, 296], "review": 132,
+                    "blocks": [
+                        {"type": "unit", "id": "toleranz", "questions": [292], "term": "die religiöse Toleranz", "de": "Jeder kann glauben, was er möchte."},
+                        {"type": "unit", "id": "christentum", "questions": [295], "term": "das Christentum", "de": "das Christentum"},
+                        {"type": "unit", "id": "kirchensteuer", "questions": [291], "term": "die Kirchen·steuer", "de": "Es gibt eine Kirchensteuer. Sie ist an die Einkommen- und Lohnsteuer geknüpft."},
+                        {"type": "watch", "id": "falle-kirchensteuer"},
+                        {"type": "unit", "id": "weihnachten", "questions": [296, 271], "term": "die Advents·zeit", "de": "die Adventszeit; einen Tannenbaum schmücken"},
+                        {"type": "unit", "id": "ostern", "questions": [293], "term": "Ostern", "de": "Eier bemalen"},
+                        {"type": "watch", "id": "falle-braeuche"},
+                        {"type": "unit", "id": "pfingsten", "questions": [294], "term": "Pfingsten", "de": "ein christlicher Feiertag"},
+                        {"type": "unit", "id": "rosenmontag", "questions": [264], "term": "der Rosen·montag", "de": "am Rosenmontag"},
+                        {"type": "compare", "id": "feste-im-jahr", "columns": 3, "rows": 5},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                },
+                {
+                    "id": "juedisches-leben-migration", "minutes": 7, "pre": 297, "check": [297, 300, 118], "review": 291,
+                    "blocks": [
+                        {"type": "unit", "id": "juedische-gemeinde", "questions": [59], "term": "die jüdische Gemeinde", "de": "vor etwa 1700 Jahren"},
+                        {"type": "unit", "id": "berlin-muenchen", "questions": [66], "asOf": 2025, "de": "Berlin und München"},
+                        {"type": "unit", "id": "synagoge", "questions": [182], "term": "die Synagoge", "de": "die Synagoge"},
+                        {"type": "unit", "id": "makkabi", "questions": [118], "term": "der Makkabi-Sport·verein", "asOf": 2025, "de": "alle Menschen"},
+                        {"type": "unit", "id": "gastarbeiter", "questions": [299, 300], "term": "der Gast·arbeiter", "era": "west", "de": "Gastarbeiter; die ersten kamen aus Italien"},
+                        {"type": "timeline", "id": "zeit-gastarbeiter", "events": ["gastarbeiter"]},
+                        {"type": "watch", "id": "falle-arbeiter"},
+                        {"type": "unit", "id": "tuerkei", "questions": [297], "term": "die Migrantinnen und Migranten", "asOf": 2025, "de": "die Türkei"},
+                        {"type": "watch", "id": "falle-italien-tuerkei"},
+                        {"type": "unit", "id": "ddr-migranten", "questions": [298], "term": "die DDR", "era": "east", "de": "Vietnam, Polen, Mosambik"},
+                        {"type": "recall", "id": "erinnern", "items": 4}
+                    ]
+                }
+            ]
+        }
+    ],
+    "variants": {"berlin": ["city"], "hamburg": ["city"], "bremen": ["city", "bremen"], "schleswig-holstein": ["sh"]}
+}

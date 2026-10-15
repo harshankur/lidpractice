@@ -1,0 +1,15 @@
+# Dependencies and build output
+node_modules/
+dist/
+
+# Local environment and tool state
+.env
+.env.*
+.netlify/
+*.log
+.DS_Store
+
+# Test output
+coverage/
+test-results/
+playwright-report/

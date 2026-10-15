@@ -1,0 +1,15 @@
+{
+    "name": "LiD Practice",
+    "shortName": "LiD Practice",
+    "slug": "lidpractice",
+    "siteUrl": "https://lidpractice.de/",
+    "author": "Harsh Ankur",
+    "authorUrl": "https://harshankur.com",
+    "copyrightYear": 2026,
+    "storageVersion": 4,
+    "defaultLocale": "de",
+    "defaultUiLocale": "en",
+    "rtlLocales": [
+        "ar"
+    ]
+}

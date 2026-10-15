@@ -1,0 +1,29 @@
+name: Something on the page does not work
+description: A button, the exam, the timer, the saved progress or the layout misbehaves.
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How can we reproduce it?
+      description: The steps you took, starting from opening the page.
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      description: For example "iPhone 15, Safari" or "Windows 11, Firefox 130".
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots help. You can paste them here.

@@ -1,0 +1,25 @@
+{
+    "name": "LiD Practice",
+    "short_name": "LiD Practice",
+    "description": "Free practice site for the German citizenship test and the test \"Leben in Deutschland\": all questions of the official BAMF catalogue, with an exam mode.",
+    "lang": "en",
+    "start_url": ".",
+    "scope": ".",
+    "display": "standalone",
+    "background_color": "#f2f3f6",
+    "theme_color": "#14171f",
+    "icons": [
+        {
+            "src": "icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
+}

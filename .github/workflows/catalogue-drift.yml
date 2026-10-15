@@ -1,0 +1,41 @@
+name: Check the official catalogue
+
+# Looks every week whether the BAMF has published a new edition of the Gesamtfragenkatalog, and opens an
+# issue when it has. Note: GitHub pauses scheduled workflows in a repository that had no activity for 60 days.
+# Re-enable it under Actions if that happens, or run it by hand with "Run workflow".
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install poppler, used to read the new PDF
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Compare the BAMF catalogue with the recorded edition
+        id: check
+        run: node scripts/check-catalogue-drift.mjs --report drift-report.md
+      - name: Open an issue when it changed, unless it was reported already
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ steps.check.outputs.title }}
+          SHORT_HASH: ${{ steps.check.outputs.shortHash }}
+        run: |
+          existing=$(gh issue list --state all --label catalogue-drift --search "$SHORT_HASH in:title" --json number --jq 'length')
+          if [ "$existing" -gt 0 ]; then
+            echo "Already reported, nothing to do."
+          else
+            gh issue create --title "$TITLE" --label catalogue-drift --body-file drift-report.md
+          fi

@@ -1,0 +1,68 @@
+name: Problem with a question
+description: A question, an answer option, the marked answer, a picture or a translation looks wrong or differs from the official catalogue.
+title: "Question: "
+labels: ["question-error"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping to keep this trainer correct.
+
+        The quickest way: press **Original** on the question in the trainer. It shows that question cut out of the official PDF, with its page number. Compare it with what the trainer shows.
+
+        You can also report by email: hello@lidpractice.de
+  - type: input
+    id: question
+    attributes:
+      label: Question number
+      description: "The label in the badge on the question card: a number such as 123 for the 300 general questions, or the state code and task such as BE 3 for a question of a federal state."
+      placeholder: "123 or BE 3"
+    validations:
+      required: true
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What is wrong?
+      options:
+        - The German question or an answer option differs from the official catalogue
+        - The marked correct answer is wrong
+        - The picture or its photo credit is wrong or missing
+        - The English translation is wrong or missing
+        - The order of the answer options differs from the official catalogue
+        - The question is outdated (for example a person in office)
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: What do you see in the trainer?
+      description: Copy the text or describe it.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should it say?
+      description: Quote the official catalogue if you can, and say on which page you found it.
+    validations:
+      required: true
+  - type: input
+    id: edition
+    attributes:
+      label: Edition of the official catalogue you compared with
+      description: The "Stand" date on the cover of the PDF. The trainer is based on 07.05.2025.
+      placeholder: "07.05.2025"
+  - type: input
+    id: evidence
+    attributes:
+      label: Link to the proof
+      description: A link to the BAMF page or PDF, or the page number in the PDF.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send
+      options:
+        - label: I compared with the official catalogue (the "Show original" view or the PDF from bamf.de).
+          required: true
+        - label: I reloaded the page to make sure I see the latest version.
