@@ -172,12 +172,46 @@ describe("build.mjs", () =>
             expect(PRIVACY_NOTICE_URL).toBe("https://harshankur.com/datenschutz#lidpractice");
         });
 
-        it("has a Netlify config that publishes dist, allows only the site itself, and names no other domain", () =>
+        it("deploys dist to Cloudflare as static assets, with the 404 page and without usage reports", () =>
         {
-            const config = readFileSync("netlify.toml", "utf8");
-            expect(config).toContain('publish = "dist"');
-            expect(config).toContain("default-src 'self'");
-            expect(config).not.toMatch(/https?:\/\//);
+            const config = JSON.parse(readFileSync("wrangler.jsonc", "utf8").replace(/^\s*\/\/.*$/gm, "")) as { name: string; send_metrics: boolean; assets: Record<string, string> };
+            expect(config.name).toBe("lidpractice");
+            expect(config.send_metrics).toBe(false);
+            expect(config.assets).toEqual({ directory: "./dist", not_found_handling: "404-page" });
+            expect(existsSync("netlify.toml")).toBe(false);
+        });
+
+        it("sends the security headers for every address, and a cache policy by folder that no two rules set for one address", () =>
+        {
+            const text = readFileSync(join(defaultOut, "_headers"), "utf8");
+            const rules = new Map<string, string[]>();
+            let current = "";
+            for (const line of text.split("\n").filter((entry) => entry.trim() !== "" && !entry.startsWith("#")))
+            {
+                if (line.startsWith(" "))
+                {
+                    rules.get(current)?.push(line.trim());
+                }
+                else
+                {
+                    current = line;
+                    rules.set(current, []);
+                }
+            }
+            expect([...rules.keys()]).toEqual(["/*", "/", "/index.html", "/locales/*", "/teach/*", "/fonts/*", "/images/*", "/catalogue/*"]);
+            const all = rules.get("/*") ?? [];
+            expect(all.map((header) => header.split(":")[0])).toEqual(["X-Content-Type-Options", "Referrer-Policy", "X-Frame-Options", "Permissions-Policy", "Content-Security-Policy"]);
+            expect(all.find((header) => header.startsWith("Content-Security-Policy"))).toContain("default-src 'self'");
+            expect(all.some((header) => header.startsWith("Cache-Control"))).toBe(false);
+            for (const path of ["/", "/index.html"])
+            {
+                expect(rules.get(path), path).toEqual(["Cache-Control: public, max-age=0, must-revalidate"]);
+            }
+            for (const path of ["/locales/*", "/teach/*", "/fonts/*", "/images/*", "/catalogue/*"])
+            {
+                expect(rules.get(path), path).toEqual(["Cache-Control: public, max-age=31536000, immutable"]);
+            }
+            expect(text).not.toMatch(/https?:\/\//);
         });
 
         it("writes a page for an address that does not exist: German and English, a way home, the legal links and the copyright line", () =>

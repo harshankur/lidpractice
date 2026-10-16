@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /** Folders and files whose text must follow the project style rules. */
-const ROOTS = ["src", "tests", "scripts", "data", ".github", "public/site.webmanifest", "public/favicon.svg", "public/catalogue/SOURCE.md", "public/_redirects", "public/sitemap.xml", "build.mjs", "README.md", "playwright.config.ts", "vitest.config.ts", "eslint.config.mjs"];
+const ROOTS = ["src", "tests", "scripts", "data", ".github", "public/site.webmanifest", "public/favicon.svg", "public/catalogue/SOURCE.md", "public/_headers", "public/_redirects", "public/sitemap.xml", "wrangler.jsonc", "build.mjs", "README.md", "playwright.config.ts", "vitest.config.ts", "eslint.config.mjs"];
 
 /** Code points of the em dash and the en dash, built from numbers so this file passes its own check. */
 const LONG_DASH_CODES = [0x2014, 0x2013];

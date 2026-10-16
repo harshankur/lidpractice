@@ -5,7 +5,7 @@ dist/
 # Local environment and tool state
 .env
 .env.*
-.netlify/
+.wrangler/
 *.log
 .DS_Store
 

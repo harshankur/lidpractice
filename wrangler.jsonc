@@ -1,0 +1,16 @@
+// lidpractice.de on Cloudflare Workers: the built site (dist/) as static assets, with no Worker code.
+// Cloudflare's Git integration (Workers Builds) runs `npm run build` and then `npx wrangler deploy` on every push to master.
+// public/_headers (security headers, cache policy) and public/_redirects (the old legal pages) are copied into dist/ by
+// the build and read from there.
+{
+  "name": "lidpractice",
+  "compatibility_date": "2026-10-01",
+  // No usage reports from the deploy tool to Cloudflare.
+  "send_metrics": false,
+  "assets": {
+    "directory": "./dist",
+    // An address with no file gets dist/404.html with the status 404. Not "single-page-application": the page has one
+    // address and keeps its place after the "#", so an unknown path is a wrong link, not a page of the app.
+    "not_found_handling": "404-page"
+  }
+}

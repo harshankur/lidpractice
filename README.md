@@ -157,7 +157,7 @@ Everything beyond the page itself, such as the original question, the FAQ and re
 ```bash
 npm run catalogue:verify        # compare the German text with the PDF in the repo
 npm run catalogue:images        # rebuild the 460 original images and the page numbers
-npm run catalogue:pictures      # rebuild the 13 question pictures
+npm run catalogue:pictures      # rebuild the 43 question pictures
 ```
 
 These need [poppler](https://poppler.freedesktop.org) (`brew install poppler`).
@@ -195,7 +195,7 @@ npm run test:e2e       # Playwright in a real browser, needs `npm run build` fir
 
 - `tests/unit`: randomness, question bank, storage, language and plural handling, the dialog, the listbox, the theme, and the whole app driven through the DOM (practice, weak spots in practice, exam, timer, keyboard, German and English). For the Learn tab: the card boxes, the course builder, the timeline, the maps, the pieces of a lesson, and the tab itself with the real course (loading, a lesson from guess to check, flash cards across days, language and state changes), and the geometry of the map generator.
 - `tests/data`: the course of the Learn tab (see above), both question languages and their parity, the interface language files (same keys, placeholders and links in every language, no key left unused), the answer key, agreement with the catalogue, pictures, original images, the PDF copy, icons, manifest and fonts, design tokens, issue forms, workflows and license.
-- `tests/build`: the build output (the page, the 404 page, the text and links without JavaScript, and the redirects), nothing loaded from another server, hostile data in the page, and a smoke boot of the built page.
+- `tests/build`: the build output (the page, the 404 page, the text and links without JavaScript, the headers, the redirects and the Cloudflare configuration), nothing loaded from another server, hostile data in the page, and a smoke boot of the built page.
 - `tests/lint`: proves that the lint rules really fire. They ban native selects and date or colour inputs, `alert`, `confirm`, `prompt` and `window.open`, text typed into the code instead of the language files, direct console use, `new Error("...")` and magic numbers.
 - `tests/e2e`: the built site in Chrome, on desktop and a phone viewport: the exam, the pictures, the dialog, the listbox keyboard contract, languages, themes, layout, the Learn tab (with measurements that nothing moves when an answer, a date or a name is uncovered or a lesson is ticked off, that the list and a lesson come back where the user left them, and that a link leads to its section), the legal links and the copyright line at the end of the app, of the 404 page and of the page without JavaScript, and that no request leaves the site. It uses your installed Chrome. In CI the workflow installs Chromium and sets `PW_CHANNEL=""`.
 
@@ -221,11 +221,17 @@ On the site: **Original**, then **Report a problem with this question**, or **Re
 
 ## Hosting
 
-Upload the contents of `dist/` to any static host. The files in `locales/` and `teach/` carry a fingerprint in their address, so they can be cached for a long time as well. For Netlify, Cloudflare Pages or similar: build command `npm run build`, publish folder `dist`, Node 20 or newer. The pictures, the fonts and `catalogue/` never change between releases, so they can be cached for a long time. `index.html` should not be cached for long. There is no third party request to configure, allow or block. An address with no file should get `404.html` with the status 404; `public/_redirects` sends the addresses of the old legal pages to the shared ones.
+The site runs on Cloudflare Workers as static assets, with no Worker code: `wrangler.jsonc` names the Worker (`lidpractice`) and publishes `dist/`. Cloudflare's Git integration (Workers Builds) deploys every push to `master`: it runs `npm run build` and then `npx wrangler deploy`, with Node 20 or newer. To set it up once: in the Cloudflare dashboard, Workers & Pages, create a Worker from the GitHub repository, with the build command `npm run build` and the deploy command `npx wrangler deploy`. `wrangler.jsonc` turns off the usage reports of the deploy tool (`send_metrics`).
 
-`netlify.toml` holds the build, the cache policy, security headers (including a Content-Security-Policy that allows only the site itself: it was checked against the built page), and and nothing else that depends on the address. The address of the site is `siteUrl` in `src/identity.json`; the build puts it into the canonical link and the share tags, and `public/robots.txt` and `public/sitemap.xml` name it as well, so change those two files too if the address changes. All other addresses in the page are relative, so the site works on any domain or path. Progress is stored per address in the browser: a visitor who used the site under another address (for example a `netlify.app` one) starts empty on the new domain.
+`public/_headers` and `public/_redirects` are copied into `dist/` by the build and read by Cloudflare from there:
 
-Connecting the domain: in Netlify, Domain management, add `lidpractice.de` as the primary domain; Netlify adds `www.lidpractice.de` and sends it to the primary one. The DNS of lidpractice.de is at Cloudflare: add the records Netlify shows there (for the bare domain a CNAME to the `netlify.app` name of the site, which Cloudflare flattens, or the address Netlify names; for `www` a CNAME to the same `netlify.app` name), with the proxy off ("DNS only"), so Netlify can issue the HTTPS certificate. Keep the MX and TXT records of the email routing as they are.
+- `_headers` sets the security headers for every address (including a Content-Security-Policy that allows only the site itself: it was checked against the built page) and the cache policy. The page is served at `/` (Cloudflare sends `/index.html` there), so the rule that it is always checked again names both. The files in `locales/` and `teach/` carry a fingerprint in their address, and the pictures, the fonts and `catalogue/` never change between releases, so they are kept for a year. Cloudflare joins the values of a header that two matching rules set, so no address is matched by two rules that set the same header.
+- `_redirects` sends the addresses of the legal pages this site used to have to the shared ones (see below), permanently.
+- An address with no file gets `404.html` with the status 404 (`not_found_handling` in `wrangler.jsonc`). It is in German and English, links to the start page and carries the legal links and the copyright line. The host serves it at any depth, so everything in it is addressed from the root of the site.
+
+There is no third party request to configure, allow or block. The address of the site is `siteUrl` in `src/identity.json`; the build puts it into the canonical link and the share tags, and `public/robots.txt` and `public/sitemap.xml` name it as well, so change those two files too if the address changes. All other addresses in the page are relative, so the page works on any domain or path. Progress is stored per address in the browser: a visitor who used the site under another address (for example a `workers.dev` one) starts empty on the new domain.
+
+Connecting the domain: the DNS of lidpractice.de is at Cloudflare. In the Worker, Settings, Domains & Routes, add `lidpractice.de` and `www.lidpractice.de` as custom domains; Cloudflare creates the records and the certificates. To send `www` to the bare domain, add a redirect rule for the zone (Rules, Redirect Rules: host `www.lidpractice.de` to `https://lidpractice.de` with the path kept, 301). Keep the MX and TXT records of the email routing as they are.
 
 ## Legal notice and privacy notice (Impressum, Datenschutz)
 
@@ -243,15 +249,16 @@ data/locales/                  one file per language of the question bank
 data/teach/                    the course of the Learn tab: plan, maps, and one file of texts per language
 data/catalogue-source.json     edition, address and checksum of the official PDF
 public/catalogue/              the official PDF, its provenance note, and 460 original question images
-public/images/                 the 13 question pictures, cut from the PDF
+public/images/                 the 43 question pictures, cut from the PDF
 public/fonts/                  the fonts (Latin and Latin Extended of the two main fonts, Cyrillic, Arabic and Devanagari of Noto Sans), with their license texts
-public/                        favicon, touch icon, app icons, site.webmanifest
+public/                        favicon, touch icon, app icons, site.webmanifest, and the headers and redirects of the host (_headers, _redirects)
 src/                           the app (TypeScript, CSS, HTML shell, interface languages in src/locales, the Learn tab in src/learn)
 scripts/                       build helpers, catalogue verification, image extraction, drift check, icon and font tools
 tests/                         unit, data, build, lint and end-to-end tests
 .github/ISSUE_TEMPLATE/        the three issue forms
 .github/workflows/             the test run and the weekly catalogue check
 build.mjs                      bundler
+wrangler.jsonc                 the Cloudflare Workers deployment (static assets)
 ```
 
 ## License and credits
