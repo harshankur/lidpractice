@@ -186,9 +186,9 @@ export class Store
     /**
      * Reads what an older version saved: the progress, the interface language, the theme, the translation and the
      * choice of topics. Older versions had the ten Berlin questions as 301 to 310, they are 321 to 330 now.
-     * @returns A partial state, or an empty one when nothing older is stored.
+     * @returns A partial state, or null when nothing older is stored.
      */
-    private static readLegacy(): Partial<SavedState>
+    private static readLegacy(): Partial<SavedState> | null
     {
         for (const key of LEGACY_STORAGE_KEYS)
         {
@@ -209,7 +209,16 @@ export class Store
                 };
             }
         }
-        return {};
+        return null;
+    }
+
+    /** Removes what older versions saved, so nothing stale stays on the device once it lives on under the current key. */
+    private static dropLegacy(): void
+    {
+        for (const key of LEGACY_STORAGE_KEYS)
+        {
+            ErrorBoundary.run(() => window.localStorage.removeItem(key), undefined);
+        }
     }
 
     /**
@@ -232,23 +241,40 @@ export class Store
         return moved;
     }
 
-    /** Loads state from localStorage, falling back to defaults. */
+    /**
+     * Loads state from localStorage, falling back to defaults. What an older version saved is read when the current key is
+     * empty, saved under the current key at once, and removed once that save worked; a save that fails keeps the old one, so
+     * the next visit tries again. When the current key is there, the old saves were brought over before and are removed.
+     */
     public load(): void
     {
         const raw = ErrorBoundary.run(() => window.localStorage.getItem(STORAGE_KEY), null);
         if (!raw)
         {
-            this.state = Store.sanitize(Store.readLegacy());
+            const legacy = Store.readLegacy();
+            this.state = Store.sanitize(legacy ?? {});
+            if (legacy !== null && this.save())
+            {
+                Store.dropLegacy();
+            }
             return;
         }
         const parsed = ErrorBoundary.run(() => JSON.parse(raw) as Partial<SavedState>, {});
         this.state = Store.sanitize(parsed);
+        Store.dropLegacy();
     }
 
-    /** Writes the current state to localStorage. */
-    public save(): void
+    /**
+     * Writes the current state to localStorage.
+     * @returns Whether it was written; false when the storage is blocked or full.
+     */
+    public save(): boolean
     {
-        ErrorBoundary.run(() => window.localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state)), undefined);
+        return ErrorBoundary.run(() =>
+        {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+            return true;
+        }, false);
     }
 
     /**

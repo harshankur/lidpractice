@@ -422,12 +422,70 @@ describe("Store", () =>
             expect(store.state.state).toBe("berlin");
         });
 
-        it("is not used once the current key has been saved", () =>
+        it("is not used once the current key has been saved, and an old save left next to it is removed", () =>
         {
             window.localStorage.setItem(OLD_KEY, JSON.stringify({ uiLanguage: "en" }));
+            window.localStorage.setItem(OLD_V3_KEY, JSON.stringify({ uiLanguage: "en" }));
             window.localStorage.setItem(app.STORAGE_KEY, JSON.stringify({ uiLanguage: "de" }));
             store.load();
             expect(store.state.uiLanguage).toBe("de");
+            expect(window.localStorage.getItem(OLD_KEY)).toBeNull();
+            expect(window.localStorage.getItem(OLD_V3_KEY)).toBeNull();
+            expect(JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string)).toEqual({ uiLanguage: "de" });
+        });
+
+        it("saves what it brought along under the current key at once, and then removes every old save", () =>
+        {
+            const records = { "9": { right: 2, wrong: 1, lastWrong: true } };
+            window.localStorage.removeItem(app.STORAGE_KEY);
+            window.localStorage.setItem(OLD_V3_KEY, JSON.stringify({ theme: "dark", records }));
+            window.localStorage.setItem(OLD_KEY, JSON.stringify({ theme: "light" }));
+            store.load();
+            const saved = JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string) as { theme: string; records: unknown };
+            expect(saved.theme).toBe("dark");
+            expect(saved.records).toEqual(records);
+            expect(window.localStorage.getItem(OLD_V3_KEY)).toBeNull();
+            expect(window.localStorage.getItem(OLD_KEY)).toBeNull();
+            // The next visit reads the current key, and finds what was brought along.
+            const again = new app.Store();
+            again.load();
+            expect(again.state.records).toEqual(records);
+            expect(again.state.theme).toBe("dark");
+        });
+
+        it("keeps the old save when the current key cannot be written, so the next visit brings it along again", () =>
+        {
+            window.localStorage.removeItem(app.STORAGE_KEY);
+            window.localStorage.setItem(OLD_KEY, JSON.stringify({ records: { "5": { right: 1, wrong: 0, lastWrong: false } } }));
+            vi.spyOn(Storage.prototype, "setItem").mockImplementation(() =>
+            {
+                throw new Error("QuotaExceededError");
+            });
+            store.load();
+            expect(store.state.records).toEqual({ "5": { right: 1, wrong: 0, lastWrong: false } });
+            expect(window.localStorage.getItem(app.STORAGE_KEY)).toBeNull();
+            expect(window.localStorage.getItem(OLD_KEY)).not.toBeNull();
+        });
+
+        it("writes nothing on a visit without any save, old or new", () =>
+        {
+            window.localStorage.clear();
+            const write = vi.spyOn(Storage.prototype, "setItem");
+            const remove = vi.spyOn(Storage.prototype, "removeItem");
+            store.load();
+            expect(write).not.toHaveBeenCalled();
+            expect(remove).not.toHaveBeenCalled();
+            expect(window.localStorage.length).toBe(0);
+        });
+
+        it("says whether a save was written", () =>
+        {
+            expect(store.save()).toBe(true);
+            vi.spyOn(Storage.prototype, "setItem").mockImplementation(() =>
+            {
+                throw new Error("QuotaExceededError");
+            });
+            expect(store.save()).toBe(false);
         });
     });
 
