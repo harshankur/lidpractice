@@ -1,0 +1,7 @@
+# Read by Cloudflare's static assets (wrangler.jsonc). This site has no legal pages of its own any more: every site of the
+# operator shares one legal notice and one privacy notice, and the privacy notice has a section for this site. The old
+# addresses stay in use, so they send visitors there for good.
+/impressum.html https://harshankur.com/impressum 301
+/impressum https://harshankur.com/impressum 301
+/datenschutz.html https://harshankur.com/datenschutz#lidpractice 301
+/datenschutz https://harshankur.com/datenschutz#lidpractice 301

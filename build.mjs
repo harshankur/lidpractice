@@ -1,5 +1,6 @@
 // Bundles src/app.ts, src/styles.css and the question bank into one self-contained HTML file, writes the files that are fetched
-// later (languages, and the course of the Learn tab) next to it, and copies public/ (fonts, icons, pictures, the official catalogue and its images).
+// later (languages, and the course of the Learn tab) and the page for a missing address next to it, and copies public/ (fonts,
+// icons, pictures, the official catalogue and its images, and the headers and redirects of the host).
 import { createHash } from "node:crypto";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { build } from "esbuild";
@@ -31,11 +32,26 @@ function escapeHtml(text)
 const identity = JSON.parse(readFileSync("src/identity.json", "utf8"));
 const ui = JSON.parse(readFileSync(`src/locales/${identity.defaultUiLocale}.json`, "utf8"));
 // The text for visitors without JavaScript cannot depend on a language setting, so it holds every language, each in its own span with its language and direction.
-const noscript = readdirSync("src/locales")
+const noscriptText = readdirSync("src/locales")
     .map((name) => name.replace(/\.json$/, ""))
     .sort((first, second) => (first === identity.defaultUiLocale ? -1 : second === identity.defaultUiLocale ? 1 : first.localeCompare(second)))
     .map((code) => `<span lang="${code}" dir="${identity.rtlLocales.includes(code) ? "rtl" : "ltr"}">${escapeHtml(JSON.parse(readFileSync(`src/locales/${code}.json`, "utf8"))["app.noscript"])}</span>`)
     .join(" ");
+
+/**
+ * The end of every page: the links to the legal notice and the privacy notice that every site of the operator shares, in a
+ * line of their own, and below it the copyright line. Every link opens in a new tab. The legal links keep their German
+ * names in every language, so they carry the language of German.
+ * @returns HTML of the two lines.
+ */
+function legalFooter()
+{
+    const link = (href, text, lang) => `<a href="${escapeHtml(href)}" target="_blank" rel="noopener"${lang ? ` lang="${lang}"` : ""}>${escapeHtml(text)}</a>`;
+    return `<p class="site-legal">${link(identity.legalNoticeUrl, identity.legalNoticeLabel, identity.defaultLocale)} `
+        + `${link(identity.privacyNoticeUrl, identity.privacyNoticeLabel, identity.defaultLocale)}</p>\n`
+        + `<p class="site-copyright">${escapeHtml(identity.name)} &copy; ${identity.copyrightYear} ${link(identity.authorUrl, identity.author, null)}</p>`;
+}
+const noscript = `<p class="noscript-text">${noscriptText}</p>\n${legalFooter()}`;
 const js = bundle.outputFiles[0].text.replace(/<\/script/gi, "<\\/script");
 const css = readFileSync("src/styles.css", "utf8");
 // Escape "<" so the JSON can never close its script tag early.
@@ -119,33 +135,15 @@ const html = readFileSync("src/template.html", "utf8")
     .replace("/*__IMAGES__*/", () => JSON.stringify(imageSizes))
     .replace("/*__JS__*/", () => js);
 
-// The legal notice and the privacy notice: plain pages of their own, so they are always reachable, with or without JavaScript. The operator's details are in src/legal.json.
-const legal = JSON.parse(readFileSync("src/legal.json", "utf8"));
-const lines = (...parts) => parts.filter((part) => part !== null && part !== "").map((part) => escapeHtml(part)).join("<br>\n");
-const operatorBlock = lines(legal.operator, legal.businessName, ...legal.addressLines, legal.country);
-const mailLink = `<a href="mailto:${escapeHtml(legal.email)}">${escapeHtml(legal.email)}</a>`;
-const contactBlock = `E-Mail: ${mailLink}` + (legal.phone === null ? "" : `<br>\nTelefon: ${escapeHtml(legal.phone)}`);
-const contactBlockEn = `Email: ${mailLink}` + (legal.phone === null ? "" : `<br>\nPhone: ${escapeHtml(legal.phone)}`);
-const legalCss = readFileSync("src/legal.css", "utf8");
-const legalPages = ["impressum", "datenschutz"].map((name) => [name, readFileSync(`src/${name}.html`, "utf8")
+// The page for an address that does not exist, served by the host with the status 404 at any depth, so every address in it starts at the root.
+const notFound = readFileSync("src/notfound.html", "utf8")
     .replace(/__APP_NAME__/g, () => escapeHtml(identity.name))
-    .replace(/__SITE_URL__/g, () => escapeHtml(identity.siteUrl))
-    .replace(/__OPERATOR_BLOCK__/g, () => operatorBlock)
-    .replace(/__OPERATOR_NAME__/g, () => escapeHtml(legal.operator))
-    .replace(/__CONTACT_BLOCK_EN__/g, () => contactBlockEn)
-    .replace(/__CONTACT_BLOCK__/g, () => contactBlock)
-    .replace("/*__CSS__*/", () => legalCss)]);
-if (legal.addressLines.some((line) => line.startsWith("[")))
-{
-    console.warn("WARNING: src/legal.json still has placeholders in addressLines. Fill them in before publishing the legal notice.");
-}
+    .replace(/__FOOTER__/g, () => legalFooter())
+    .replace("/*__CSS__*/", () => readFileSync("src/notfound.css", "utf8"));
 
 mkdirSync(outDir, { recursive: true });
 writeFileSync(`${outDir}/index.html`, html);
-for (const [name, page] of legalPages)
-{
-    writeFileSync(`${outDir}/${name}.html`, page);
-}
+writeFileSync(`${outDir}/404.html`, notFound);
 for (const folder of ["locales", "teach"])
 {
     mkdirSync(`${outDir}/${folder}`, { recursive: true });

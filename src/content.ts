@@ -1,5 +1,5 @@
 import {
-    BAMF_CATALOGUE_PAGE_URL, BAMF_CATALOGUE_PDF_URL, LICENSE_URL, LOCAL_CATALOGUE_PDF, REPO_URL,
+    BAMF_CATALOGUE_PAGE_URL, BAMF_CATALOGUE_PDF_URL, LICENSE_URL, LOCAL_CATALOGUE_PDF, PRIVACY_NOTICE_URL, REPO_URL,
 } from "./constants";
 import { msg, type MessageKey } from "./i18n";
 
@@ -35,4 +35,5 @@ export const MESSAGE_LINKS: Record<string, string> = {
     copy: LOCAL_CATALOGUE_PDF,
     repo: REPO_URL,
     license: LICENSE_URL,
+    privacy: PRIVACY_NOTICE_URL,
 };

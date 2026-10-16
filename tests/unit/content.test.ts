@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { FAQ_ENTRIES, MESSAGE_LINKS } from "../../src/content";
 import de from "../../src/locales/de.json";
@@ -68,6 +69,16 @@ describe("FAQ content", () =>
         expect(text("privacy")).toContain("loads nothing from other servers");
         expect(text("changes")).toContain("The catalogue has changed");
         expect(text("license")).toContain("Commercial use is not allowed");
+    });
+
+    it("sends the privacy answer to this site's section of the privacy notice, in every language", () =>
+    {
+        expect(MESSAGE_LINKS.privacy).toBe("https://harshankur.com/datenschutz#lidpractice");
+        for (const code of ["de", "en", "ar", "uk", "tr", "es", "hi"])
+        {
+            const catalog = JSON.parse(readFileSync(`src/locales/${code}.json`, "utf8")) as Record<string, string>;
+            expect(catalog["faq.privacy.a1"], code).toMatch(/\]\(privacy\)/);
+        }
     });
 
     it("says the same in German", () =>

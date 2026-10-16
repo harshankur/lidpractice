@@ -335,6 +335,31 @@ describe("App: original question, report and About dialog", () =>
         });
     });
 
+    describe("legal links", () =>
+    {
+        it("sit in a line of their own right above the copyright line, and open the notices every site of the author shares in a new tab", () =>
+        {
+            const line = document.querySelector(".site-footer .site-legal") as HTMLElement;
+            expect(line.nextElementSibling?.className).toBe("site-copyright");
+            expect(Array.from(line.children).map((link) => [link.tagName, link.textContent, link.getAttribute("href"), link.getAttribute("target"), link.getAttribute("rel")])).toEqual([
+                ["A", "Impressum", "https://harshankur.com/impressum", "_blank", "noopener"],
+                ["A", "Datenschutz", "https://harshankur.com/datenschutz#lidpractice", "_blank", "noopener"],
+            ]);
+        });
+
+        it.each([["de"], ["ar"], ["uk"]] as const)("keep their German names in %s, marked as German written left to right", async (locale) =>
+        {
+            await mountApp(undefined, { locale });
+            const links = Array.from(document.querySelectorAll(".site-footer .site-legal a"));
+            expect(links.map((link) => link.textContent)).toEqual(["Impressum", "Datenschutz"]);
+            for (const link of links)
+            {
+                expect(link.getAttribute("lang")).toBe("de");
+                expect(link.getAttribute("dir")).toBe("ltr");
+            }
+        });
+    });
+
     describe("a dialog never changes its size", () =>
     {
         it.each([["About and FAQ"], ["Report a problem"]])("has a fixed frame in %s, and the content scrolls", (label) =>

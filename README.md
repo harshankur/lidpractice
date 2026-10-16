@@ -135,9 +135,9 @@ Plain TypeScript, no framework, strict mode, one file per concern:
 | `src/theme.ts` | Light, dark or system theme, by a class on the root element. |
 | `src/links.ts`, `src/constants.ts`, `src/identity.json` | Links to the PDF page, GitHub issues and email, shared constants, and the one place where the product name is written. |
 | `src/dom.ts` | The small `el()` helper that builds elements. Text is always added as text, never as markup. |
-| `build.mjs` | Bundles everything with esbuild into `dist/` and fills the page head from the identity and the default language. |
+| `build.mjs` | Bundles everything with esbuild into `dist/`, fills the page head from the identity and the default language, and writes the page for an address that does not exist (`404.html`, from `src/notfound.html` and `src/notfound.css`). |
 
-Everything beyond the page itself, such as the original question, the FAQ and reporting, opens in the same dialog. There are no separate pages.
+Everything beyond the page itself, such as the original question, the FAQ and reporting, opens in the same dialog. There are no separate pages, apart from the page the host shows for an address that does not exist.
 
 ### View original, FAQ and reporting
 
@@ -195,9 +195,9 @@ npm run test:e2e       # Playwright in a real browser, needs `npm run build` fir
 
 - `tests/unit`: randomness, question bank, storage, language and plural handling, the dialog, the listbox, the theme, and the whole app driven through the DOM (practice, weak spots in practice, exam, timer, keyboard, German and English). For the Learn tab: the card boxes, the course builder, the timeline, the maps, the pieces of a lesson, and the tab itself with the real course (loading, a lesson from guess to check, flash cards across days, language and state changes), and the geometry of the map generator.
 - `tests/data`: the course of the Learn tab (see above), both question languages and their parity, the interface language files (same keys, placeholders and links in every language, no key left unused), the answer key, agreement with the catalogue, pictures, original images, the PDF copy, icons, manifest and fonts, design tokens, issue forms, workflows and license.
-- `tests/build`: the build output, nothing loaded from another server, hostile data in the page, and a smoke boot of the built page.
+- `tests/build`: the build output (the page, the 404 page, the text and links without JavaScript, and the redirects), nothing loaded from another server, hostile data in the page, and a smoke boot of the built page.
 - `tests/lint`: proves that the lint rules really fire. They ban native selects and date or colour inputs, `alert`, `confirm`, `prompt` and `window.open`, text typed into the code instead of the language files, direct console use, `new Error("...")` and magic numbers.
-- `tests/e2e`: the built site in Chrome, on desktop and a phone viewport: the exam, the pictures, the dialog, the listbox keyboard contract, languages, themes, layout, the Learn tab (with measurements that nothing moves when an answer, a date or a name is uncovered or a lesson is ticked off, that the list and a lesson come back where the user left them, and that a link leads to its section), and that no request leaves the site. It uses your installed Chrome. In CI the workflow installs Chromium and sets `PW_CHANNEL=""`.
+- `tests/e2e`: the built site in Chrome, on desktop and a phone viewport: the exam, the pictures, the dialog, the listbox keyboard contract, languages, themes, layout, the Learn tab (with measurements that nothing moves when an answer, a date or a name is uncovered or a lesson is ticked off, that the list and a lesson come back where the user left them, and that a link leads to its section), the legal links and the copyright line at the end of the app, of the 404 page and of the page without JavaScript, and that no request leaves the site. It uses your installed Chrome. In CI the workflow installs Chromium and sets `PW_CHANNEL=""`.
 
 ## When the official catalogue changes
 
@@ -221,7 +221,7 @@ On the site: **Original**, then **Report a problem with this question**, or **Re
 
 ## Hosting
 
-Upload the contents of `dist/` to any static host. The files in `locales/` and `teach/` carry a fingerprint in their address, so they can be cached for a long time as well. For Netlify, Cloudflare Pages or similar: build command `npm run build`, publish folder `dist`, Node 20 or newer. The pictures, the fonts and `catalogue/` never change between releases, so they can be cached for a long time. `index.html` should not be cached for long. There is no third party request to configure, allow or block.
+Upload the contents of `dist/` to any static host. The files in `locales/` and `teach/` carry a fingerprint in their address, so they can be cached for a long time as well. For Netlify, Cloudflare Pages or similar: build command `npm run build`, publish folder `dist`, Node 20 or newer. The pictures, the fonts and `catalogue/` never change between releases, so they can be cached for a long time. `index.html` should not be cached for long. There is no third party request to configure, allow or block. An address with no file should get `404.html` with the status 404; `public/_redirects` sends the addresses of the old legal pages to the shared ones.
 
 `netlify.toml` holds the build, the cache policy, security headers (including a Content-Security-Policy that allows only the site itself: it was checked against the built page), and and nothing else that depends on the address. The address of the site is `siteUrl` in `src/identity.json`; the build puts it into the canonical link and the share tags, and `public/robots.txt` and `public/sitemap.xml` name it as well, so change those two files too if the address changes. All other addresses in the page are relative, so the site works on any domain or path. Progress is stored per address in the browser: a visitor who used the site under another address (for example a `netlify.app` one) starts empty on the new domain.
 
@@ -229,7 +229,11 @@ Connecting the domain: in Netlify, Domain management, add `lidpractice.de` as th
 
 ## Legal notice and privacy notice (Impressum, Datenschutz)
 
-`impressum.html` and `datenschutz.html` are plain pages of their own (German with an English copy), built from `src/impressum.html`, `src/datenschutz.html`, `src/legal.css` and the details in `src/legal.json` (name, address lines, country, email, optional business name and phone). It needs no JavaScript, and the footer of the app links to it in a new tab so a running exam is not lost. While `addressLines` still holds placeholders in square brackets, the build prints a warning: fill them in before publishing. Add the phone number only once it works. Other sites can link to `https://<site>/impressum.html`. The privacy notice names the host (Netlify), the DNS provider (Cloudflare) and the email forwarding to a Google mailbox: change it when any of them changes, and when something that stores or sends data is added to the site.
+This site has no legal pages of its own. Every site of the author shares one legal notice, `https://harshankur.com/impressum`, and one privacy notice, `https://harshankur.com/datenschutz`, which has a section for this site (`#lidpractice`, the English copy at `#en-lidpractice`). Their addresses and their labels are in `src/identity.json` (`legalNoticeUrl`, `privacyNoticeUrl`, `legalNoticeLabel`, `privacyNoticeLabel`), read by `src/constants.ts` and by the build. The labels stay German ("Impressum", "Datenschutz") in every language of the interface: they are the words visitors look for.
+
+The two links stand in a line of their own at the end of every page, right above the copyright line, and open in a new tab, so a running exam is not lost: in the footer of the app, in the text for visitors without JavaScript, and on the 404 page. The FAQ answer about data links to the section of this site. The old addresses `/impressum.html`, `/impressum`, `/datenschutz.html` and `/datenschutz` lead there permanently (`public/_redirects`).
+
+The section of this site in the privacy notice says what the site keeps and sends: the hosting at Cloudflare, nothing counted, nothing loaded from anyone else, the settings and progress in the browser's storage, older saves read once and then removed, "Reset progress", the links to the BAMF, the GitHub issue links and mail to hello@lidpractice.de. Change it, in the repository of harshankur.com, in the same piece of work as anything here that stores or sends something new.
 
 ## Layout of the repository
 

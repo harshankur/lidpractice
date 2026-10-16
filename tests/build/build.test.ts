@@ -5,9 +5,8 @@ import { join, resolve } from "node:path";
 import { JSDOM } from "jsdom";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readBundle } from "../../scripts/lib/data.mjs";
-import { CONTACT_EMAIL } from "../../src/constants";
+import { LEGAL_NOTICE_LABEL, LEGAL_NOTICE_URL, PRIVACY_NOTICE_LABEL, PRIVACY_NOTICE_URL } from "../../src/constants";
 import identity from "../../src/identity.json";
-import legal from "../../src/legal.json";
 import de from "../../src/locales/de.json";
 import en from "../../src/locales/en.json";
 import type { QuestionBundle } from "../../src/types";
@@ -94,6 +93,29 @@ function makeSandbox(): string
     return sandbox;
 }
 
+/**
+ * Checks the end of a page: a line with the links to the shared legal notice and privacy notice under their German names,
+ * and below it the copyright line, every link in a new tab.
+ * @param container The element that holds the two lines.
+ */
+function expectLegalFooter(container: Element): void
+{
+    const legal = container.querySelector(".site-legal") as Element;
+    const copyright = container.querySelector(".site-copyright") as Element;
+    expect(legal.nextElementSibling).toBe(copyright);
+    expect([...legal.querySelectorAll("a")].map((link) => [link.textContent, link.getAttribute("href"), link.getAttribute("lang")])).toEqual([
+        [LEGAL_NOTICE_LABEL, LEGAL_NOTICE_URL, "de"],
+        [PRIVACY_NOTICE_LABEL, PRIVACY_NOTICE_URL, "de"],
+    ]);
+    expect(copyright.textContent).toBe(`${identity.name} \u00a9 ${identity.copyrightYear} ${identity.author}`);
+    expect(copyright.querySelector("a")?.getAttribute("href")).toBe(identity.authorUrl);
+    for (const link of [...legal.querySelectorAll("a"), ...copyright.querySelectorAll("a")])
+    {
+        expect(link.getAttribute("target")).toBe("_blank");
+        expect(link.getAttribute("rel")).toBe("noopener");
+    }
+}
+
 const source = readBundle() as unknown as FullBundle;
 
 describe("build.mjs", () =>
@@ -134,50 +156,20 @@ describe("build.mjs", () =>
             expect(readFileSync("public/sitemap.xml", "utf8")).toContain(`<loc>${url}</loc>`);
         });
 
-        it("writes the legal notice as a page of its own, from src/legal.json, with the contact email and a way back", () =>
+        it("writes no legal pages of its own: the old addresses lead to the notices every site of the operator shares", () =>
         {
-            const page = new JSDOM(readFileSync(join(defaultOut, "impressum.html"), "utf8")).window.document;
-            expect(page.querySelector("h1")?.textContent).toBe("Impressum");
-            expect(page.documentElement.lang).toBe("de");
-            expect(page.querySelector("main")?.textContent).toContain(legal.operator);
-            for (const line of legal.addressLines)
-            {
-                expect(page.querySelector("main")?.textContent).toContain(line);
-            }
-            expect(page.querySelector(`a[href='mailto:${legal.email}']`)).not.toBeNull();
-            expect(legal.email).toBe(CONTACT_EMAIL);
-            expect(page.querySelector("a[href='./']")).not.toBeNull();
-            expect(page.querySelector("link[rel=canonical]")?.getAttribute("href")).toBe(`${identity.siteUrl}impressum.html`);
-            expect(page.querySelectorAll("script")).toHaveLength(0);
-            expect(page.querySelector("main")?.textContent).not.toContain("__");
-            // Who is responsible for the content, in German and in English, with the address of the notice.
-            const responsible = Array.from(page.querySelectorAll("h2")).filter((heading) => heading.textContent?.includes("18"));
-            expect(responsible.map((heading) => heading.textContent)).toEqual(["Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV", "Responsible for the content according to § 18(2) MStV (German Interstate Media Treaty)"]);
-            expect(responsible.map((heading) => heading.nextElementSibling?.textContent)).toEqual([`${legal.operator}, Anschrift wie oben`, `${legal.operator}, address as above`]);
-        });
-
-        it("writes the privacy notice as a page of its own: the host, the browser storage, the rights, and no scripts or third party loads", () =>
-        {
-            const html = readFileSync(join(defaultOut, "datenschutz.html"), "utf8");
-            const page = new JSDOM(html).window.document;
-            expect(page.querySelector("h1")?.textContent).toBe("Datenschutzerkl\u00e4rung");
-            expect(page.documentElement.lang).toBe("de");
-            const text = page.querySelector("main")?.textContent ?? "";
-            for (const part of [legal.operator, legal.email, "Netlify", "Cloudflare", "localStorage", "Art. 15", "datenschutz-berlin.de", "Privacy notice"])
-            {
-                expect(text, part).toContain(part);
-            }
-            expect(page.querySelectorAll("script")).toHaveLength(0);
-            expect(page.querySelector("link[rel=canonical]")?.getAttribute("href")).toBe(`${identity.siteUrl}datenschutz.html`);
-            expect(page.querySelector("a[href='impressum.html']")).not.toBeNull();
-            expect(text).not.toContain("__");
-        });
-
-        it("leaves the phone out of the legal notice until there is one", () =>
-        {
-            const page = new JSDOM(readFileSync(join(defaultOut, "impressum.html"), "utf8")).window.document;
-            expect(legal.phone === null || typeof legal.phone === "string").toBe(true);
-            expect(page.querySelector("main")?.textContent?.includes("Telefon")).toBe(legal.phone !== null);
+            expect(existsSync(join(defaultOut, "impressum.html"))).toBe(false);
+            expect(existsSync(join(defaultOut, "datenschutz.html"))).toBe(false);
+            expect(readFileSync("public/sitemap.xml", "utf8")).not.toMatch(/impressum|datenschutz/);
+            const rules = readFileSync(join(defaultOut, "_redirects"), "utf8").split("\n").filter((line) => line.trim() !== "" && !line.startsWith("#"));
+            expect(rules).toEqual([
+                "/impressum.html https://harshankur.com/impressum 301",
+                "/impressum https://harshankur.com/impressum 301",
+                "/datenschutz.html https://harshankur.com/datenschutz#lidpractice 301",
+                "/datenschutz https://harshankur.com/datenschutz#lidpractice 301",
+            ]);
+            expect(LEGAL_NOTICE_URL).toBe("https://harshankur.com/impressum");
+            expect(PRIVACY_NOTICE_URL).toBe("https://harshankur.com/datenschutz#lidpractice");
         });
 
         it("has a Netlify config that publishes dist, allows only the site itself, and names no other domain", () =>
@@ -186,6 +178,25 @@ describe("build.mjs", () =>
             expect(config).toContain('publish = "dist"');
             expect(config).toContain("default-src 'self'");
             expect(config).not.toMatch(/https?:\/\//);
+        });
+
+        it("writes a page for an address that does not exist: German and English, a way home, the legal links and the copyright line", () =>
+        {
+            const html = readFileSync(join(defaultOut, "404.html"), "utf8");
+            const page = new JSDOM(html).window.document;
+            expect(html.trimStart().toLowerCase().startsWith("<!doctype html>")).toBe(true);
+            expect(page.documentElement.lang).toBe("de");
+            expect(page.title).toBe(`Seite nicht gefunden | ${identity.name}`);
+            expect([...page.querySelectorAll("h1")].map((heading) => [heading.textContent, heading.getAttribute("lang")])).toEqual([["Seite nicht gefunden", null], ["Page not found", "en"]]);
+            expect([...page.querySelectorAll("main > p > a")].map((link) => link.getAttribute("href"))).toEqual(["/", "/"]);
+            expect(page.querySelector("meta[name=robots]")?.getAttribute("content")).toBe("noindex");
+            expect(page.querySelectorAll("script")).toHaveLength(0);
+            expectLegalFooter(page.querySelector("footer") as Element);
+            // The host serves it at any depth, so nothing in it is addressed relative to the folder.
+            const addresses = [...page.querySelectorAll("[href], [src]")].map((node) => node.getAttribute("href") ?? node.getAttribute("src") ?? "");
+            expect(addresses.filter((address) => !address.startsWith("/") && !address.startsWith("https://"))).toEqual([]);
+            expect([...html.matchAll(/url\(([^)]*)\)/g)].map((match) => match[1]).every((address) => address.startsWith("/fonts/"))).toBe(true);
+            expect(html).not.toContain("__");
         });
 
         it("is a standards mode document with charset, viewport, language, title and description", () =>
@@ -209,6 +220,14 @@ describe("build.mjs", () =>
             expect(spans.filter((span) => span.getAttribute("dir") === "ltr")).toHaveLength(6);
             expect(spans[0].textContent).toBe(en["app.noscript"]);
             expect(spans[2].textContent).toBe(de["app.noscript"]);
+        });
+
+        it("ends the page without JavaScript with the legal links and the copyright line", () =>
+        {
+            const document = new JSDOM(defaultHtml).window.document;
+            const noscript = document.querySelector("noscript") as Element;
+            expect([...noscript.children].map((child) => child.className)).toEqual(["noscript-text", "site-legal", "site-copyright"]);
+            expectLegalFooter(noscript);
         });
 
         it("replaces every template placeholder", () =>
@@ -384,7 +403,7 @@ describe("build.mjs", () =>
             rmSync(join(sandbox, "public"), { recursive: true });
             const out = makeWorkDir("nopublic");
             runBuild(sandbox, out);
-            expect(readdirSync(out).sort()).toEqual(["datenschutz.html", "impressum.html", "index.html", "locales", "teach"]);
+            expect(readdirSync(out).sort()).toEqual(["404.html", "index.html", "locales", "teach"]);
         });
 
         it("does not copy operating system leftovers", () =>

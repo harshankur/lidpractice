@@ -238,6 +238,10 @@ body::before {
 }
 
 #app { max-width: 1040px; margin-inline: auto; }
+/* Without JavaScript the page shows only its note, the legal links and the copyright line, in the column of the app. */
+noscript > p[class] { max-width: 1040px; margin-inline: auto; }
+noscript > .noscript-text { margin-block: 24px 16px; }
+noscript a { color: inherit; text-underline-offset: 3px; }
 
 h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
 
@@ -802,7 +806,8 @@ main.layout { margin-top: 20px; }
 .footer-state-note { margin: 0; color: var(--fg-muted); }
 .site-footer-note { margin: 0 0 8px; }
 .site-footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
-.site-copyright { margin: 16px 0 0; }
+.site-legal { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 16px 0 0; }
+.site-copyright { margin: 8px 0 0; }
 .site-footer a { color: inherit; text-underline-offset: 3px; }
 .site-footer a:hover { color: var(--fg); }
 

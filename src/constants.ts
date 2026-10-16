@@ -96,11 +96,15 @@ export const CATALOGUE_IMAGE_FOLDER = "catalogue";
 /** Question numbers in image file names are padded to this many digits. */
 export const CATALOGUE_IMAGE_DIGITS = 3;
 
-/** The legal notice (Impressum), a page of its own next to the app. */
-export const LEGAL_PAGE = "impressum.html";
-
-/** The privacy notice (Datenschutzerklaerung), a page of its own next to the app. */
-export const PRIVACY_PAGE = "datenschutz.html";
+/**
+ * The legal notice (Impressum) and the privacy notice (Datenschutzerklaerung). Every site of the operator shares one of each,
+ * on the operator's own site; the privacy notice has a section for this site, which the link opens. Their labels are the
+ * German legal terms in every language of the interface, because they are the words visitors look for.
+ */
+export const LEGAL_NOTICE_URL: string = identity.legalNoticeUrl;
+export const LEGAL_NOTICE_LABEL: string = identity.legalNoticeLabel;
+export const PRIVACY_NOTICE_URL: string = identity.privacyNoticeUrl;
+export const PRIVACY_NOTICE_LABEL: string = identity.privacyNoticeLabel;
 
 /** The author, as named in the copyright line at the bottom of the page, with the address of their site and the year of the first release. */
 export const AUTHOR_NAME: string = identity.author;
