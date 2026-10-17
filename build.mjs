@@ -39,19 +39,26 @@ const noscriptText = readdirSync("src/locales")
     .join(" ");
 
 /**
- * The end of every page: the links to the legal notice and the privacy notice that every site of the operator shares, in a
- * line of their own, and below it the copyright line. Every link opens in a new tab. The legal links keep their German
- * names in every language, so they carry the language of German.
+ * The end of a page that does not follow the language setting: the links to the legal notice and the privacy notice that every
+ * site of the operator shares, in a line of their own, and below it the copyright line. Every link opens in a new tab. The
+ * notices are written in German and English, so each link is named in both, each name in its own span with its language and
+ * direction, in the order the page puts its languages.
+ * @param {string[]} locales The languages of the names, the page's first.
  * @returns HTML of the two lines.
  */
-function legalFooter()
+function legalFooter(locales)
 {
-    const link = (href, text, lang) => `<a href="${escapeHtml(href)}" target="_blank" rel="noopener"${lang ? ` lang="${lang}"` : ""}>${escapeHtml(text)}</a>`;
-    return `<p class="site-legal">${link(identity.legalNoticeUrl, identity.legalNoticeLabel, identity.defaultLocale)} `
-        + `${link(identity.privacyNoticeUrl, identity.privacyNoticeLabel, identity.defaultLocale)}</p>\n`
-        + `<p class="site-copyright">${escapeHtml(identity.name)} &copy; ${identity.copyrightYear} ${link(identity.authorUrl, identity.author, null)}</p>`;
+    const messages = Object.fromEntries(locales.map((code) => [code, JSON.parse(readFileSync(`src/locales/${code}.json`, "utf8"))]));
+    const label = (key) => locales
+        .map((code) => `<span lang="${code}" dir="${identity.rtlLocales.includes(code) ? "rtl" : "ltr"}">${escapeHtml(messages[code][key])}</span>`)
+        .join(" / ");
+    const link = (href, content) => `<a href="${escapeHtml(href)}" target="_blank" rel="noopener">${content}</a>`;
+    return `<p class="site-legal">${link(identity.legalNoticeUrl, label("footer.legalNotice"))} `
+        + `${link(identity.privacyNoticeUrl, label("footer.privacy"))}</p>\n`
+        + `<p class="site-copyright">${escapeHtml(identity.name)} &copy; ${identity.copyrightYear} ${link(identity.authorUrl, escapeHtml(identity.author))}</p>`;
 }
-const noscript = `<p class="noscript-text">${noscriptText}</p>\n${legalFooter()}`;
+// The text for visitors without JavaScript leads with the default language of the site; the 404 page leads with German.
+const noscript = `<p class="noscript-text">${noscriptText}</p>\n${legalFooter([identity.defaultUiLocale, identity.defaultLocale])}`;
 const js = bundle.outputFiles[0].text.replace(/<\/script/gi, "<\\/script");
 const css = readFileSync("src/styles.css", "utf8");
 // Escape "<" so the JSON can never close its script tag early.
@@ -138,7 +145,7 @@ const html = readFileSync("src/template.html", "utf8")
 // The page for an address that does not exist, served by the host with the status 404 at any depth, so every address in it starts at the root.
 const notFound = readFileSync("src/notfound.html", "utf8")
     .replace(/__APP_NAME__/g, () => escapeHtml(identity.name))
-    .replace(/__FOOTER__/g, () => legalFooter())
+    .replace(/__FOOTER__/g, () => legalFooter([identity.defaultLocale, identity.defaultUiLocale]))
     .replace("/*__CSS__*/", () => readFileSync("src/notfound.css", "utf8"));
 
 mkdirSync(outDir, { recursive: true });

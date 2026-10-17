@@ -98,13 +98,12 @@ export const CATALOGUE_IMAGE_DIGITS = 3;
 
 /**
  * The legal notice (Impressum) and the privacy notice (Datenschutzerklaerung). Every site of the operator shares one of each,
- * on the operator's own site; the privacy notice has a section for this site, which the link opens. Their labels are the
- * German legal terms in every language of the interface, because they are the words visitors look for.
+ * on the operator's own site; the privacy notice has a section for this site, which the link opens. Their labels are in the
+ * language of the interface (`footer.legalNotice`, `footer.privacy`): "Impressum" and "Datenschutz" in German, "Legal notice"
+ * and "Privacy" in English.
  */
 export const LEGAL_NOTICE_URL: string = identity.legalNoticeUrl;
-export const LEGAL_NOTICE_LABEL: string = identity.legalNoticeLabel;
 export const PRIVACY_NOTICE_URL: string = identity.privacyNoticeUrl;
-export const PRIVACY_NOTICE_LABEL: string = identity.privacyNoticeLabel;
 
 /** The author, as named in the copyright line at the bottom of the page, with the address of their site and the year of the first release. */
 export const AUTHOR_NAME: string = identity.author;

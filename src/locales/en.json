@@ -80,6 +80,8 @@
     "footer.about": "About and FAQ",
     "footer.official": "Official catalogue (BAMF)",
     "footer.report": "Report a problem",
+    "footer.legalNotice": "Legal notice",
+    "footer.privacy": "Privacy",
     "footer.state.label": "Your state",
     "footer.state.button": "Your state: {name}",
     "footer.state.note": "Your {count} questions: 300 general ones and the 10 for {name}.",

@@ -80,6 +80,8 @@
     "footer.about": "परिचय और अक्सर पूछे जाने वाले प्रश्न",
     "footer.official": "आधिकारिक प्रश्न सूची (BAMF)",
     "footer.report": "समस्या बताएँ",
+    "footer.legalNotice": "कानूनी सूचना",
+    "footer.privacy": "गोपनीयता",
     "footer.state.label": "आपका राज्य",
     "footer.state.button": "आपका राज्य: {name}",
     "footer.state.note": "आपके {count} प्रश्न: 300 सामान्य प्रश्न और {name} के 10 प्रश्न।",

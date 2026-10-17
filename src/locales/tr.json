@@ -80,6 +80,8 @@
     "footer.about": "Hakkında ve SSS",
     "footer.official": "Resmi katalog (BAMF)",
     "footer.report": "Sorun bildir",
+    "footer.legalNotice": "Yasal bildirim",
+    "footer.privacy": "Gizlilik",
     "footer.state.label": "Eyaletin",
     "footer.state.button": "Eyaletin: {name}",
     "footer.state.note": "Senin {count} sorun: 300 genel soru ve {name} için 10 soru.",

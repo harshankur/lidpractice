@@ -92,6 +92,8 @@
     "footer.about": "حول الموقع والأسئلة الشائعة",
     "footer.official": "الكتالوج الرسمي (⁨BAMF⁩)",
     "footer.report": "الإبلاغ عن مشكلة",
+    "footer.legalNotice": "إشعار قانوني",
+    "footer.privacy": "الخصوصية",
     "footer.state.label": "ولايتك",
     "footer.state.button": "ولايتك: {name}",
     "footer.state.note": "أسئلتك البالغ عددها {count}: 300 سؤال عام و10 أسئلة خاصة بولاية {name}.",

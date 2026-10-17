@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 import { JSDOM } from "jsdom";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readBundle } from "../../scripts/lib/data.mjs";
-import { LEGAL_NOTICE_LABEL, LEGAL_NOTICE_URL, PRIVACY_NOTICE_LABEL, PRIVACY_NOTICE_URL } from "../../src/constants";
+import { LEGAL_NOTICE_URL, PRIVACY_NOTICE_URL } from "../../src/constants";
 import identity from "../../src/identity.json";
 import de from "../../src/locales/de.json";
 import en from "../../src/locales/en.json";
@@ -94,19 +94,28 @@ function makeSandbox(): string
 }
 
 /**
- * Checks the end of a page: a line with the links to the shared legal notice and privacy notice under their German names,
- * and below it the copyright line, every link in a new tab.
+ * Checks the end of a page: a line with the links to the shared legal notice and privacy notice, each named in German and
+ * English (the languages of the notices) in the order the page puts them, and below it the copyright line, every link in a
+ * new tab.
  * @param container The element that holds the two lines.
+ * @param order The language the page leads with first.
  */
-function expectLegalFooter(container: Element): void
+function expectLegalFooter(container: Element, order: "de" | "en"): void
 {
     const legal = container.querySelector(".site-legal") as Element;
     const copyright = container.querySelector(".site-copyright") as Element;
     expect(legal.nextElementSibling).toBe(copyright);
+    const [first, second] = order === "de" ? [de, en] : [en, de];
     expect([...legal.querySelectorAll("a")].map((link) => [link.textContent, link.getAttribute("href"), link.getAttribute("lang")])).toEqual([
-        [LEGAL_NOTICE_LABEL, LEGAL_NOTICE_URL, "de"],
-        [PRIVACY_NOTICE_LABEL, PRIVACY_NOTICE_URL, "de"],
+        [`${first["footer.legalNotice"]} / ${second["footer.legalNotice"]}`, LEGAL_NOTICE_URL, null],
+        [`${first["footer.privacy"]} / ${second["footer.privacy"]}`, PRIVACY_NOTICE_URL, null],
     ]);
+    for (const link of legal.querySelectorAll("a"))
+    {
+        expect([...link.querySelectorAll("span")].map((span) => [span.getAttribute("lang"), span.getAttribute("dir")]))
+            .toEqual(order === "de" ? [["de", "ltr"], ["en", "ltr"]] : [["en", "ltr"], ["de", "ltr"]]);
+    }
+    expect([de["footer.legalNotice"], de["footer.privacy"], en["footer.legalNotice"], en["footer.privacy"]]).toEqual(["Impressum", "Datenschutz", "Legal notice", "Privacy"]);
     expect(copyright.textContent).toBe(`${identity.name} \u00a9 ${identity.copyrightYear} ${identity.author}`);
     expect(copyright.querySelector("a")?.getAttribute("href")).toBe(identity.authorUrl);
     for (const link of [...legal.querySelectorAll("a"), ...copyright.querySelectorAll("a")])
@@ -234,7 +243,7 @@ describe("build.mjs", () =>
             expect([...page.querySelectorAll("main > p > a")].map((link) => link.getAttribute("href"))).toEqual(["/", "/"]);
             expect(page.querySelector("meta[name=robots]")?.getAttribute("content")).toBe("noindex");
             expect(page.querySelectorAll("script")).toHaveLength(0);
-            expectLegalFooter(page.querySelector("footer") as Element);
+            expectLegalFooter(page.querySelector("footer") as Element, "de");
             // The host serves it at any depth, so nothing in it is addressed relative to the folder.
             const addresses = [...page.querySelectorAll("[href], [src]")].map((node) => node.getAttribute("href") ?? node.getAttribute("src") ?? "");
             expect(addresses.filter((address) => !address.startsWith("/") && !address.startsWith("https://"))).toEqual([]);
@@ -257,7 +266,7 @@ describe("build.mjs", () =>
         it("tells visitors without JavaScript in every language", () =>
         {
             const document = new JSDOM(defaultHtml).window.document;
-            const spans = [...document.querySelectorAll("noscript span")];
+            const spans = [...document.querySelectorAll("noscript .noscript-text span")];
             expect(spans.map((span) => span.getAttribute("lang"))).toEqual(["en", "ar", "de", "es", "hi", "tr", "uk"]);
             expect(spans.find((span) => span.getAttribute("lang") === "ar")?.getAttribute("dir")).toBe("rtl");
             expect(spans.filter((span) => span.getAttribute("dir") === "ltr")).toHaveLength(6);
@@ -270,7 +279,7 @@ describe("build.mjs", () =>
             const document = new JSDOM(defaultHtml).window.document;
             const noscript = document.querySelector("noscript") as Element;
             expect([...noscript.children].map((child) => child.className)).toEqual(["noscript-text", "site-legal", "site-copyright"]);
-            expectLegalFooter(noscript);
+            expectLegalFooter(noscript, "en");
         });
 
         it("replaces every template placeholder", () =>

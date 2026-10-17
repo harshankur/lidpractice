@@ -80,6 +80,8 @@
     "footer.about": "Über diese Seite und FAQ",
     "footer.official": "Offizieller Katalog (BAMF)",
     "footer.report": "Problem melden",
+    "footer.legalNotice": "Impressum",
+    "footer.privacy": "Datenschutz",
     "footer.state.label": "Dein Bundesland",
     "footer.state.button": "Dein Bundesland: {name}",
     "footer.state.note": "Deine {count} Fragen: 300 allgemeine und 10 für {name}.",

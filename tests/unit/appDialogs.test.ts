@@ -344,20 +344,25 @@ describe("App: original question, report and About dialog", () =>
             const line = document.querySelector(".site-footer .site-legal") as HTMLElement;
             expect(line.nextElementSibling?.className).toBe("site-copyright");
             expect(Array.from(line.children).map((link) => [link.tagName, link.textContent, link.getAttribute("href"), link.getAttribute("target"), link.getAttribute("rel")])).toEqual([
-                ["A", "Impressum", "https://harshankur.com/impressum", "_blank", "noopener"],
-                ["A", "Datenschutz", "https://harshankur.com/datenschutz#lidpractice", "_blank", "noopener"],
+                ["A", "Legal notice", "https://harshankur.com/impressum", "_blank", "noopener"],
+                ["A", "Privacy", "https://harshankur.com/datenschutz#lidpractice", "_blank", "noopener"],
             ]);
         });
 
-        it.each([["de"], ["ar"], ["uk"]] as const)("keep their German names in %s, marked as German written left to right", async (locale) =>
+        it.each([
+            ["de", "Impressum", "Datenschutz"],
+            ["ar", "إشعار قانوني", "الخصوصية"],
+            ["uk", "Правова інформація", "Конфіденційність"],
+        ] as const)("read in the language of the interface, %s, and carry no language of their own", async (locale, legalNotice, privacy) =>
         {
             await mountApp(undefined, { locale });
             const links = Array.from(document.querySelectorAll(".site-footer .site-legal a"));
-            expect(links.map((link) => link.textContent)).toEqual(["Impressum", "Datenschutz"]);
+            expect(links.map((link) => link.textContent)).toEqual([legalNotice, privacy]);
+            expect(links.map((link) => link.getAttribute("href"))).toEqual(["https://harshankur.com/impressum", "https://harshankur.com/datenschutz#lidpractice"]);
             for (const link of links)
             {
-                expect(link.getAttribute("lang")).toBe("de");
-                expect(link.getAttribute("dir")).toBe("ltr");
+                expect(link.hasAttribute("lang")).toBe(false);
+                expect(link.hasAttribute("dir")).toBe(false);
             }
         });
     });

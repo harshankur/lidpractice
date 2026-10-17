@@ -19,7 +19,7 @@
 import { START_MODE, modeHash, pageOf, placeOf } from "./address";
 import { QuestionBank } from "./bank";
 import {
-    APP_NAME, AUTHOR_NAME, LEGAL_NOTICE_LABEL, LEGAL_NOTICE_URL, PRIVACY_NOTICE_LABEL, PRIVACY_NOTICE_URL, AUTHOR_URL, COPYRIGHT_YEAR, BAMF_CATALOGUE_PAGE_URL, CATALOGUE_STAND, EXAM_DURATION_MINUTES, EXAM_GENERAL_COUNT, MAX_COUNTDOWN_MINUTES, EXAM_PASS_MARK,
+    APP_NAME, AUTHOR_NAME, LEGAL_NOTICE_URL, PRIVACY_NOTICE_URL, AUTHOR_URL, COPYRIGHT_YEAR, BAMF_CATALOGUE_PAGE_URL, CATALOGUE_STAND, EXAM_DURATION_MINUTES, EXAM_GENERAL_COUNT, MAX_COUNTDOWN_MINUTES, EXAM_PASS_MARK,
     EXAM_STATE_COUNT, CONFIRM_GUARD_MS, LAST_GENERAL_NUMBER, MS_PER_SECOND, SECONDS_PER_MINUTE, OPTION_LETTERS, TOAST_DURATION_MS, TWO_STEP_TIMEOUT_MS,
 } from "./constants";
 import { Clock, type ClockLevel } from "./clock";
@@ -1730,10 +1730,9 @@ export class App
                 el("button", { class: "link-button", type: "button", onclick: () => this.actions.showAbout() }, t("footer.about")),
                 el("a", { href: BAMF_CATALOGUE_PAGE_URL, target: "_blank", rel: "noopener noreferrer" }, t("footer.official")),
                 el("button", { class: "link-button", type: "button", onclick: () => this.actions.showReport(null) }, t("footer.report"))),
-            // The legal links keep their German names in every language, so they carry the language and direction of German.
             el("p", { class: "site-legal" },
-                el("a", { href: LEGAL_NOTICE_URL, target: "_blank", rel: "noopener", lang: DEFAULT_LOCALE, dir: directionOf(DEFAULT_LOCALE) }, LEGAL_NOTICE_LABEL),
-                el("a", { href: PRIVACY_NOTICE_URL, target: "_blank", rel: "noopener", lang: DEFAULT_LOCALE, dir: directionOf(DEFAULT_LOCALE) }, PRIVACY_NOTICE_LABEL)),
+                el("a", { href: LEGAL_NOTICE_URL, target: "_blank", rel: "noopener" }, t("footer.legalNotice")),
+                el("a", { href: PRIVACY_NOTICE_URL, target: "_blank", rel: "noopener" }, t("footer.privacy"))),
             el("p", { class: "site-copyright" },
                 document.createTextNode(`${APP_NAME} \u00a9 ${COPYRIGHT_YEAR} `),
                 el("a", { href: AUTHOR_URL, target: "_blank", rel: "noopener" }, AUTHOR_NAME)));

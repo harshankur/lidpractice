@@ -80,6 +80,8 @@
     "footer.about": "Acerca de y preguntas frecuentes",
     "footer.official": "Catálogo oficial (BAMF)",
     "footer.report": "Informar de un problema",
+    "footer.legalNotice": "Aviso legal",
+    "footer.privacy": "Privacidad",
     "footer.state.label": "Tu estado federado",
     "footer.state.button": "Tu estado federado: {name}",
     "footer.state.note": "Tus {count} preguntas: 300 generales y las 10 de {name}.",

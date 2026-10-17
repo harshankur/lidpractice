@@ -86,6 +86,8 @@
     "footer.about": "Про сайт і поширені запитання",
     "footer.official": "Офіційний каталог (BAMF)",
     "footer.report": "Повідомити про проблему",
+    "footer.legalNotice": "Правова інформація",
+    "footer.privacy": "Конфіденційність",
     "footer.state.label": "Твоя земля",
     "footer.state.button": "Твоя земля: {name}",
     "footer.state.note": "Твої {count} питань: 300 загальних і 10 для землі {name}.",

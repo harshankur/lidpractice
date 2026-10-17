@@ -124,7 +124,7 @@ describe("App: practice mode", () =>
             const footer = document.querySelector("footer") as HTMLElement;
             expect(footer.querySelector(".site-settings")).toBeNull();
             expect(Array.from(footer.querySelectorAll("button, a")).map((control) => control.id || control.textContent)).toEqual([
-                "state-button", "About and FAQ", "Official catalogue (BAMF)", "Report a problem", "Impressum", "Datenschutz", "Harsh Ankur"]);
+                "state-button", "About and FAQ", "Official catalogue (BAMF)", "Report a problem", "Legal notice", "Privacy", "Harsh Ankur"]);
         });
 
         it("names the state in the footer, and counts only its questions: 310, never 460", () =>
