@@ -300,7 +300,7 @@ button:disabled { cursor: not-allowed; }
 .icon { width: 1.125em; height: 1.125em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ----- layout ----- */
-main.layout { margin-top: 20px; }
+.page { margin-top: 20px; }
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 248px; gap: 24px; align-items: start; }
 .stage { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 

@@ -415,7 +415,7 @@
     "learn.cards.keys": "Space shows the answer. Then 1: not yet, 2: got it.",
     "learn.cards.asked": "The catalogue asks this in: {questions}",
     "learn.cards.done.title": "Done for now",
-    "learn.cards.done.text": "You went through {total} cards. {again} of them needed a second look.",
+    "learn.cards.done.text": "Cards gone through: {total}. Needed a second look: {again}.",
     "learn.cards.done.lesson": "When the lesson is marked as done, these cards come back in the review.",
     "learn.cards.done.more.one": "{count} more card is due today.",
     "learn.cards.done.more.other": "{count} more cards are due today.",

@@ -82,7 +82,7 @@ describe("App: training", () =>
 
         it("has the progress, then the clock, in the same place as in practice, and the widget of the training after them", () =>
         {
-            const aside = document.querySelector("main.layout > .aside") as HTMLElement;
+            const aside = document.querySelector("#view.layout > .aside") as HTMLElement;
             expect(Array.from(aside.children).map((widget) => widget.className.split(" ").slice(0, 2).join(" "))).toEqual(["widget stats", "widget clock-widget", "widget train-widget"]);
             expect(trainValue("Cleared")).toBe("0 of 310");
             expect(trainValue("Left")).toBe("310");

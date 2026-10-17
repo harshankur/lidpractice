@@ -167,7 +167,7 @@ describe("App: practice mode", () =>
             expect(button.classList.contains("secondary")).toBe(true);
             expect(button.classList.contains("sm")).toBe(true);
             expect(button.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
-            expect(button.getAttribute("aria-label")).toMatch(/^Show question .+ as printed in the official catalogue$/);
+            expect(button.getAttribute("title")).toMatch(/^Show question .+ as printed in the official catalogue$/);
             const tools = document.querySelector(".card-tools") as HTMLElement;
             expect(tools.contains(button)).toBe(true);
             expect(tools.contains(document.getElementById("translation-button"))).toBe(true);
@@ -227,7 +227,7 @@ describe("App: practice mode", () =>
 
         it("sits below the progress in the column at the side, in practice and in a round of weak spots", () =>
         {
-            const aside = document.querySelector("main.layout > .aside") as HTMLElement;
+            const aside = document.querySelector("#view.layout > .aside") as HTMLElement;
             expect(Array.from(aside.children).map((widget) => widget.className.split(" ").slice(0, 2).join(" "))).toEqual(["widget stats", "widget clock-widget", "widget round-widget"]);
             answerWrong();
             clickButton("Practice weak spots");
@@ -1947,6 +1947,20 @@ describe("App: practice mode", () =>
             expect(toast.textContent).toBe("Something went wrong: kaputt");
             vi.advanceTimersByTime(5999);
             expect(toast.hidden).toBe(false);
+            vi.advanceTimersByTime(1);
+            expect(toast.hidden).toBe(true);
+        });
+
+        it("gives a second message its own six seconds, whatever the timer of the first had left", () =>
+        {
+            vi.useFakeTimers();
+            const toast = document.getElementById("toast") as HTMLElement;
+            window.dispatchEvent(new ErrorEvent("error", { error: new Error("first") }));
+            vi.advanceTimersByTime(3000);
+            window.dispatchEvent(new ErrorEvent("error", { error: new Error("second") }));
+            vi.advanceTimersByTime(5999);
+            expect(toast.hidden).toBe(false);
+            expect(toast.textContent).toBe("Something went wrong: second");
             vi.advanceTimersByTime(1);
             expect(toast.hidden).toBe(true);
         });

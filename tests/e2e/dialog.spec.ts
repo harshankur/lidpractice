@@ -8,7 +8,7 @@ const PHONE_MAX_WIDTH = 480;
 const SAMPLE_QUESTIONS = [1, 21, 55, 130, 216, 301, 328, 460];
 
 /** Name of the button that opens the original of a question. */
-const ORIGINAL_BUTTON = /Show question (\d+|[A-Z]{2} \d+) as printed in the official catalogue/;
+const ORIGINAL_BUTTON = /^Original, p\. \d+$/;
 
 /**
  * Asserts the page has no horizontal scrollbar.

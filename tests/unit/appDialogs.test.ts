@@ -86,13 +86,15 @@ describe("App: original question, report and About dialog", () =>
 
     describe("Show original", () =>
     {
-        it("is offered on the question card with a descriptive accessible name", () =>
+        it("is offered on the question card, named by its visible text and described by what it opens", () =>
         {
             const button = document.querySelector(".original-btn") as HTMLButtonElement;
             const question = REAL_QUESTIONS[shownNumber() - 1];
             expect(button.textContent).toBe(`Original, p. ${question.pg}`);
             expect(button.getAttribute("aria-haspopup")).toBe("dialog");
-            expect(button.getAttribute("aria-label")).toBe(`Show question ${shownNumber()} as printed in the official catalogue`);
+            // The name is the visible text, which a user of voice control can say; the longer words describe it.
+            expect(button.hasAttribute("aria-label")).toBe(false);
+            expect(button.getAttribute("title")).toBe(`Show question ${shownNumber()} as printed in the official catalogue`);
         });
 
         it("opens the question cut out of the catalogue, with its page", () =>

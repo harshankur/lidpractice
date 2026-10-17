@@ -174,7 +174,7 @@ test.describe("languages", () =>
             }
             expect(first?.x ?? 0).toBeGreaterThan(last?.x ?? 0);
             const stage = await page.locator(".stage").boundingBox();
-            const aside = await page.locator("main.layout > .aside").boundingBox();
+            const aside = await page.locator("#view.layout > .aside").boundingBox();
             if ((aside?.y ?? 0) < (stage?.y ?? 0) + 5)
             {
                 expect(aside?.x ?? 0).toBeLessThan(stage?.x ?? 0);

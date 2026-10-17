@@ -114,7 +114,10 @@ test.describe("interface language", () =>
     {
         await openApp(page, { locale: "de" });
         const number = nameOfNumber(await shownNumber(page));
-        await page.getByRole("button", { name: `Frage ${number} wie im offiziellen Katalog gedruckt anzeigen` }).click();
+        // The button is named by its visible text; what it opens is its description.
+        const original = page.locator(".original-btn");
+        await expect(original).toHaveAttribute("title", `Frage ${number} wie im offiziellen Katalog gedruckt anzeigen`);
+        await original.click();
         const dialog = page.getByRole("dialog");
         await expect(dialog.getByRole("heading", { name: `Frage ${number} wie im Katalog gedruckt` })).toBeVisible();
         await dialog.getByRole("button", { name: "Problem mit dieser Frage melden" }).click();

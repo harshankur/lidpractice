@@ -752,7 +752,7 @@ describe("App: the Learn tab", () =>
                 click("flash-known");
             }
             expect(textIn(".flash-end h3")).toBe("Done for now");
-            expect(textIn(".flash-end p")).toBe(`You went through ${cards.length} cards. 1 of them needed a second look.`);
+            expect(textIn(".flash-end p")).toBe(`Cards gone through: ${cards.length}. Needed a second look: 1.`);
             expect(textIn(".flash-end .hint")).toBe("When the lesson is marked as done, these cards come back in the review.");
             expect(document.getElementById("flash-more")).toBeNull();
             expect(textOf("flash-leave")).toBe("Close");
@@ -859,7 +859,7 @@ describe("App: the Learn tab", () =>
             expect(textIn(".flash-meta .tag")).toBe("Box 1 of 5");
             knowAll();
             expect(Object.values(saved(app).learn.cards)).toEqual(cards.map(() => ({ box: 2, due: TODAY + 1 + 3 })));
-            expect(textIn(".flash-end p")).toBe(`You went through ${cards.length} cards. 0 of them needed a second look.`);
+            expect(textIn(".flash-end p")).toBe(`Cards gone through: ${cards.length}. Needed a second look: 0.`);
             expect(textIn(".flash-end .hint")).toBe("No more cards are due today.");
             expect(document.getElementById("flash-more")).toBeNull();
             expect(find("#flash-leave").className).toBe("primary");
@@ -896,7 +896,7 @@ describe("App: the Learn tab", () =>
             // One card is in the first box again, due tomorrow; knowing it at the second try did not move it.
             expect(states.filter((state) => state.box === 1)).toEqual([{ box: 1, due: TODAY + 2 }]);
             expect(states.filter((state) => state.box === 2)).toHaveLength(cards.length - 1);
-            expect(textIn(".flash-end p")).toBe(`You went through ${cards.length} cards. 1 of them needed a second look.`);
+            expect(textIn(".flash-end p")).toBe(`Cards gone through: ${cards.length}. Needed a second look: 1.`);
             expect(missed).not.toBe("");
         });
 

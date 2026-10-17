@@ -886,6 +886,22 @@ describe("App: exam mode", () =>
             expect(document.querySelector(".exam-progress")).not.toBeNull();
         });
 
+        it("takes the keyboard to the first question when Start exam was pressed, and to the start when New exam was", () =>
+        {
+            clickButton("Exam (33)");
+            const start = buttonByText("Start exam") as HTMLButtonElement;
+            start.focus();
+            start.click();
+            expect(document.activeElement).toBe(document.querySelector("[data-focus]"));
+            answerExam(EXAM_SIZE);
+            pressFinishExam();
+            const again = buttonByText("New exam") as HTMLButtonElement;
+            again.focus();
+            again.click();
+            expect(document.activeElement?.tagName).toBe("H2");
+            expect(document.activeElement?.textContent).toBe("Practice exam");
+        });
+
         it("offers no round of weak spots on the result when there are none", () =>
         {
             startExam();
@@ -1050,6 +1066,8 @@ describe("App: exam mode", () =>
             // Moving the focus to the result makes jsdom queue a task of its own. It is flushed so that only the timers of the app are counted.
             vi.advanceTimersByTime(0);
             clickButton("Start exam");
+            // The keyboard moves to the first question, which queues a task of jsdom as well.
+            vi.advanceTimersByTime(0);
             expect(document.getElementById("clock-display")?.textContent).toBe("60:00");
             expect(vi.getTimerCount()).toBe(1);
             vi.advanceTimersByTime(1000);
@@ -1148,13 +1166,13 @@ describe("App: exam mode", () =>
         it("is there in every view of the exam, like in practice: intro, running, and result", () =>
         {
             clickButton("Exam (33)");
-            expect(document.querySelector("main.layout > .aside")).not.toBeNull();
+            expect(document.querySelector("#view.layout > .aside")).not.toBeNull();
             expect(document.querySelector(".aside .stats")).not.toBeNull();
             startExam();
-            expect(document.querySelector("main.layout > .aside .exam-widget")).not.toBeNull();
+            expect(document.querySelector("#view.layout > .aside .exam-widget")).not.toBeNull();
             answerExam(33);
             pressFinishExam();
-            expect(document.querySelector("main.layout > .aside .stats")).not.toBeNull();
+            expect(document.querySelector("#view.layout > .aside .stats")).not.toBeNull();
             expect(document.querySelector(".layout.single")).toBeNull();
         });
 

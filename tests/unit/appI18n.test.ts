@@ -52,6 +52,34 @@ describe("App: language, theme and tabs", () =>
 
     describe("interface language", () =>
     {
+        it("keeps the last language that was chosen when the file of an earlier choice arrives later", async () =>
+        {
+            app = await mountApp();
+            const fetchFile = window.fetch;
+            let release: () => void = () => undefined;
+            const held = new Promise<void>((done) =>
+            {
+                release = done;
+            });
+            window.fetch = (async (input: RequestInfo | URL) =>
+            {
+                if (String(input).includes("locales/hi.json"))
+                {
+                    await held;
+                }
+                return fetchFile(input);
+            }) as typeof fetch;
+            // Hindi is chosen, its file is slow; Spanish is chosen while it is on its way.
+            (document.getElementById("site-language-button") as HTMLButtonElement).click();
+            (document.querySelector("#site-language-list [data-value=\"hi\"]") as HTMLElement).click();
+            await chooseFromListbox("site-language", "es");
+            expect(document.documentElement.lang).toBe("es");
+            release();
+            await settle();
+            expect(document.documentElement.lang).toBe("es");
+            expect(JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string).uiLanguage).toBe("es");
+        });
+
         it("is English when nothing else is said, with the translation off and the appearance on automatic", async () =>
         {
             app = await mountApp(undefined, { locale: null });
@@ -381,7 +409,8 @@ describe("App: language, theme and tabs", () =>
         it("follows the system to begin with", () =>
         {
             expect(document.documentElement.className).toBe("");
-            expect(document.getElementById("theme-button")?.getAttribute("aria-label")).toBe("Appearance: Automatic (like device)");
+            // The name holds the word the button shows, so a user of voice control can say it.
+            expect(document.getElementById("theme-button")?.getAttribute("aria-label")).toBe("Appearance: Auto");
         });
 
         it("is labelled like the language list: an icon, what it is for, and the short name of what is chosen", () =>
@@ -471,6 +500,10 @@ describe("App: language, theme and tabs", () =>
             expect(panel.getAttribute("role")).toBe("tabpanel");
             expect(panel.getAttribute("aria-labelledby")).toBe("tab-practice");
             expect(tabs().every((tab) => tab.getAttribute("aria-controls") === "view")).toBe(true);
+            // The main part of the page holds the panel: one landmark to jump to, with all of the content in it.
+            expect(document.querySelectorAll("main")).toHaveLength(1);
+            expect(panel.parentElement?.tagName).toBe("MAIN");
+            expect(panel.parentElement?.hasAttribute("role")).toBe(false);
         });
 
         it("move with the arrow keys, wrap around, and keep focus on the selected tab", () =>

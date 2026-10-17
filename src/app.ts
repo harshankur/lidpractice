@@ -171,6 +171,14 @@ export class App
     private readonly store = new Store();
     private readonly root: HTMLElement;
     private readonly toast: HTMLElement;
+    /** Handle of the timer that hides the message at the bottom of the page, or 0. */
+    private toastTimer = 0;
+    /**
+     * Counts the choices of a language of the site, and of the translation. A language whose file arrives after the user
+     * chose another one in the meantime is not applied: the last choice wins, not the slowest file.
+     */
+    private siteLanguageChoice = 0;
+    private translationChoice = 0;
 
     private mode: AppMode = START_MODE;
     private readonly rounds: Record<RoundMode, ActiveRound | null> = { practice: null };
@@ -664,7 +672,9 @@ export class App
     {
         this.toast.textContent = t("toast.error", { message });
         this.toast.hidden = false;
-        window.setTimeout(() =>
+        // A new message gets its own full time: the timer of the one before would take it away early.
+        window.clearTimeout(this.toastTimer);
+        this.toastTimer = window.setTimeout(() =>
         {
             this.toast.hidden = true;
         }, TOAST_DURATION_MS);
@@ -1352,7 +1362,13 @@ export class App
     private async setTranslation(on: boolean): Promise<void>
     {
         const state = this.store.state;
-        if (on && !(await this.loadQuestions(this.store.translationTarget)))
+        const choice = ++this.translationChoice;
+        const loaded = !on || await this.loadQuestions(this.store.translationTarget);
+        if (choice !== this.translationChoice)
+        {
+            return;
+        }
+        if (!loaded)
         {
             this.render();
             return;
@@ -1370,7 +1386,13 @@ export class App
     {
         const state = this.store.state;
         const target = choice === "auto" ? automaticTranslation(state.uiLanguage) : choice;
-        if (!(await this.loadQuestions(target)))
+        const ticket = ++this.translationChoice;
+        const loaded = await this.loadQuestions(target);
+        if (ticket !== this.translationChoice)
+        {
+            return;
+        }
+        if (!loaded)
         {
             this.render();
             return;
@@ -1389,13 +1411,24 @@ export class App
      */
     private async changeSiteLanguage(locale: Locale, id: string): Promise<void>
     {
-        if (!(await this.loadUi(locale)))
+        const choice = ++this.siteLanguageChoice;
+        const loaded = await this.loadUi(locale);
+        if (choice !== this.siteLanguageChoice)
+        {
+            return;
+        }
+        if (!loaded)
         {
             this.changed(id);
             return;
         }
         const state = this.store.state;
-        if (state.translation !== "off" && state.translationLanguage === "auto" && !(await this.loadQuestions(automaticTranslation(locale))))
+        const translated = state.translation === "off" || state.translationLanguage !== "auto" || await this.loadQuestions(automaticTranslation(locale));
+        if (choice !== this.siteLanguageChoice)
+        {
+            return;
+        }
+        if (!translated)
         {
             state.translation = "off";
         }
@@ -1566,31 +1599,30 @@ export class App
     private render(): void
     {
         const active = document.activeElement;
-        const focusedId = active instanceof HTMLElement && this.root.contains(active) ? active.id : "";
+        const hadFocus = active instanceof HTMLElement && this.root.contains(active);
+        const focusedId = hadFocus ? active.id : "";
         document.documentElement.lang = i18n.locale;
         document.documentElement.dir = i18n.dir;
         const body = this.renderBody();
         // The Learn tab knows which page it shows once it is drawn, so the page is named after that.
         document.title = this.title();
+        // The main part of the page holds the panel of the tabs, so all of the content is inside a landmark.
         body.id = "view";
         body.setAttribute("role", "tabpanel");
         body.setAttribute("aria-labelledby", `tab-${this.mode}`);
-        this.root.replaceChildren(this.renderHeader(), body, this.renderFooter());
-        if (focusedId)
+        this.root.replaceChildren(this.renderHeader(), el("main", { class: "page" }, body), this.renderFooter());
+        const again = focusedId ? document.getElementById(focusedId) : null;
+        if (again && !(again instanceof HTMLButtonElement && again.disabled))
         {
-            const again = document.getElementById(focusedId);
-            if (again instanceof HTMLButtonElement && again.disabled)
-            {
-                // The control that was pressed cannot take the keyboard any more, such as Back on the first question or
-                // an answer that is locked now: the keyboard goes to the question, not to the top of the page.
-                const question = this.root.querySelector<HTMLElement>("[data-focus]");
-                question?.setAttribute("tabindex", "-1");
-                question?.focus({ preventScroll: true });
-            }
-            else
-            {
-                again?.focus();
-            }
+            again.focus();
+        }
+        else if (hadFocus)
+        {
+            // The control that was pressed is gone or cannot take the keyboard any more, such as Start exam, or Back on
+            // the first question: the keyboard goes to the question or the heading of the page, not to the top of the page.
+            const target = this.root.querySelector<HTMLElement>("#view [data-focus]") ?? this.root.querySelector<HTMLElement>("#view h2");
+            target?.setAttribute("tabindex", "-1");
+            target?.focus({ preventScroll: true });
         }
         scrollTimelineToCurrent(this.root);
         this.revealOpenTab();
@@ -1694,7 +1726,8 @@ export class App
             class: "secondary sm original-btn",
             type: "button",
             "aria-haspopup": "dialog",
-            "aria-label": t("card.showOriginalLabel", { n: questionName(question.n) }),
+            // The name is the text on the button, so a user of voice control can say it; what it opens is its description.
+            title: t("card.showOriginalLabel", { n: questionName(question.n) }),
             onclick: () => this.actions.showOriginal(question),
         }, icon("book"), el("span", {}, t("card.showOriginal", { page: question.pg ?? 0 })));
     }
@@ -1778,7 +1811,8 @@ export class App
             items: THEMES.map((entry) => ({ value: entry.theme, label: t(entry.label), short: t(entry.short) })),
             value: this.store.state.theme,
             icon: () => icon("contrast"),
-            buttonName: (item) => t("theme.button", { name: item.label }),
+            // The name says what the button shows, so a user of voice control can say it: the short word, not the long one of the list.
+            buttonName: (item) => t("theme.button", { name: item.short ?? item.label }),
             align: labelId ? "start" : "end",
             className: labelId ? "setup-box" : "header-box",
             onChange: (value) =>
@@ -1944,7 +1978,7 @@ export class App
         }
         if (this.mode === "learn")
         {
-            return el("main", { class: "layout" }, this.learn.render(), this.renderAside());
+            return el("div", { class: "layout" }, this.learn.render(), this.renderAside());
         }
         return this.renderPractice();
     }
@@ -1996,7 +2030,7 @@ export class App
     /** Round view: bar, panel, timeline, the question or the end card, and the buttons. */
     private renderPractice(): HTMLElement
     {
-        const main = el("main", { class: "layout" });
+        const main = el("div", { class: "layout" });
         const column = el("section", { class: "stage" }, this.renderClockStrip());
         const active = this.activeRound() as ActiveRound;
         const { round } = active;
@@ -2738,7 +2772,7 @@ export class App
                 el("button", { id: "train-next", class: "primary", type: "button", disabled: !trainer.answered, onclick: () => this.nextTrain() },
                     trainer.remaining === 0 ? t("train.finish") : t("train.next"))));
         }
-        return el("main", { class: "layout" }, column, this.renderAside());
+        return el("div", { class: "layout" }, column, this.renderAside());
     }
 
     /**
@@ -2869,7 +2903,7 @@ export class App
     /** Intro card with rules, the translation choice and the start button. */
     private renderExamIntro(): HTMLElement
     {
-        return el("main", { class: "layout" },
+        return el("div", { class: "layout" },
             el("section", { class: "card intro" },
                 el("h2", {}, t("exam.intro.title")),
                 el("p", {}, t("exam.intro.text", { total: this.examSize(), general: EXAM_GENERAL_COUNT, local: EXAM_STATE_COUNT })),
@@ -2950,7 +2984,7 @@ export class App
                 : el("button", { id: "exam-next", class: "primary", type: "button", onclick: () => this.moveExam(1) }, t("exam.next")));
 
         const column = el("section", { class: "stage" }, this.renderClockStrip(), bar, navigator, this.renderQuestionCard(item, exam.answers[exam.current], false), controls);
-        return el("main", { class: "layout" }, column, this.renderAside());
+        return el("div", { class: "layout" }, column, this.renderAside());
     }
 
     /**
@@ -3075,7 +3109,7 @@ export class App
                     el("button", { id: `why-${index}`, class: "link-button learn-why", type: "button", "aria-haspopup": "dialog", onclick: () => this.learnWhy(item.question.n) }, t("learn.why")));
             }));
 
-        return el("main", { class: "layout" }, el("div", { class: "stage" }, summary, review), this.renderAside());
+        return el("div", { class: "layout" }, el("div", { class: "stage" }, summary, review), this.renderAside());
     }
 }
 

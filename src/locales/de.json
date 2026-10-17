@@ -415,7 +415,7 @@
     "learn.cards.keys": "Leertaste zeigt die Antwort. Dann 1: noch nicht, 2: gewusst.",
     "learn.cards.asked": "Der Katalog fragt das in: {questions}",
     "learn.cards.done.title": "Fertig für jetzt",
-    "learn.cards.done.text": "Du bist {total} Karten durchgegangen. {again} davon brauchten einen zweiten Blick.",
+    "learn.cards.done.text": "Durchgegangene Karten: {total}. Davon mit zweitem Blick: {again}.",
     "learn.cards.done.lesson": "Wenn die Lektion als fertig markiert ist, kommen diese Karten in der Wiederholung zurück.",
     "learn.cards.done.more.one": "Heute ist noch {count} Karte fällig.",
     "learn.cards.done.more.other": "Heute sind noch {count} Karten fällig.",

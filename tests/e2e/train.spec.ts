@@ -109,13 +109,13 @@ test.describe("train", () =>
     test("has no horizontal scroll and the same layout as the other modes", async ({ page }) =>
     {
         await openApp(page);
-        const reference = await page.locator("main.layout > .aside").boundingBox();
+        const reference = await page.locator("#view.layout > .aside").boundingBox();
         await page.getByRole("tab", { name: "Train" }).click();
         await pressOption(page, await wrongOptionIndex(page));
         await page.locator("details.train-topics summary").click();
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         expect(overflow).toBeLessThanOrEqual(0);
-        const aside = await page.locator("main.layout > .aside").boundingBox();
+        const aside = await page.locator("#view.layout > .aside").boundingBox();
         expect(aside?.x).toBeCloseTo(reference?.x ?? 0, 0);
         expect(aside?.width).toBeCloseTo(reference?.width ?? 0, 0);
     });

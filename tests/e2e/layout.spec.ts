@@ -401,13 +401,13 @@ test.describe("the same layout in every mode", () =>
     {
         await openApp(page, weakState([5]));
         const reference = {
-            content: await boxOf(page, "main.layout > :first-child"),
-            aside: await boxOf(page, "main.layout > .aside"),
+            content: await boxOf(page, "#view.layout > :first-child"),
+            aside: await boxOf(page, "#view.layout > .aside"),
         };
         const same = async (name: string): Promise<void> =>
         {
-            const content = await boxOf(page, "main.layout > :first-child");
-            const aside = await boxOf(page, "main.layout > .aside");
+            const content = await boxOf(page, "#view.layout > :first-child");
+            const aside = await boxOf(page, "#view.layout > .aside");
             expect(content.x, `${name} content x`).toBeCloseTo(reference.content.x, 0);
             expect(content.width, `${name} content width`).toBeCloseTo(reference.content.width, 0);
             expect(aside.x, `${name} aside x`).toBeCloseTo(reference.aside.x, 0);

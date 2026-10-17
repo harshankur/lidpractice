@@ -415,7 +415,7 @@
     "learn.cards.keys": "La barra espaciadora muestra la respuesta. Luego 1: aún no, 2: lo sabía.",
     "learn.cards.asked": "El catálogo pregunta esto en: {questions}",
     "learn.cards.done.title": "Terminado por ahora",
-    "learn.cards.done.text": "Repasaste {total} tarjetas. En {again} de ellas hizo falta un segundo vistazo.",
+    "learn.cards.done.text": "Tarjetas repasadas: {total}. Con un segundo vistazo: {again}.",
     "learn.cards.done.lesson": "Cuando marques la lección como terminada, estas tarjetas vuelven en el repaso.",
     "learn.cards.done.more.one": "Queda {count} tarjeta más pendiente para hoy.",
     "learn.cards.done.more.other": "Quedan {count} tarjetas más pendientes para hoy.",
