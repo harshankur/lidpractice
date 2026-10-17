@@ -376,6 +376,22 @@ describe("App: the Learn tab", () =>
             expect(textIn(".lesson-head h2")).toBe(titleOf(FIRST));
         });
 
+        it("gives up the round of the lesson about the state when the state changes, and practises as usual", async () =>
+        {
+            click("learn-back");
+            click("lesson-land-berlin");
+            await settle();
+            click("lesson-practise");
+            expect(textIn(".round-bar strong")).toContain("Lesson: Your state: Berlin");
+            await chooseFromListbox("state", "bayern");
+            expect(textIn(".round-bar strong")).not.toContain("Lesson:");
+            // No question of Berlin is left in the round: they are named BE and their task.
+            const labels = slots().map((slot) => slot.getAttribute("aria-label") ?? "");
+            expect(labels.length).toBeGreaterThan(0);
+            expect(labels.some((label) => /\bBE \d/.test(label))).toBe(false);
+            expect(document.getElementById("exit-lesson")).toBeNull();
+        });
+
         it("moves to the lesson before and after, and stops at the first one", () =>
         {
             expect((document.getElementById("lesson-previous") as HTMLButtonElement).disabled).toBe(true);

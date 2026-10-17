@@ -4,7 +4,7 @@ import de from "../../src/locales/de.json";
 import en from "../../src/locales/en.json";
 import {
     afterGuard, buttonByText, chooseFromListbox, chooseTranslation, clickButton, finishAnyway, makeQuestion, mountApp, nextButton, optionButtons, pressKey,
-    REAL_QUESTIONS, shownNumber, startExam, startRound, type AppExports, settle
+    REAL_QUESTIONS, shownNumber, startExam, startRound, type AppExports, settle, visibleText
 } from "../helpers/appHarness";
 
 /** Every message key of the interface. */
@@ -86,7 +86,7 @@ describe("App: language, theme and tabs", () =>
             expect(document.documentElement.lang).toBe("en");
             expect([...document.querySelectorAll("[role=tab]")].map((tab) => tab.textContent)).toEqual(["Learn", "Practice", "Train", "Exam (33)"]);
             expect(document.querySelector(".brand-sub")?.textContent).toBe("Leben in Deutschland · 310 questions");
-            expect(nextButton().textContent).toBe("Skip");
+            expect(visibleText(nextButton())).toBe("Skip");
             expect(document.querySelector("footer")?.textContent).toContain("Independent study aid");
             expect(document.querySelectorAll(".bi-sub")).toHaveLength(0);
             const saved = JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) ?? "{}");
@@ -101,7 +101,7 @@ describe("App: language, theme and tabs", () =>
             expect(document.documentElement.lang).toBe("de");
             expect([...document.querySelectorAll("[role=tab]")].map((tab) => tab.textContent)).toEqual(["Lernen", "Üben", "Trainieren", "Prüfung (33)"]);
             expect(document.querySelector(".brand-sub")?.textContent).toBe("Leben in Deutschland · 310 Fragen");
-            expect(nextButton().textContent).toBe("Überspringen");
+            expect(visibleText(nextButton())).toBe("Überspringen");
             expect(document.querySelector("footer")?.textContent).toContain("Unabhängiges Lernangebot");
             expectNoRawKeys("German practice");
         });
@@ -110,7 +110,7 @@ describe("App: language, theme and tabs", () =>
         {
             app = await mountApp(undefined, { locale: "en" });
             expect(document.documentElement.lang).toBe("en");
-            expect(nextButton().textContent).toBe("Skip");
+            expect(visibleText(nextButton())).toBe("Skip");
             expect(JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string).uiLanguage).toBe("en");
         });
 
@@ -135,7 +135,7 @@ describe("App: language, theme and tabs", () =>
             document.getElementById("app")?.replaceChildren();
             app = await import("../../src/app");
             expect(document.documentElement.lang).toBe("de");
-            expect(nextButton().textContent).toBe("Überspringen");
+            expect(visibleText(nextButton())).toBe("Überspringen");
         });
 
         it("leaves an address without a language alone", async () =>

@@ -182,6 +182,20 @@ async function goTo97(page: Page): Promise<void>
     await expect(page.locator(".slot.is-current .slot-number")).toHaveText("97");
 }
 
+test.describe("buttons that keep their box when their words change", () =>
+{
+    test("Skip, Next question and Change selection keep their size and place, and push nothing", async ({ page }) =>
+    {
+        await openApp(page);
+        const before = { next: await boxOf(page, "#round-next"), back: await boxOf(page, "#round-back"), change: await boxOf(page, "#change-selection") };
+        await page.locator("button.option").first().click();
+        expect(await boxOf(page, "#round-next")).toEqual(before.next);
+        expect(await boxOf(page, "#round-back")).toEqual(before.back);
+        await page.locator("#change-selection").click();
+        expect(await boxOf(page, "#change-selection")).toEqual(before.change);
+    });
+});
+
 test.describe("one system of controls", () =>
 {
     test("gives every control of a kind the same height, from the tokens, on this screen", async ({ page }) =>

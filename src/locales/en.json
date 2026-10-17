@@ -316,7 +316,7 @@
     "train.note.right.one": "Cleared. 1 question left in {topic}.",
     "train.note.right.other": "Cleared. {count} questions left in {topic}.",
     "train.note.topicDone": "Cleared. {topic} is done.",
-    "train.note.wrong": "This one comes back after a few questions, and {topic} comes up more often until you have it.",
+    "train.note.wrong": "This one comes back after a few questions, and the topic “{topic}” comes up more often until you have it.",
     "train.dontKnow": "I don't know",
     "train.next": "Next",
     "train.finish": "See the result",

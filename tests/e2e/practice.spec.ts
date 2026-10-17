@@ -9,7 +9,7 @@ test.describe("practice mode", () =>
     {
         await openApp(page);
         await expect(page.locator("button.option")).toHaveCount(4);
-        await expect(page.locator("#round-next")).toHaveText("Skip");
+        await expect(page.locator("#round-next .swap:not(.is-off)")).toHaveText("Skip");
         await expect(page.locator("nav.timeline")).toBeVisible();
         await expect(stat(page, "Seen")).toHaveText("0 of 310");
         await expect(stat(page, "Accuracy")).toHaveText("none yet");
@@ -25,7 +25,7 @@ test.describe("practice mode", () =>
         await expect(page.locator(".verdict > span")).toHaveText("Not quite. The correct answer is highlighted.");
         await expect(page.locator("button.option").nth(right)).toHaveClass(/is-correct/);
         await expect(page.locator("button.option").nth(wrong)).toHaveClass(/is-wrong/);
-        await expect(page.locator("#round-next")).toHaveText("Next question");
+        await expect(page.locator("#round-next .swap:not(.is-off)")).toHaveText("Next question");
     });
 
     test("runs a keyboard only round and keeps score", async ({ page }) =>
@@ -186,7 +186,7 @@ test.describe("rounds", () =>
         await expect(page.locator(".banner-review")).toBeVisible();
         await page.keyboard.press("1");
         await expect(stat(page, "Seen")).toHaveText("1 of 310");
-        await expect(page.locator("#round-next")).toHaveText("Back to question BE 2");
+        await expect(page.locator("#round-next .swap:not(.is-off)")).toHaveText("Back to question BE 2");
     });
 });
 

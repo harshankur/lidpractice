@@ -179,6 +179,18 @@ export function twoStepLabel(normal: string, armed: string, isArmed: boolean): H
 }
 
 /**
+ * Several texts for one place, of which one shows, like {@link twoStepLabel}: a button that names the next step in
+ * other words from state to state keeps the width of its longest text, so it never pushes its neighbours.
+ * @param texts Every text the place can show.
+ * @param shown Which of them shows.
+ * @returns The spans, to be spread into an element with the class "swap-box".
+ */
+export function stackedTexts(texts: string[], shown: number): HTMLElement[]
+{
+    return texts.map((text, index) => el("span", { class: index === shown ? "swap" : "swap is-off", "aria-hidden": index === shown ? false : "true" }, text));
+}
+
+/**
  * Scrolls a strip sideways just far enough that one of its items is whole inside it. Nothing else moves: the page
  * keeps its place, and a strip that shows the item already is left alone. It works the same in a right to left page.
  * @param strip The element that scrolls sideways.

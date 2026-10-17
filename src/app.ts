@@ -23,7 +23,7 @@ import {
     EXAM_STATE_COUNT, CONFIRM_GUARD_MS, LAST_GENERAL_NUMBER, MS_PER_SECOND, SECONDS_PER_MINUTE, OPTION_LETTERS, TOAST_DURATION_MS, TWO_STEP_TIMEOUT_MS,
 } from "./constants";
 import { Clock, type ClockLevel } from "./clock";
-import { clampedText, el, icon, revealInStrip, twoStepLabel, type Child } from "./dom";
+import { clampedText, el, icon, revealInStrip, stackedTexts, twoStepLabel, type Child } from "./dom";
 import { ErrorBoundary } from "./errorBoundary";
 import { formatClock } from "./format";
 import { FIRST_STRONG_ISOLATE, POP_ISOLATE, asLocale, asUiLocale, hasCatalog, i18n, msg, t, type MessageKey } from "./i18n";
@@ -179,6 +179,8 @@ export class App
      */
     private siteLanguageChoice = 0;
     private translationChoice = 0;
+    /** Whether the translation is to show once its questions have arrived, while they are on their way; null otherwise. */
+    private translationWanted: boolean | null = null;
 
     private mode: AppMode = START_MODE;
     private readonly rounds: Record<RoundMode, ActiveRound | null> = { practice: null };
@@ -201,6 +203,8 @@ export class App
     private exam: ExamState | null = null;
     /** When the question of the exam that shows came up, so a second tap meant for the button before does not finish the exam. */
     private examShownAt = 0;
+    /** The lists in the side column that the user opened, so they stay open when the page is drawn anew. */
+    private readonly openLists = new Set<string>();
     /** Whether the result of the exam lists every answer, or only the ones that were missed. */
     private reviewAll = false;
     /** The clock of practice. It counts up or down, as the user chose. */
@@ -797,7 +801,14 @@ export class App
     {
         if (source === "lesson" && this.lessonRound)
         {
-            return this.buildRound(this.lessonRound.numbers, this.store.state.order, "lesson");
+            const lesson = this.lessonRound;
+            if (lesson.numbers.every((questionNumber) => this.pool().has(questionNumber)))
+            {
+                return this.buildRound(lesson.numbers, this.store.state.order, "lesson");
+            }
+            // The lesson was about the state the user had before: its questions are not the user's any more, and practice goes on as usual.
+            this.lessonRound = null;
+            return this.newTopicRound();
         }
         const wantsWeak = source === "weak" || source === "weakSelection";
         const round = source === "weak" ? this.newWeakRound() : this.newTopicRound(source === "weakSelection");
@@ -1319,6 +1330,12 @@ export class App
             // The shortcuts of the questions do not apply in the Learn tab: a lesson is read, and its questions are answered by pressing them.
             return;
         }
+        if (this.panelOpen || event.repeat)
+        {
+            // The choice of subjects lies over the question: its keys do not reach the question below. A key that is held
+            // down repeats itself, which would skip a question for every repeat.
+            return;
+        }
         const optionIndex = ["1", "2", "3", "4"].indexOf(key) >= 0
             ? Number(key) - 1
             : ["a", "b", "c", "d"].indexOf(key);
@@ -1337,8 +1354,9 @@ export class App
         }
         else if (key === "enter" || key === forwardKey)
         {
-            if (target && target.tagName === "BUTTON" && key === "enter")
+            if (key === "enter" && target?.closest?.("button, a[href], summary, label, [role=button], [role=option]"))
             {
+                // Enter belongs to the control that has the keyboard: it opens a link or a list, it does not skip the question.
                 return;
             }
             this.advance();
@@ -1352,7 +1370,9 @@ export class App
     /** Switches the translation off, or on in the language of the site (English when the site is German) or the one that was picked. */
     private toggleTranslation(): Promise<void>
     {
-        return this.setTranslation(this.store.state.translation === "off");
+        // A second press while the translation is still on its way takes the first one back.
+        const shown = this.translationWanted ?? this.store.state.translation !== "off";
+        return this.setTranslation(!shown);
     }
 
     /**
@@ -1363,11 +1383,13 @@ export class App
     {
         const state = this.store.state;
         const choice = ++this.translationChoice;
+        this.translationWanted = on;
         const loaded = !on || await this.loadQuestions(this.store.translationTarget);
         if (choice !== this.translationChoice)
         {
             return;
         }
+        this.translationWanted = null;
         if (!loaded)
         {
             this.render();
@@ -1387,6 +1409,8 @@ export class App
         const state = this.store.state;
         const target = choice === "auto" ? automaticTranslation(state.uiLanguage) : choice;
         const ticket = ++this.translationChoice;
+        // Picking a language shows the translation in it: a press of T that waited is replaced by this choice.
+        this.translationWanted = null;
         const loaded = await this.loadQuestions(target);
         if (ticket !== this.translationChoice)
         {
@@ -1934,6 +1958,29 @@ export class App
         return labels[mode]();
     }
 
+    /**
+     * What a list that opens and closes needs to stay open when the page is drawn anew, as it is after every answer.
+     * @param name Which list.
+     * @returns Its attributes: whether it is open, and the listener that notes it.
+     */
+    private keepsOpen(name: string): Record<string, boolean | EventListener>
+    {
+        return {
+            open: this.openLists.has(name),
+            ontoggle: (event: Event) =>
+            {
+                if ((event.target as HTMLDetailsElement).open)
+                {
+                    this.openLists.add(name);
+                }
+                else
+                {
+                    this.openLists.delete(name);
+                }
+            },
+        };
+    }
+
     /** Header with title, the settings of the site, and the mode tabs. */
     private renderHeader(): HTMLElement
     {
@@ -2129,12 +2176,13 @@ export class App
                 : null,
             el("button", {
                 id: "change-selection",
-                class: "secondary",
+                // Both of its texts are in it, so it keeps its width when the panel opens.
+                class: "secondary two-step",
                 type: "button",
                 "aria-expanded": String(this.panelOpen),
                 "aria-controls": "topic-panel",
                 onclick: () => (this.panelOpen ? this.closePanel() : this.openPanel()),
-            }, this.panelOpen ? t("round.close") : t("round.change")));
+            }, ...twoStepLabel(t("round.change"), t("round.close"), this.panelOpen)));
     }
 
     /**
@@ -2173,6 +2221,12 @@ export class App
      */
     private panelConfig(extra: Pick<TopicPanelConfig, "running"> & Partial<TopicPanelConfig>): TopicPanelConfig
     {
+        const weakTotal = this.weakTotal();
+        if (weakTotal === 0)
+        {
+            // The last weak spot was answered right while the panel was open: there is nothing to limit the choice to any more.
+            this.staged.onlyWeak = false;
+        }
         return {
             bank: this.bank,
             topics: this.staged.topics,
@@ -2181,7 +2235,7 @@ export class App
             order: this.staged.order,
             lockAnswers: this.staged.lockAnswers,
             onlyWeak: this.staged.onlyWeak,
-            weakTotal: this.weakTotal(),
+            weakTotal,
             weakCount: this.selectionNumbers(this.staged.topics, this.staged.includeState ? [this.store.state.state] : [], true).length,
             onToggle: (topic) =>
             {
@@ -2271,6 +2325,9 @@ export class App
         }
         // Skipping is the quiet choice. The main button is for going on after an answer, so it is not the first thing to press.
         const quiet = unanswered && !round.ended && !round.isDetour;
+        // Every text the button can show lies in it, so it keeps one width from question to question.
+        const resume = round.slots[round.resume] as (typeof round.slots)[number] | undefined;
+        const texts = [t("action.skip"), t("action.next"), t("action.result"), ...(resume ? [t("action.backTo", { n: questionName(resume.n) })] : [])];
         return el("div", { class: "footer-row nav-row" },
             el("button", {
                 id: "round-back",
@@ -2280,7 +2337,8 @@ export class App
                 onclick: () => this.stepBack(),
             }, icon("arrowBack"), el("span", {}, t("action.previous"))),
             round.view >= 0
-                ? el("button", { id: "round-next", class: quiet ? "secondary" : "primary", type: "button", onclick: () => this.advance() }, el("span", {}, label), icon("arrowForward"))
+                ? el("button", { id: "round-next", class: quiet ? "secondary" : "primary", type: "button", onclick: () => this.advance() },
+                    el("span", { class: "swap-box" }, ...stackedTexts(texts, texts.indexOf(label))), icon("arrowForward"))
                 : null);
     }
 
@@ -2463,6 +2521,11 @@ export class App
      */
     private setClockMode(mode: "up" | "down"): void
     {
+        if (mode === this.practiceClock.mode)
+        {
+            // The way it runs already: a press on it changes nothing, and above all does not reset a running clock.
+            return;
+        }
         this.store.state.clockMode = mode;
         this.store.save();
         this.practiceClock = new Clock(mode, this.store.state.clockMinutes);
@@ -2604,7 +2667,7 @@ export class App
                 ...rows.flatMap(([label, value]) => [el("dt", {}, label), el("dd", { class: value === t("stats.accuracyNone") ? "is-empty" : "" }, value)])),
             // Always there, and off while there is no weak spot, so the widget has one height and the clock below it stays put.
             el("button", { id: "practice-weak", class: "secondary sm", type: "button", disabled: weak === 0, onclick: () => this.practiceWeakSpots() }, t("stats.practiceWeak")),
-            el("details", { class: "kbd-help" }, el("summary", {}, t("stats.keyboard")), el("p", { class: "hint" }, t("stats.hint"))),
+            el("details", { class: "kbd-help", ...this.keepsOpen("keys") }, el("summary", {}, t("stats.keyboard")), el("p", { class: "hint" }, t("stats.hint"))),
             resetButton);
     }
 
@@ -2757,7 +2820,8 @@ export class App
         {
             const turn = trainer.current;
             const topic = this.topicName(turn.category);
-            const marker = this.trainMarker(turn.reason, topic, trainer.answers);
+            // The answers before this question: the note of the first question stays while it is answered, so nothing moves up under the pointer.
+            const marker = this.trainMarker(turn.reason, topic, trainer.answers - (trainer.answered ? 1 : 0));
             if (marker)
             {
                 column.append(marker);
@@ -2789,12 +2853,13 @@ export class App
                 el("strong", {}, t("round.summary", { what, count: i18n.plural("panel.questions", session.trainer.total) }))),
             el("button", {
                 id: "change-selection",
-                class: "secondary",
+                // Both of its texts are in it, so it keeps its width when the panel opens.
+                class: "secondary two-step",
                 type: "button",
                 "aria-expanded": String(this.panelOpen),
                 "aria-controls": "topic-panel",
                 onclick: () => (this.panelOpen ? this.closePanel() : this.openPanel()),
-            }, this.panelOpen ? t("round.close") : t("round.change")));
+            }, ...twoStepLabel(t("round.change"), t("round.close"), this.panelOpen)));
     }
 
     /**
@@ -2802,7 +2867,7 @@ export class App
      * for the first one of a session, which comes with a short explanation of how the training works.
      * @param reason Why the question is up.
      * @param topic Name of its topic.
-     * @param answers How many answers were given in the session.
+     * @param answers How many answers were given in the session before this question.
      * @returns The note, or null.
      */
     private trainMarker(reason: TrainReason, topic: string, answers: number): HTMLElement | null
@@ -2873,7 +2938,7 @@ export class App
             el("div", { class: "widget-actions" },
                 el("button", { id: "train-end", class: "secondary sm", type: "button", disabled: over, onclick: () => this.endTrain() }, t("train.widget.end")),
                 el("button", { id: "train-start-over", class: "secondary sm", type: "button", onclick: () => this.restartTrain() }, t("round.startOver"))),
-            el("details", { class: "train-topics" },
+            el("details", { class: "train-topics", ...this.keepsOpen("topics") },
                 el("summary", {}, t("train.widget.topics")),
                 el("ul", {}, ...trainer.topics().map((topic) => el("li", {},
                     el("span", { class: "train-topic-name" },

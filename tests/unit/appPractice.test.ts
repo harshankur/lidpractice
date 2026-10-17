@@ -80,7 +80,7 @@ describe("App: practice mode", () =>
             const letters = Array.from(document.querySelectorAll(".letter")).map((letter) => letter.textContent);
             expect(letters).toEqual(app.OPTION_LETTERS);
             expect(document.querySelector("nav.timeline")).not.toBeNull();
-            expect(nextButton().textContent).toBe("Skip");
+            expect(visibleText(nextButton())).toBe("Skip");
             expect(nextButton().disabled).toBe(false);
         });
 
@@ -98,7 +98,7 @@ describe("App: practice mode", () =>
             const bar = document.querySelector(".round-bar") as HTMLElement;
             expect(bar.textContent).toContain("All topics + Berlin · 310 questions");
             expect(bar.textContent).toContain("Booklet order");
-            expect(document.getElementById("change-selection")?.textContent).toBe("Change selection");
+            expect(visibleText(document.getElementById("change-selection") as HTMLElement)).toBe("Change selection");
         });
 
         it("labels a general question with its number, and a state question with the state code and the task", () =>
@@ -249,6 +249,27 @@ describe("App: practice mode", () =>
             expect(document.getElementById("clock-strip-time")?.textContent).toBe("00:03");
             (document.getElementById("clock-toggle") as HTMLElement).click();
             expect(document.getElementById("clock-strip")).toBeNull();
+        });
+
+        it("holds every text of the next step and of the choice in their buttons, so they keep their width", () =>
+        {
+            const texts = (id: string): string[] => Array.from(document.querySelectorAll(`#${id} .swap`)).map((text) => text.textContent as string);
+            // Skip, Next and the result, and the way back to where the round was, with the question it leads to.
+            expect(texts("round-next")).toEqual(["Skip", "Next question", "To the result", `Back to question ${shownNumber()}`]);
+            expect(texts("change-selection")).toEqual(["Change selection", "Close"]);
+            clickButton("Change selection");
+            expect(texts("change-selection")).toEqual(["Change selection", "Close"]);
+            expect(visibleText(document.getElementById("change-selection") as HTMLElement)).toBe("Close");
+        });
+
+        it("keeps a running clock when the way it already runs is pressed again", () =>
+        {
+            vi.useFakeTimers();
+            (document.getElementById("clock-toggle") as HTMLElement).click();
+            vi.advanceTimersByTime(2000);
+            (document.getElementById("clock-mode-up") as HTMLElement).click();
+            vi.advanceTimersByTime(1000);
+            expect(shown()).toBe("00:03");
         });
 
         it("counts up from zero at first, and stands still until it is started", () =>
@@ -633,7 +654,7 @@ describe("App: practice mode", () =>
             expect(document.querySelector(".option.is-correct .mark")?.textContent).toBe("Correct");
             expect(statValue("Seen")).toBe("1 of 310");
             expect(statValue("Accuracy")).toBe("100%");
-            expect(nextButton().textContent).toBe("Next question");
+            expect(visibleText(nextButton())).toBe("Next question");
         });
 
         it("reveals a wrong answer and highlights the right one", () =>
@@ -718,7 +739,7 @@ describe("App: practice mode", () =>
             nextButton().click();
             expect(shownNumber()).not.toBe(first);
             expect(document.querySelector(".verdict")).toBeNull();
-            expect(nextButton().textContent).toBe("Skip");
+            expect(visibleText(nextButton())).toBe("Skip");
         });
 
         it("shuffles the options in a random round", () =>
@@ -782,7 +803,7 @@ describe("App: practice mode", () =>
             app = await mountApp(only);
             expect(shownNumber()).toBe(1);
             optionButtons()[correctIndex(only)].click();
-            expect(nextButton().textContent).toBe("To the result");
+            expect(visibleText(nextButton())).toBe("To the result");
             nextButton().click();
             expect(document.querySelector(".end-card")).not.toBeNull();
         });
@@ -891,7 +912,7 @@ describe("App: practice mode", () =>
             expect(document.querySelector(".banner")).toBeNull();
             expect(document.querySelectorAll(".option.is-wrong")).toHaveLength(1);
             expect(optionButtons().every((button) => !button.disabled)).toBe(true);
-            expect(nextButton().textContent).toBe("Back to question BE 2");
+            expect(visibleText(nextButton())).toBe("Back to question BE 2");
             nextButton().click();
             expect(shownNumber()).toBe(322);
         });
@@ -906,7 +927,7 @@ describe("App: practice mode", () =>
             expect(document.querySelector(".banner-review")?.textContent).toBe("Review: this is your answer. It is locked.");
             expect(optionButtons().every((button) => button.disabled)).toBe(true);
             expect(document.querySelectorAll(".option.is-wrong")).toHaveLength(1);
-            expect(nextButton().textContent).toBe("Back to question BE 2");
+            expect(visibleText(nextButton())).toBe("Back to question BE 2");
             nextButton().click();
             expect(shownNumber()).toBe(322);
             expect(document.querySelector(".banner")).toBeNull();
@@ -1000,7 +1021,7 @@ describe("App: practice mode", () =>
         it("moves on without an answer, and shows the question as skipped", () =>
         {
             startRound({ scope: "berlin", order: "booklet" });
-            expect(nextButton().textContent).toBe("Skip");
+            expect(visibleText(nextButton())).toBe("Skip");
             nextButton().click();
             expect(shownNumber()).toBe(322);
             expect(slotStates()[0]).toBe("skipped");
@@ -1035,7 +1056,7 @@ describe("App: practice mode", () =>
             expect(shownNumber()).toBe(321);
             expect(document.querySelector(".end-card")).toBeNull();
             answerRight();
-            expect(nextButton().textContent).toBe("To the result");
+            expect(visibleText(nextButton())).toBe("To the result");
             nextButton().click();
             expect(document.querySelector(".end-card h2")?.textContent).toBe("Round done: 10 of 10 correct");
         });
@@ -1349,6 +1370,81 @@ describe("App: practice mode", () =>
 
     describe("keyboard", () =>
     {
+        it("leaves the question below alone while the choice of subjects lies over it", () =>
+        {
+            const number = shownNumber();
+            clickButton("Change selection");
+            for (const key of ["1", "b", "t", "Enter", "ArrowRight"])
+            {
+                pressKey(key);
+            }
+            expect(optionButtons().some((button) => button.getAttribute("aria-pressed") === "true")).toBe(false);
+            expect(statValue("Seen")).toBe("0 of 310");
+            expect(document.getElementById("translation-toggle")?.getAttribute("aria-pressed")).toBe("false");
+            clickButton("Close");
+            expect(shownNumber()).toBe(number);
+        });
+
+        it("skips only once for a key that is held down", () =>
+        {
+            const number = shownNumber();
+            pressKey("ArrowRight");
+            const next = shownNumber();
+            pressKey("ArrowRight", { repeat: true });
+            pressKey("ArrowRight", { repeat: true });
+            expect(next).not.toBe(number);
+            expect(shownNumber()).toBe(next);
+        });
+
+        it("leaves Enter to a link and to a list that opens, instead of skipping the question", () =>
+        {
+            const number = shownNumber();
+            const link = document.querySelector(".site-copyright a") as HTMLElement;
+            pressKey("Enter", {}, link);
+            const summary = document.querySelector(".kbd-help summary") as HTMLElement;
+            pressKey("Enter", {}, summary);
+            expect(shownNumber()).toBe(number);
+        });
+
+        it("keeps the list of keys open when the page is drawn anew after an answer", () =>
+        {
+            const help = (): HTMLDetailsElement => document.querySelector(".kbd-help") as HTMLDetailsElement;
+            help().open = true;
+            help().dispatchEvent(new Event("toggle"));
+            pressKey("1");
+            expect(help().open).toBe(true);
+            help().open = false;
+            help().dispatchEvent(new Event("toggle"));
+            pressKey("Enter");
+            expect(help().open).toBe(false);
+        });
+
+        it("takes a second press of T back while the translation is still on its way", async () =>
+        {
+            const fetchFile = window.fetch;
+            let release: () => void = () => undefined;
+            const held = new Promise<void>((done) =>
+            {
+                release = done;
+            });
+            window.fetch = (async (input: RequestInfo | URL) =>
+            {
+                if (String(input).includes("questions.uk.json"))
+                {
+                    await held;
+                }
+                return fetchFile(input);
+            }) as typeof fetch;
+            window.localStorage.setItem(app.STORAGE_KEY, JSON.stringify({ setupDone: true, translationLanguage: "uk" }));
+            app = await mountApp();
+            pressKey("t");
+            pressKey("t");
+            release();
+            await settle();
+            expect(document.getElementById("translation-toggle")?.getAttribute("aria-pressed")).toBe("false");
+            expect(JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string).translation).toBe("off");
+        });
+
         it.each([["1", 0], ["2", 1], ["3", 2], ["4", 3], ["a", 0], ["B", 1], ["c", 2], ["D", 3]])(
             "key %s picks option %d", (key, index) =>
             {
@@ -1601,6 +1697,21 @@ describe("App: practice mode", () =>
 
     describe("weak spots", () =>
     {
+        it("clears the limit to weak spots in the open panel when the last weak spot is answered right below it", () =>
+        {
+            const number = shownNumber();
+            optionButtons()[wrongIndex()].click();
+            clickButton("Practice weak spots");
+            expect(shownNumber()).toBe(number);
+            clickButton("Change selection");
+            expect((document.getElementById("only-weak") as HTMLInputElement).checked).toBe(true);
+            optionButtons()[correctIndex()].click();
+            const only = document.getElementById("only-weak") as HTMLInputElement;
+            expect(only.disabled).toBe(true);
+            expect(only.checked).toBe(false);
+            expect(buttonByText("Start new round")?.disabled).toBe(false);
+        });
+
         it("has a button for them in the progress widget that is off until there are some, so the widget keeps its height", () =>
         {
             expect((document.getElementById("practice-weak") as HTMLButtonElement).disabled).toBe(true);

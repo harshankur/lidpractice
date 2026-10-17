@@ -110,6 +110,16 @@ describe("App: training", () =>
 
     describe("answering", () =>
     {
+        it("keeps the note of the first question while it is answered, so the question does not move up, and drops it with the next", () =>
+        {
+            clickButton("Train");
+            expect(document.querySelector(".banner-review")?.textContent).toContain("You get questions in random order");
+            answerRight();
+            expect(document.querySelector(".banner-review")).not.toBeNull();
+            next().click();
+            expect(document.querySelector(".banner-review")).toBeNull();
+        });
+
         it("clears a question that is answered right, and says what is left in its topic", () =>
         {
             const topic = topicOf(shownNumber());
