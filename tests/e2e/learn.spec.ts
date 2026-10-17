@@ -382,11 +382,11 @@ test.describe("the Learn tab", () =>
         await expect(lines).toHaveCount(16);
         const before = [await place(figure), await place(lines.nth(0)), await place(lines.nth(9)), await place(lines.last())];
         await figure.locator("#atlas-states-cover").click();
-        await expect(figure.locator(".map-hidden")).toHaveCount(16);
+        await expect(figure.locator(".map-hidden:not(.is-off)")).toHaveCount(16);
         const covered = [await place(figure), await place(lines.nth(0)), await place(lines.nth(9)), await place(lines.last())];
         before.forEach((box, index) => expectSamePlace(box, covered[index], `covered, part ${index}`));
         await lines.nth(9).click();
-        await expect(figure.locator(".map-hidden")).toHaveCount(15);
+        await expect(figure.locator(".map-hidden:not(.is-off)")).toHaveCount(15);
         await expect(figure.locator("path.region.is-picked")).toHaveCount(1);
         const picked = [await place(figure), await place(lines.nth(0)), await place(lines.nth(9)), await place(lines.last())];
         before.forEach((box, index) => expectSamePlace(box, picked[index], `one name uncovered, part ${index}`));

@@ -198,6 +198,11 @@ describe("App: the Learn tab", () =>
             expect(textIn(".learn-wait [role=alert]")).toBe("The lessons could not be loaded. Check your connection and try again.");
             expect(document.querySelector(".lesson-row")).toBeNull();
             expect(document.querySelector(".learn-widget")).toBeNull();
+            // The files are fetched again on Try again, not built once more from the broken ones that arrived.
+            serveCourseFile("teach/locales/teach.en.json", english);
+            click("learn-retry");
+            await settle();
+            expect(document.querySelectorAll(".lesson-row")).toHaveLength(LESSONS.length);
         });
 
         it("fetches only the texts when the site changes its language, and draws the tab in that language", async () =>
@@ -374,6 +379,18 @@ describe("App: the Learn tab", () =>
             click("exit-lesson");
             expect(document.querySelector("[role=tab][aria-selected=true]")?.id).toBe("tab-learn");
             expect(textIn(".lesson-head h2")).toBe(titleOf(FIRST));
+        });
+
+        it("goes on with the lesson about the new state when the state changes while the lesson about the old one was the last", async () =>
+        {
+            click("learn-back");
+            click("lesson-land-berlin");
+            await settle();
+            await chooseFromListbox("state", "bayern");
+            expect(textIn(".lesson-head h2")).toBe("Your state: Bavaria");
+            click("learn-back");
+            expect(textOf("learn-next")).toBe("Go on: Your state: Bavaria");
+            expect(saved(app).learn.last).toBe("land-bayern");
         });
 
         it("gives up the round of the lesson about the state when the state changes, and practises as usual", async () =>
@@ -1151,18 +1168,18 @@ describe("App: the Learn tab", () =>
         it("cover the names for a self-test: a line uncovers its name and shows its place, and stays uncovered", () =>
         {
             click("atlas-neighbours-cover");
-            expect(document.querySelectorAll("#atlas-neighbours .map-hidden")).toHaveLength(9);
-            expect(document.querySelector("#atlas-states .map-hidden")).toBeNull();
+            expect(document.querySelectorAll("#atlas-neighbours .map-hidden:not(.is-off)")).toHaveLength(9);
+            expect(document.querySelector("#atlas-states .map-hidden:not(.is-off)")).toBeNull();
             click("atlas-neighbours-entry-pl");
-            expect(document.querySelectorAll("#atlas-neighbours .map-hidden")).toHaveLength(8);
+            expect(document.querySelectorAll("#atlas-neighbours .map-hidden:not(.is-off)")).toHaveLength(8);
             expect(find("#atlas-neighbours-entry-pl .map-name-text").className).toBe("map-name-text");
             expect(document.querySelectorAll("#atlas-neighbours path.region.is-picked")).toHaveLength(1);
             // A second press does not cover the name again while the test runs.
             click("atlas-neighbours-entry-pl");
             expect(find("#atlas-neighbours-entry-pl").getAttribute("aria-pressed")).toBe("true");
-            expect(document.querySelectorAll("#atlas-neighbours .map-hidden")).toHaveLength(8);
+            expect(document.querySelectorAll("#atlas-neighbours .map-hidden:not(.is-off)")).toHaveLength(8);
             click("atlas-neighbours-cover");
-            expect(document.querySelector("#atlas-neighbours .map-hidden")).toBeNull();
+            expect(document.querySelector("#atlas-neighbours .map-hidden:not(.is-off)")).toBeNull();
             expect(document.querySelector("#atlas-neighbours .is-picked")).toBeNull();
         });
 
@@ -1714,6 +1731,41 @@ describe("App: the Learn tab", () =>
             expect(window.history.length).toBe(steps);
             expect(saved(app).learn.last).toBe(SECOND.id);
             expect(document.activeElement).toBe(find(".lesson-head h2"));
+        });
+
+        it("puts a linked section in place again once the fonts have arrived, unless the reader scrolled first", async () =>
+        {
+            const unit = unitsOf(SECOND)[1];
+            let arrive: () => void = () => undefined;
+            const fonts = { ready: new Promise<void>((done) =>
+            {
+                arrive = done;
+            }) };
+            Object.defineProperty(document, "fonts", { configurable: true, value: fonts });
+            const jumps: string[] = [];
+            Element.prototype.scrollIntoView = function scrollIntoView(this: HTMLElement): void
+            {
+                jumps.push(this.dataset.anchor ?? this.id);
+            };
+            app = await mountApp(undefined, { place: `#learn/${SECOND.id}/${unit.id}` });
+            await settle();
+            expect(jumps).toEqual([unit.id]);
+            arrive();
+            await settle();
+            expect(jumps).toEqual([unit.id, unit.id]);
+            // A reader who scrolls before the fonts arrive keeps their place.
+            fonts.ready = new Promise<void>((done) =>
+            {
+                arrive = done;
+            });
+            app = await mountApp(undefined, { place: `#learn/${SECOND.id}/${unit.id}` });
+            await settle();
+            window.dispatchEvent(new Event("wheel"));
+            arrive();
+            await settle();
+            expect(jumps).toEqual([unit.id, unit.id, unit.id]);
+            delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView;
+            delete (document as unknown as Record<string, unknown>).fonts;
         });
 
         it("opens a section of a lesson by its link, at that section, and keeps it in the address", async () =>

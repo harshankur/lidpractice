@@ -1198,6 +1198,7 @@ body.modal-open { overflow: hidden; }
 .map-name-text { grid-area: 1 / 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; min-width: 0; }
 .map-name-text.is-off { visibility: hidden; }
 .map-hidden { grid-area: 1 / 1; color: var(--fg-muted); font-size: 0.875rem; }
+.map-hidden.is-off { visibility: hidden; }
 .map-term { font-weight: 600; }
 .map-text { color: var(--fg-muted); font-size: 0.875rem; }
 .map-detail { margin-inline-start: auto; color: var(--fg-muted); font-size: 0.8125rem; }

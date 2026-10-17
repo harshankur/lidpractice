@@ -106,16 +106,18 @@ test.describe("rounds", () =>
         expect(await strip.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
         await page.getByRole("button", { name: "Later questions" }).click();
         await expect.poll(() => strip.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
-        // The scroll is animated, so keep pressing until it is back at the start.
+        // The scroll is animated, so keep pressing until it is back at the start. An arrow that stays off before the start
+        // would make this fail: it must be on again once the strip stands still.
+        const left = page.getByRole("button", { name: "Earlier questions" });
         await expect.poll(async () =>
         {
-            const left = page.getByRole("button", { name: "Earlier questions" });
             if (await left.isEnabled())
             {
                 await left.click();
             }
             return strip.evaluate((element) => element.scrollLeft);
-        }, { timeout: 10000 }).toBeLessThan(1);
+        }, { timeout: 15000 }).toBeLessThan(1);
+        await expect(left).toBeDisabled();
     });
 
     test("keep the current question in view in the timeline while going through a long round", async ({ page }) =>

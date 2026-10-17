@@ -255,7 +255,11 @@ describe("a map on the page", () =>
         const shown = figure.querySelector("#m-entry-bayern .map-name-text") as HTMLElement;
         expect(shown.className).toBe("map-name-text");
         expect(shown.hasAttribute("aria-hidden")).toBe(false);
-        expect(figure.querySelector("#m-entry-bayern .map-hidden")).toBeNull();
-        expect(figure.querySelectorAll(".map-hidden")).toHaveLength(15);
+        // The words for a covered name are in every line, only not painted where the name shows: a line is as high as the
+        // longer of the two either way, so uncovering moves nothing below it.
+        const words = figure.querySelector("#m-entry-bayern .map-hidden") as HTMLElement;
+        expect(words.className).toBe("map-hidden is-off");
+        expect(words.getAttribute("aria-hidden")).toBe("true");
+        expect(figure.querySelectorAll(".map-hidden:not(.is-off)")).toHaveLength(15);
     });
 });

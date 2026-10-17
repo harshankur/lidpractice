@@ -56,6 +56,18 @@ export class LearnLoader
     }
 
     /**
+     * Forgets the files of the course, so the next load fetches them again. Used when they arrived, but the course
+     * could not be put together from them: keeping them would only build the same broken course again.
+     * @param locale The language whose texts are forgotten.
+     */
+    public forget(locale: Locale): void
+    {
+        this.courseFile = null;
+        this.mapsFile = null;
+        this.textFiles.delete(locale);
+    }
+
+    /**
      * Fetches what is not there yet: the course, the maps and the texts of a language.
      * @param locale The language.
      * @returns Resolves when all three are there. Rejects when a file cannot be fetched or is not the right file.

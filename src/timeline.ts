@@ -161,12 +161,16 @@ export function renderTimeline(round: Round, legendOpen: boolean, handlers: Time
     const later = el("button", { class: "timeline-scroll", type: "button", "aria-label": t("timeline.scrollLater"), onclick: () => scroll(1) }, icon("chevronEnd")) as HTMLButtonElement;
     // An arrow that cannot scroll any further is off, so the ends of the strip are known without looking for them.
     // In a right to left page scrollLeft is 0 at the start and negative beyond it, so only its size counts.
-    strip.addEventListener("scroll", () =>
+    const updateArrows = (): void =>
     {
         const travelled = Math.abs(strip.scrollLeft);
         earlier.disabled = travelled <= 0;
         later.disabled = travelled + strip.clientWidth >= strip.scrollWidth - SCROLL_END_TOLERANCE;
-    });
+    };
+    strip.addEventListener("scroll", updateArrows);
+    // The end of a scroll is told once more: a busy browser can leave out the last scroll event of an animation, and an
+    // arrow would then stay off although the strip did not reach its end.
+    strip.addEventListener("scrollend", updateArrows);
     const countText = (glyph: string, count: number): string => `${glyph}${i18n.number(count)}`;
     const head = el("div", { class: "timeline-head" },
         el("strong", {}, t("timeline.round")),

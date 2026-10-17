@@ -332,7 +332,8 @@ export function renderMap(model: MapModel, options: MapOptions): HTMLElement
                         germanSpan(entry.term, "map-term"),
                         entry.text ? el("span", { class: "map-text" }, entry.text) : null,
                         entry.detail ? germanSpan(entry.detail, "map-detail") : null),
-                    hidden ? el("span", { class: "map-hidden" }, t("learn.map.hidden")) : null)));
+                    // The hint is there when the name shows too, only not painted: the row has the height of the longer of the two either way.
+                    el("span", { class: hidden ? "map-hidden" : "map-hidden is-off", "aria-hidden": hidden ? false : "true" }, t("learn.map.hidden")))));
     }));
 
     return el("div", { class: "map-figure", id: options.id },

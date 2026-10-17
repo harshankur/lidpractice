@@ -235,6 +235,7 @@ export class LearnTab
     {
         this.status = "idle";
         this.cached = null;
+        this.loader.forget(i18n.locale);
         this.host.render();
     }
 
@@ -309,6 +310,12 @@ export class LearnTab
      */
     private adopt(book: CourseBook): void
     {
+        const last = this.host.store.state.learn.last;
+        if (last !== null && last.startsWith(STATE_LESSON_PREFIX) && book.lesson(last) === undefined)
+        {
+            // The lesson that was open last was about the state the user had before: going on means the lesson about the new one.
+            this.host.store.openLesson(`${STATE_LESSON_PREFIX}${book.stateId}`);
+        }
         const page = this.page;
         if (page.name === "lesson" && page.id.startsWith(STATE_LESSON_PREFIX) && book.lesson(page.id) === undefined)
         {
@@ -583,7 +590,41 @@ export class LearnTab
         }
         const section = arrival.at === "section" ? Array.from(stage.querySelectorAll<HTMLElement>("[data-anchor]")).find((element) => element.dataset.anchor === arrival.name) : undefined;
         (section ?? document.getElementById("view"))?.scrollIntoView?.({ block: "start" });
+        if (section)
+        {
+            LearnTab.placeAgainWithFonts(section);
+        }
         LearnTab.focus(section ?? heading);
+    }
+
+    /**
+     * Puts a section in place once more when the fonts of the page have arrived. Text above it gets another height with
+     * the real fonts and would push it out of place, and the browser does not keep it there. A reader who scrolled in
+     * the meantime is left where they are.
+     * @param section The section that was put at the top of the window.
+     */
+    private static placeAgainWithFonts(section: HTMLElement): void
+    {
+        const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+        if (!fonts)
+        {
+            return;
+        }
+        let scrolled = false;
+        const user = (): void =>
+        {
+            scrolled = true;
+        };
+        const kinds = ["wheel", "touchstart", "keydown", "pointerdown"];
+        kinds.forEach((kind) => window.addEventListener(kind, user, { passive: true }));
+        void fonts.ready.then(() =>
+        {
+            kinds.forEach((kind) => window.removeEventListener(kind, user));
+            if (!scrolled && section.isConnected)
+            {
+                section.scrollIntoView?.({ block: "start" });
+            }
+        });
     }
 
     /**
@@ -1379,6 +1420,7 @@ export class LearnTab
     {
         this.status = "idle";
         this.cached = null;
+        this.loader.forget(i18n.locale);
         this.ensure();
         this.host.updateDialog(this.whyView());
     }
