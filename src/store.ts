@@ -6,7 +6,7 @@ import { START_MODE, modeHash, pageOf } from "./address";
 import { SECTION_NAME } from "./learn/route";
 import { LAST_BOX, grade, introduce } from "./learn/schedule";
 import {
-    DEFAULT_UI_LOCALE, TRANSLATION_LOCALES, UI_LOCALES, automaticTranslation, type ExamResult, type LearnProgress, type Locale, type RoundOrder, type SavedCard,
+    DEFAULT_UI_LOCALE, TRANSLATION_LOCALES, UI_LOCALES, automaticTranslation, type ExamResult, type LearnProgress, type Locale, type QuestionRecord, type RoundOrder, type SavedCard,
     type SavedState, type SeenLesson, type ThemeChoice, type TranslationChoice,
 } from "./types";
 
@@ -59,10 +59,11 @@ export class Store
      * @param parsed Whatever was stored.
      * @returns A complete, valid state.
      */
-    private static sanitize(parsed: Partial<SavedState>): SavedState
+    private static sanitize(saved: unknown): SavedState
     {
+        // Only an object can hold settings: null, a number, a text or a list saved under the key counts as nothing saved.
+        const parsed = Store.plain(saved) as Partial<SavedState>;
         const defaults = Store.defaultState();
-        const isRecordMap = typeof parsed.records === "object" && parsed.records !== null && !Array.isArray(parsed.records);
         const ids = (value: unknown): string[] | null => (Array.isArray(value)
             ? value.filter((entry): entry is string => typeof entry === "string" && entry !== "") : null);
         // An older save had a list of states and a state for the exam: the exam state is the state now.
@@ -91,12 +92,45 @@ export class Store
             examMinutes: Store.minutes(parsed.examMinutes, EXAM_DURATION_MINUTES, defaults.examMinutes),
             lockAnswers: typeof parsed.lockAnswers === "boolean" ? parsed.lockAnswers : defaults.lockAnswers,
             order: ROUND_ORDERS.includes(parsed.order as RoundOrder) ? (parsed.order as RoundOrder) : defaults.order,
-            records: isRecordMap ? (parsed.records as SavedState["records"]) : defaults.records,
+            records: Store.answerRecords(parsed.records),
             learn: Store.learnProgress(parsed.learn),
             exams: Store.examResults(parsed.exams),
             // Only the address of a page as the page itself writes it: anything else is forgotten.
             lastPlace: typeof parsed.lastPlace === "string" && pageOf(parsed.lastPlace) === parsed.lastPlace && parsed.lastPlace !== modeHash(START_MODE) ? parsed.lastPlace : defaults.lastPlace,
         };
+    }
+
+    /**
+     * A saved value as an object of fields, or an empty one when it is anything else.
+     * @param value Anything.
+     * @returns The object, or an empty object.
+     */
+    private static plain(value: unknown): Record<string, unknown>
+    {
+        return typeof value === "object" && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : {};
+    }
+
+    /**
+     * Keeps the saved answers that are usable: one record per question, under its number as the page writes it, with
+     * counts that are whole numbers and a yes or no for the last answer. Anything else is dropped, so one broken entry
+     * cannot break the page or turn up as the same question twice.
+     * @param saved What was saved.
+     * @returns The records.
+     */
+    private static answerRecords(saved: unknown): SavedState["records"]
+    {
+        const records: SavedState["records"] = {};
+        for (const [key, value] of Object.entries(Store.plain(saved)))
+        {
+            const number = Number(key);
+            const record = Store.plain(value) as Partial<QuestionRecord>;
+            if (Number.isInteger(number) && number > 0 && String(number) === key
+                && Store.isCount(record.right) && Store.isCount(record.wrong) && typeof record.lastWrong === "boolean")
+            {
+                records[key] = { right: record.right, wrong: record.wrong, lastWrong: record.lastWrong };
+            }
+        }
+        return records;
     }
 
     /**
@@ -179,7 +213,8 @@ export class Store
         {
             return null;
         }
-        const known = saved.filter((id) => ALL_TOPICS.includes(id));
+        // A subject named twice is one subject.
+        const known = [...new Set(saved.filter((id) => ALL_TOPICS.includes(id)))];
         return saved.length > 0 && known.length === 0 ? null : known;
     }
 
@@ -195,7 +230,7 @@ export class Store
             const raw = ErrorBoundary.run(() => window.localStorage.getItem(key), null);
             if (raw)
             {
-                const old = ErrorBoundary.run(() => JSON.parse(raw) as Record<string, unknown>, {});
+                const old = Store.plain(ErrorBoundary.run(() => JSON.parse(raw) as unknown, {}));
                 const showedEnglish = old.questionLanguage === "en" || old.questionLanguage === "both";
                 const oldTopics = Array.isArray(old.topics) ? (old.topics as unknown[]).filter((topic) => typeof topic === "string") as string[] : null;
                 return {
@@ -259,8 +294,7 @@ export class Store
             }
             return;
         }
-        const parsed = ErrorBoundary.run(() => JSON.parse(raw) as Partial<SavedState>, {});
-        this.state = Store.sanitize(parsed);
+        this.state = Store.sanitize(ErrorBoundary.run(() => JSON.parse(raw) as unknown, {}));
         Store.dropLegacy();
     }
 

@@ -206,8 +206,8 @@ describe("App: the addresses of the tabs", () =>
         openByTab("practice");
         openByTab("practice");
         expect(window.history.length).toBe(start + 3);
-        // A step carries nothing but its address.
-        expect(window.history.state).toBeNull();
+        // A step carries its address and its number, so the page knows how far the Back button went.
+        expect(window.history.state).toEqual({ step: expect.any(Number) as number });
     });
 
     it("follows the Back and Forward buttons of the browser from tab to tab", () =>

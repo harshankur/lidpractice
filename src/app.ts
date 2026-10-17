@@ -20,7 +20,7 @@ import { START_MODE, modeHash, pageOf, placeOf } from "./address";
 import { QuestionBank } from "./bank";
 import {
     APP_NAME, AUTHOR_NAME, LEGAL_NOTICE_LABEL, LEGAL_NOTICE_URL, PRIVACY_NOTICE_LABEL, PRIVACY_NOTICE_URL, AUTHOR_URL, COPYRIGHT_YEAR, BAMF_CATALOGUE_PAGE_URL, CATALOGUE_STAND, EXAM_DURATION_MINUTES, EXAM_GENERAL_COUNT, MAX_COUNTDOWN_MINUTES, EXAM_PASS_MARK,
-    EXAM_STATE_COUNT, LAST_GENERAL_NUMBER, MS_PER_SECOND, SECONDS_PER_MINUTE, OPTION_LETTERS, TOAST_DURATION_MS, TWO_STEP_TIMEOUT_MS,
+    EXAM_STATE_COUNT, CONFIRM_GUARD_MS, LAST_GENERAL_NUMBER, MS_PER_SECOND, SECONDS_PER_MINUTE, OPTION_LETTERS, TOAST_DURATION_MS, TWO_STEP_TIMEOUT_MS,
 } from "./constants";
 import { Clock, type ClockLevel } from "./clock";
 import { clampedText, el, icon, revealInStrip, twoStepLabel, type Child } from "./dom";
@@ -191,6 +191,8 @@ export class App
     /** Set when the question changed, so the next draw brings the top of the round back into view. */
     private moved = false;
     private exam: ExamState | null = null;
+    /** When the question of the exam that shows came up, so a second tap meant for the button before does not finish the exam. */
+    private examShownAt = 0;
     /** Whether the result of the exam lists every answer, or only the ones that were missed. */
     private reviewAll = false;
     /** The clock of practice. It counts up or down, as the user chose. */
@@ -205,6 +207,11 @@ export class App
     private toTop = false;
     /** The address the page has set or followed last, to tell a change of the address by the user from its own. */
     private address = "";
+    /**
+     * The number of the step of the browser's history the page is at. Every step the page makes carries its number, so
+     * the page can tell how far the Back or Forward button went, and return there while an exam runs.
+     */
+    private step = 0;
     private readonly modal: Modal;
     private readonly actions: ViewActions = {
         showOriginal: (question) => this.modal.show(originalView(question, this.actions)),
@@ -382,6 +389,9 @@ export class App
             // An address that names no tab, or names one in another spelling, is put right.
             this.setAddress(this.hash(), false);
         }
+        // The step the page is at: kept by the browser across a reload, and 0 for a new tab.
+        this.step = App.stepOf(window.history.state) ?? 0;
+        window.history.replaceState({ step: this.step }, "");
         if ("scrollRestoration" in window.history)
         {
             // The page is drawn by this code, so this code puts the window where the user was. The browser would do it before the page is drawn.
@@ -391,6 +401,32 @@ export class App
         window.addEventListener("popstate", () => this.followAddress());
         window.addEventListener("hashchange", () => this.followAddress());
         window.addEventListener("scroll", () => this.onScroll(), { passive: true });
+        window.addEventListener("beforeunload", (event) => this.beforeLeaving(event));
+    }
+
+    /**
+     * Asks before the page is left while an exam runs: by a reload, by closing the tab, or by the Back button out of
+     * the site. A running exam lives only in the page, so leaving would lose it without a word. The browser shows its
+     * own question; the page cannot word it.
+     * @param event The event of the browser.
+     */
+    private beforeLeaving(event: BeforeUnloadEvent): void
+    {
+        if (this.examRuns())
+        {
+            event.preventDefault();
+        }
+    }
+
+    /**
+     * The number of a step of the history, as the page stored it.
+     * @param state What the browser keeps with the step.
+     * @returns The number, or null for a step the page did not make, such as an address typed by hand.
+     */
+    private static stepOf(state: unknown): number | null
+    {
+        const step = (state as { step?: unknown } | null)?.step;
+        return typeof step === "number" && Number.isInteger(step) ? step : null;
     }
 
     /** The address of what the page shows: the tab, and the page of the Learn tab. */
@@ -429,11 +465,12 @@ export class App
             url.hash = hash;
             if (step && !samePage)
             {
-                window.history.pushState(null, "", url);
+                this.step += 1;
+                window.history.pushState({ step: this.step }, "", url);
             }
             else
             {
-                window.history.replaceState(null, "", url);
+                window.history.replaceState({ step: this.step }, "", url);
             }
         }
         this.address = window.location.href;
@@ -463,12 +500,28 @@ export class App
             // The address the page set itself, or one that was followed already: a step back fires two events.
             return;
         }
+        const to = App.stepOf(window.history.state);
         if (this.examRuns())
         {
+            if (to !== null && to !== this.step)
+            {
+                // The Back or Forward button left the step of the exam: the browser goes back to it, and the steps
+                // before and after it stay as they were.
+                window.history.go(this.step - to);
+                return;
+            }
+            // An address typed by hand is a new step: it shows the exam.
+            this.step = to ?? this.step + 1;
             this.setAddress(this.hash(), false);
             return;
         }
         this.address = window.location.href;
+        this.step = to ?? this.step + 1;
+        if (to === null)
+        {
+            // A step the page did not make, such as an address typed by hand: it gets its number now.
+            window.history.replaceState({ step: this.step }, "");
+        }
         const place = placeOf(window.location.hash);
         if (!place.route && place.mode === this.mode)
         {
@@ -1014,6 +1067,7 @@ export class App
         this.disarm();
         this.mode = "exam";
         this.reviewAll = false;
+        this.examShownAt = Date.now();
         this.syncTicker();
         this.render();
     }
@@ -1058,10 +1112,8 @@ export class App
     {
         const now = Date.now();
         const exam = this.exam;
-        if (exam && !exam.finished && exam.clock.over(now))
+        if (exam && this.examTimeUp(exam))
         {
-            exam.timedOut = true;
-            this.finishExam();
             return;
         }
         if (this.practiceClock.running && this.practiceClock.over(now))
@@ -1146,6 +1198,23 @@ export class App
             return t("clock.note.exam", { minutes: EXAM_DURATION_MINUTES });
         }
         return clock.mode === "down" ? t("clock.note.down") : t("clock.note.up");
+    }
+
+    /**
+     * Ends an exam whose time is over, as timed out. The tick of the clock comes once a second and can come late, for
+     * example right after the device woke up: an answer or a press that arrives first must not count after the time.
+     * @param exam The exam.
+     * @returns Whether the time was over, and the exam is finished now.
+     */
+    private examTimeUp(exam: ExamState): boolean
+    {
+        if (exam.finished || !exam.clock.over(Date.now()))
+        {
+            return false;
+        }
+        exam.timedOut = true;
+        this.finishExam();
+        return true;
     }
 
     /** Ends the exam, records every answer, and shows the result. */
@@ -1346,7 +1415,7 @@ export class App
         if (this.mode === "exam")
         {
             const exam = this.exam;
-            if (exam && !exam.finished && optionIndex < exam.items[exam.current].options.length)
+            if (exam && !this.examTimeUp(exam) && !exam.finished && optionIndex < exam.items[exam.current].options.length)
             {
                 exam.answers[exam.current] = optionIndex;
                 this.render();
@@ -1433,6 +1502,7 @@ export class App
      */
     private showExamQuestion(exam: ExamState, index: number): void
     {
+        this.examShownAt = Date.now();
         exam.current = index;
         exam.visited[index] = true;
         this.render();
@@ -1508,7 +1578,19 @@ export class App
         this.root.replaceChildren(this.renderHeader(), body, this.renderFooter());
         if (focusedId)
         {
-            document.getElementById(focusedId)?.focus();
+            const again = document.getElementById(focusedId);
+            if (again instanceof HTMLButtonElement && again.disabled)
+            {
+                // The control that was pressed cannot take the keyboard any more, such as Back on the first question or
+                // an answer that is locked now: the keyboard goes to the question, not to the top of the page.
+                const question = this.root.querySelector<HTMLElement>("[data-focus]");
+                question?.setAttribute("tabindex", "-1");
+                question?.focus({ preventScroll: true });
+            }
+            else
+            {
+                again?.focus();
+            }
         }
         scrollTimelineToCurrent(this.root);
         this.revealOpenTab();
@@ -2587,6 +2669,7 @@ export class App
                     : "";
                 return el("li", {},
                     el("button", {
+                        id: `option-${index}`,
                         class: classes.join(" "),
                         type: "button",
                         "aria-pressed": String(selected === index),
@@ -2827,6 +2910,7 @@ export class App
 
         const navigator = el("div", { class: "navigator", role: "group", "aria-label": t("exam.navigator") },
             ...exam.items.map((_, index) => el("button", {
+                id: `exam-dot-${index}`,
                 class: [
                     "nav-dot",
                     index === exam.current ? "is-current" : "",
@@ -2840,16 +2924,30 @@ export class App
             }, i18n.number(index + 1))));
 
         const isLast = exam.current === exam.items.length - 1;
+        // The buttons have ids, so the keyboard stays on them when the page is drawn anew. The button that finishes takes the
+        // place and the id of Next on the last question: a second tap meant for Next is not taken as finishing.
         const controls = el("div", { class: "footer-row nav-row" },
             el("button", {
+                id: "exam-back",
                 class: "secondary",
                 type: "button",
                 disabled: exam.current === 0,
                 onclick: () => this.moveExam(-1),
             }, t("exam.back")),
             isLast
-                ? el("button", { class: "primary", type: "button", onclick: () => this.requestFinish() }, t("exam.finish"))
-                : el("button", { class: "primary", type: "button", onclick: () => this.moveExam(1) }, t("exam.next")));
+                ? el("button", {
+                    id: "exam-next",
+                    class: "primary",
+                    type: "button",
+                    onclick: () =>
+                    {
+                        if (Date.now() - this.examShownAt >= CONFIRM_GUARD_MS)
+                        {
+                            this.requestFinish();
+                        }
+                    },
+                }, t("exam.finish"))
+                : el("button", { id: "exam-next", class: "primary", type: "button", onclick: () => this.moveExam(1) }, t("exam.next")));
 
         const column = el("section", { class: "stage" }, this.renderClockStrip(), bar, navigator, this.renderQuestionCard(item, exam.answers[exam.current], false), controls);
         return el("main", { class: "layout" }, column, this.renderAside());
@@ -2876,7 +2974,7 @@ export class App
     private requestFinish(): void
     {
         const exam = this.exam;
-        if (!exam)
+        if (!exam || this.examTimeUp(exam))
         {
             return;
         }
@@ -2929,7 +3027,7 @@ export class App
             el("p", { class: "result-note" }, t("result.note", { count: EXAM_PASS_MARK })),
             el("div", { class: "footer-row" },
                 el("button", { class: "primary", type: "button", onclick: () => this.leaveResult() }, t("result.newExam")),
-                el("button", { class: "secondary", type: "button", onclick: () => this.practiceWeakSpots() }, t("stats.practiceWeak"))));
+                el("button", { class: "secondary", type: "button", disabled: this.weakTotal() === 0, onclick: () => this.practiceWeakSpots() }, t("stats.practiceWeak"))));
 
         const review = el("section", { class: "review" },
             el("div", { class: "review-head" },

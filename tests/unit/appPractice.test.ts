@@ -1961,6 +1961,37 @@ describe("App: practice mode", () =>
             expect(document.querySelector("article.card")).not.toBeNull();
         });
 
+        it.each([
+            ["null", "null"],
+            ["a list", "[1, 2, 3]"],
+            ["a broken answer record", JSON.stringify({ setupDone: true, records: { "1": null, "2": "x", "3": { right: 5, wrong: -9, lastWrong: true } } })],
+        ])("starts and stays usable when the save is %s, and a reload does too", async (_, raw) =>
+        {
+            window.localStorage.setItem(app.STORAGE_KEY, raw);
+            app = await mountApp();
+            expect(statValue("Seen")).toBe("0 of 310");
+            expect(statValue("Accuracy")).toBe("none yet");
+            expect(document.querySelector("article.card")).not.toBeNull();
+            answerRight();
+            expect(statValue("Seen")).toBe("1 of 310");
+            app = await mountApp();
+            expect(statValue("Seen")).toBe("1 of 310");
+        });
+
+        it("keeps the keyboard on the answer that was pressed, and on the question when locked answers turn the buttons off", async () =>
+        {
+            const option = (): HTMLButtonElement => document.getElementById("option-0") as HTMLButtonElement;
+            option().focus();
+            option().click();
+            expect(document.activeElement?.id).toBe("option-0");
+            window.localStorage.setItem(app.STORAGE_KEY, JSON.stringify({ setupDone: true, lockAnswers: true }));
+            app = await mountApp();
+            option().focus();
+            option().click();
+            expect(option().disabled).toBe(true);
+            expect(document.activeElement).toBe(document.querySelector("[data-focus]"));
+        });
+
         it("still works when localStorage is unavailable", async () =>
         {
             vi.spyOn(Storage.prototype, "getItem").mockImplementation(() =>

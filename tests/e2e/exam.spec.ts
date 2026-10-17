@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { answerExam, correctOptionIndex, EXAM_GENERAL, EXAM_SIZE, EXAM_STATE, expect, finishAnyway, LAST_GENERAL, openApp, pressOption, shownNumber, stat, test } from "./fixtures";
+import { answerExam, correctOptionIndex, EXAM_GENERAL, EXAM_SIZE, EXAM_STATE, expect, finishAnyway, LAST_GENERAL, openApp, pressOption, shownNumber, stat, test, pressFinishExam } from "./fixtures";
 
 /** Length of the exam in minutes. */
 const EXAM_MINUTES = 60;
@@ -62,7 +62,7 @@ test.describe("exam", () =>
     {
         await startExam(page);
         await answerExam(page, 17);
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await expect(page.locator(".result-label")).toHaveText("Passed");
         await expect(page.locator(".result-score")).toHaveText("17 of 33");
         await expect(page.getByRole("heading", { name: "Review: 16 missed" })).toBeVisible();
@@ -73,7 +73,7 @@ test.describe("exam", () =>
     {
         await startExam(page);
         await answerExam(page, 30);
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await expect(page.locator(".review-item")).toHaveCount(3);
         const toggle = page.locator("#review-all");
         await expect(toggle).toHaveAccessibleName("Show all answers (33)");
@@ -102,11 +102,63 @@ test.describe("exam", () =>
         await expect(page.locator(".review-item")).toHaveCount(3);
     });
 
+    test("does not finish on a fast double tap of Next on question 32, when the button that finishes takes its place", async ({ page }) =>
+    {
+        await startExam(page);
+        await answerExam(page, EXAM_SIZE);
+        await page.getByRole("button", { name: "Back" }).click();
+        await expect(page.locator(".exam-progress")).toHaveText(`Question 32 of ${EXAM_SIZE}`);
+        await page.locator("#exam-next").dblclick();
+        await expect(page.locator(".exam-progress")).toHaveText(`Question 33 of ${EXAM_SIZE}`);
+        await expect(page.locator(".result-label")).toHaveCount(0);
+        await pressFinishExam(page);
+        await expect(page.locator(".result-label")).toBeVisible();
+    });
+
+    test("asks before a reload throws a running exam away, and not when no exam runs", async ({ page }) =>
+    {
+        await startExam(page);
+        const asked: string[] = [];
+        page.on("dialog", async (dialog) =>
+        {
+            asked.push(dialog.type());
+            await dialog.dismiss();
+        });
+        await page.locator("button.option").first().click();
+        // A dismissed question keeps the page, and the exam with it.
+        await page.reload({ timeout: 2000 }).then(() => undefined, () => undefined);
+        expect(asked).toEqual(["beforeunload"]);
+        await expect(page.locator(".exam-progress")).toHaveText(`Question 1 of ${EXAM_SIZE}`);
+        await page.locator("#exam-finish").click();
+        await finishAnyway(page);
+        await page.reload();
+        expect(asked).toEqual(["beforeunload"]);
+    });
+
+    test("keeps the steps of the browser's history when Back is pressed during an exam, and Back leads there after it", async ({ page }) =>
+    {
+        await openApp(page);
+        await page.getByRole("tab", { name: "Train" }).click();
+        await page.getByRole("tab", { name: "Exam (33)" }).click();
+        await page.getByRole("button", { name: "Start exam" }).click();
+        await page.goBack();
+        await page.goBack();
+        await expect(page).toHaveURL(/#exam$/);
+        await expect(page.locator(".exam-progress")).toBeVisible();
+        await page.locator("#exam-finish").click();
+        await finishAnyway(page);
+        await page.goBack();
+        await expect(page).toHaveURL(/#train$/);
+        await expect(page.locator("#tab-train")).toHaveAttribute("aria-selected", "true");
+        await page.goBack();
+        await expect(page.locator("#tab-practice")).toHaveAttribute("aria-selected", "true");
+    });
+
     test("fails with 16 correct answers", async ({ page }) =>
     {
         await startExam(page);
         await answerExam(page, 16);
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await expect(page.locator(".result-label")).toHaveText("Not passed");
         await expect(page.locator(".result-score")).toHaveText("16 of 33");
     });
@@ -115,7 +167,7 @@ test.describe("exam", () =>
     {
         await startExam(page);
         await answerExam(page, 33);
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await expect(page.locator(".result-score")).toHaveText("33 of 33");
         await expect(page.getByRole("heading", { name: "No mistakes" })).toBeVisible();
     });
@@ -124,11 +176,11 @@ test.describe("exam", () =>
     {
         await startExam(page);
         await answerExam(page, 33, 30);
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await expect(page.getByRole("dialog")).toContainText("3 questions are still unanswered and will count as wrong.");
         await page.getByRole("button", { name: "Keep working" }).click();
         await expect(page.getByRole("dialog")).toHaveCount(0);
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await finishAnyway(page);
         await expect(page.locator(".result-score")).toHaveText("30 of 33");
         await expect(page.locator(".review-item")).toHaveCount(3);
@@ -267,7 +319,7 @@ test.describe("exam", () =>
     {
         await startExam(page);
         await answerExam(page, 25);
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await page.getByRole("button", { name: "Practice weak spots" }).first().click();
         await expect(page.getByRole("tab", { name: "Practice" })).toHaveAttribute("aria-selected", "true");
         await expect(page.locator(".round-bar")).toContainText("All my weak spots · 8 questions");
@@ -281,7 +333,7 @@ test.describe("exam", () =>
     {
         await startExam(page);
         await answerExam(page, 33);
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await page.getByRole("button", { name: "New exam" }).click();
         await expect(page.getByRole("heading", { name: "Practice exam" })).toBeVisible();
         await expect(page.locator(".exam-progress")).toHaveCount(0);

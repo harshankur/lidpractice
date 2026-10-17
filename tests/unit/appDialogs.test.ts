@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     buttonByText, clickButton, finishAnyway, makeQuestion, mountApp, numberOfLabel, optionButtons, pressKey, REAL_QUESTIONS, shownNumber,
-    startExam, startRound, statValue,
+    startExam, startRound, statValue, pressFinishExam,
 } from "../helpers/appHarness";
 
 /** The dialog on screen, or null. */
@@ -174,7 +174,7 @@ describe("App: original question, report and About dialog", () =>
             {
                 pressKey("ArrowRight");
             }
-            clickButton("Finish exam");
+            pressFinishExam();
             finishAnyway();
             const buttons = document.querySelectorAll(".review-item .original-btn");
             expect(buttons).toHaveLength(33);

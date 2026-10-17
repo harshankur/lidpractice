@@ -45,7 +45,10 @@ export const ALL_TOPICS: string[] = TOPIC_GROUPS.flatMap((group) => group.topics
  */
 export function sameTopics(first: readonly string[], second: readonly string[]): boolean
 {
-    return first.length === second.length && first.every((topic) => second.includes(topic));
+    // As sets: a subject named twice is one subject.
+    const one = new Set(first);
+    const other = new Set(second);
+    return one.size === other.size && [...one].every((topic) => other.has(topic));
 }
 
 /** What a choice of subjects amounts to, for the one line summary. */

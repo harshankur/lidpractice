@@ -167,6 +167,8 @@ describe("build.mjs", () =>
                 "/impressum https://harshankur.com/impressum 301",
                 "/datenschutz.html https://harshankur.com/datenschutz#lidpractice 301",
                 "/datenschutz https://harshankur.com/datenschutz#lidpractice 301",
+                "/impressum/ https://harshankur.com/impressum 301",
+                "/datenschutz/ https://harshankur.com/datenschutz#lidpractice 301",
             ]);
             expect(LEGAL_NOTICE_URL).toBe("https://harshankur.com/impressum");
             expect(PRIVACY_NOTICE_URL).toBe("https://harshankur.com/datenschutz#lidpractice");
@@ -198,19 +200,26 @@ describe("build.mjs", () =>
                     rules.set(current, []);
                 }
             }
-            expect([...rules.keys()]).toEqual(["/*", "/", "/index.html", "/locales/*", "/teach/*", "/fonts/*", "/images/*", "/catalogue/*"]);
+            expect([...rules.keys()]).toEqual(["/*", "/", "/index.html", "/locales/*", "/teach/*", "/fonts/*", "/images/*", "/catalogue/*", "/catalogue/SOURCE.md"]);
             const all = rules.get("/*") ?? [];
-            expect(all.map((header) => header.split(":")[0])).toEqual(["X-Content-Type-Options", "Referrer-Policy", "X-Frame-Options", "Permissions-Policy", "Content-Security-Policy"]);
+            expect(all.map((header) => header.split(":")[0])).toEqual(["X-Content-Type-Options", "Referrer-Policy", "X-Frame-Options", "Permissions-Policy", "Content-Security-Policy", "Strict-Transport-Security"]);
+            expect(all).toContain("Strict-Transport-Security: max-age=31536000; includeSubDomains");
             expect(all.find((header) => header.startsWith("Content-Security-Policy"))).toContain("default-src 'self'");
             expect(all.some((header) => header.startsWith("Cache-Control"))).toBe(false);
             for (const path of ["/", "/index.html"])
             {
                 expect(rules.get(path), path).toEqual(["Cache-Control: public, max-age=0, must-revalidate"]);
             }
-            for (const path of ["/locales/*", "/teach/*", "/fonts/*", "/images/*", "/catalogue/*"])
+            for (const path of ["/locales/*", "/teach/*", "/fonts/*"])
             {
                 expect(rules.get(path), path).toEqual(["Cache-Control: public, max-age=31536000, immutable"]);
             }
+            // Replaced in place by a new edition of the catalogue, and the rule also covers a 404 there: a day only.
+            for (const path of ["/images/*", "/catalogue/*"])
+            {
+                expect(rules.get(path), path).toEqual(["Cache-Control: public, max-age=86400"]);
+            }
+            expect(rules.get("/catalogue/SOURCE.md")).toEqual(["Content-Type: text/markdown; charset=utf-8"]);
             expect(text).not.toMatch(/https?:\/\//);
         });
 

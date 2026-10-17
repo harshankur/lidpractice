@@ -513,7 +513,9 @@ export function clickButton(text: string): void
  */
 export function afterGuard(action: () => void): void
 {
-    const spy = vi.spyOn(Date, "now").mockReturnValue(Date.now() + CONFIRM_GUARD_MS);
+    // Each guarded press is later than the one before: a prompt that came up during one is past its own guard at the next.
+    guardAhead += CONFIRM_GUARD_MS;
+    const spy = vi.spyOn(Date, "now").mockReturnValue(Date.now() + guardAhead);
     try
     {
         action();
@@ -522,6 +524,18 @@ export function afterGuard(action: () => void): void
     {
         spy.mockRestore();
     }
+}
+
+/** How far ahead of the real time the guarded presses of a test have gone, so each is later than the one before. */
+let guardAhead = 0;
+
+/**
+ * Presses the button that finishes the exam on its last question, a moment after that question came up: a press at
+ * once is taken for a second tap meant for Next, and ignored.
+ */
+export function pressFinishExam(): void
+{
+    afterGuard(() => clickButton("Finish exam"));
 }
 
 /**

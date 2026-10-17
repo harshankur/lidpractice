@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     buttonByText, chooseFromListbox, chooseState, finishAnyway, numberOfLabel, chooseTranslation, clickButton, correctIndex, makeBank, mountApp, optionButtons, pressKey,
-    REAL_QUESTIONS, shownNumber, startExam, statValue, visibleText, wrongIndex, type AppExports, type Question, settle
+    REAL_QUESTIONS, shownNumber, startExam, statValue, visibleText, wrongIndex, type AppExports, type Question, settle, pressFinishExam,
 } from "../helpers/appHarness";
 
 /** Number of questions in an exam: 30 general plus 3 of the chosen federal state. */
@@ -218,7 +218,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(33);
-            clickButton("Finish exam");
+            pressFinishExam();
             const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>("[role=tab]"));
             expect(tabs.some((tab) => tab.disabled)).toBe(false);
             clickButton("Practice");
@@ -268,7 +268,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(0);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(document.querySelector(".result")).not.toBeNull();
             chooseState("hamburg");
             expect(document.querySelector(".intro")).not.toBeNull();
@@ -334,7 +334,7 @@ describe("App: exam mode", () =>
             startExam();
             await chooseTranslation("en");
             answerExam(0);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(document.querySelector(".review-item .bi-main")?.getAttribute("lang")).toBe("de");
             expect(document.querySelector(".review-item .bi-sub")?.getAttribute("lang")).toBe("en");
         });
@@ -346,7 +346,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(33);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(document.querySelector(".confirm")).toBeNull();
             expect(resultLabel()).toBe("Passed");
             expect(document.querySelector(".result-score")?.textContent).toBe("33 of 33");
@@ -358,7 +358,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(17);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(resultLabel()).toBe("Passed");
             expect(document.querySelector(".result-score")?.textContent).toBe("17 of 33");
             expect(document.querySelector(".result")?.className).toBe("card result pass");
@@ -370,7 +370,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(16);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(resultLabel()).toBe("Not passed");
             expect(document.querySelector(".result-score")?.textContent).toBe("16 of 33");
             expect(document.querySelector(".result")?.className).toBe("card result fail");
@@ -380,7 +380,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(33, REAL_QUESTIONS, 30);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(document.querySelector("#modal-root [role=dialog] .confirm")).not.toBeNull();
             expect(document.getElementById("modal-title")?.textContent).toBe("Finish the exam?");
             expect(document.querySelector(".confirm p")?.textContent)
@@ -397,7 +397,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(33, REAL_QUESTIONS, 32);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(document.querySelector(".confirm p")?.textContent)
                 .toBe("1 question is still unanswered and will count as wrong.");
         });
@@ -406,7 +406,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(0, REAL_QUESTIONS, 0);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(document.querySelector(".confirm")).not.toBeNull();
             clickButton("Keep working");
             expect(document.querySelector(".confirm")).toBeNull();
@@ -483,7 +483,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(30);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(document.querySelectorAll(".review-item")).toHaveLength(3);
             for (const item of Array.from(document.querySelectorAll(".review-item")))
             {
@@ -510,7 +510,7 @@ describe("App: exam mode", () =>
                     clickButton("Next");
                 }
             }
-            clickButton("Finish exam");
+            pressFinishExam();
             const toggle = (): HTMLButtonElement => document.getElementById("review-all") as HTMLButtonElement;
             const shownText = (): string => toggle().querySelector(".swap:not(.is-off)")?.textContent as string;
             expect(document.querySelector(".review h2")?.textContent).toBe("Review: 3 missed");
@@ -558,7 +558,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(EXAM_SIZE);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(document.querySelector(".review h2")?.textContent).toBe("No mistakes");
             expect(document.querySelectorAll(".review-item")).toHaveLength(0);
             (document.getElementById("review-all") as HTMLButtonElement).click();
@@ -566,7 +566,7 @@ describe("App: exam mode", () =>
             clickButton("New exam");
             clickButton("Start exam");
             answerExam(0);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(document.getElementById("review-all")?.getAttribute("aria-pressed")).toBe("false");
             expect(document.querySelectorAll(".review-item")).toHaveLength(EXAM_SIZE);
         });
@@ -577,7 +577,7 @@ describe("App: exam mode", () =>
             app = await mountApp(bank);
             startExam();
             answerExam(0, bank);
-            clickButton("Finish exam");
+            pressFinishExam();
             const links = Array.from(document.querySelectorAll<HTMLAnchorElement>(".review-item a.pic-link"));
             expect(links).toHaveLength(33);
             expect(links[0].textContent).toBe("Open picture");
@@ -594,7 +594,7 @@ describe("App: exam mode", () =>
             app = await mountApp(bank);
             startExam();
             answerExam(0, bank);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(document.querySelectorAll(".review-item .caption")).toHaveLength(0);
         });
 
@@ -602,7 +602,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(20, REAL_QUESTIONS, 25);
-            clickButton("Finish exam");
+            pressFinishExam();
             finishAnyway();
             const saved = JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string);
             const records = Object.values(saved.records) as { right: number; wrong: number; lastWrong: boolean }[];
@@ -615,7 +615,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(33);
-            clickButton("Finish exam");
+            pressFinishExam();
             pressKey("1");
             pressKey("ArrowLeft");
             pressKey("Enter");
@@ -627,7 +627,7 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(33);
-            clickButton("Finish exam");
+            pressFinishExam();
             clickButton("Practice");
             clickButton("Exam (33)");
             expect(resultLabel()).toBe("Passed");
@@ -683,7 +683,7 @@ describe("App: exam mode", () =>
             clickButton("Back");
             mark().click();
             clickButton("Next");
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(document.querySelector(".confirm")).not.toBeNull();
             expect(document.querySelector(".confirm")?.textContent).toContain("1 question is marked for review.");
             expect(document.querySelector(".confirm")?.textContent).not.toContain("unanswered");
@@ -743,7 +743,7 @@ describe("App: exam mode", () =>
             vi.useFakeTimers();
             startExam();
             answerExam(33);
-            clickButton("Finish exam");
+            pressFinishExam();
             clickButton("New exam");
             expect(document.querySelector(".exam-progress")).toBeNull();
             expect(document.querySelector(".card.intro")).not.toBeNull();
@@ -761,13 +761,137 @@ describe("App: exam mode", () =>
         {
             startExam();
             answerExam(23);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(statValue("Weak spots")).toBe("10");
             clickButton("Practice weak spots");
             expect(document.querySelector("[role=tab][aria-selected=true]")?.textContent).toBe("Practice");
             expect(document.querySelector(".round-bar")?.textContent).toContain("All my weak spots · 10 questions");
             expect(document.querySelector(".timeline-progress")?.textContent).toContain("0 of 10");
             expect(document.getElementById("scope-button")).toBeNull();
+        });
+    });
+
+    describe("what the user does that must not end or lose an exam by accident", () =>
+    {
+        /** The result headline, or null while the exam runs. */
+        const finished = (): boolean => document.querySelector(".result-label") !== null;
+
+        it("does not finish on a second tap meant for Next, which lands on the button that finishes", () =>
+        {
+            startExam();
+            answerExam(EXAM_SIZE);
+            // On question 33 now: back to 32, and Next pressed twice in a row.
+            clickButton("Back");
+            clickButton("Next");
+            expect(document.querySelector(".exam-progress")?.textContent).toBe("Question 33 of 33");
+            (document.getElementById("exam-next") as HTMLButtonElement).click();
+            expect(finished()).toBe(false);
+            // A moment later the same press finishes.
+            pressFinishExam();
+            expect(finished()).toBe(true);
+        });
+
+        it("takes no answer after the time is over, even before the clock has ticked, and ends the exam as timed out", () =>
+        {
+            vi.useFakeTimers();
+            startExam();
+            optionButtons()[correctIndex()].click();
+            clickButton("Next");
+            // The device sleeps past the end: the time is over, but no tick has come yet.
+            vi.setSystemTime(Date.now() + 61 * 60 * 1000);
+            optionButtons()[correctIndex()].click();
+            expect(finished()).toBe(true);
+            expect(document.querySelector(".result-timeup")).not.toBeNull();
+            expect(document.querySelector(".result-score")?.textContent).toBe("1 of 33");
+        });
+
+        it("ends as timed out when finishing is asked for after the time, and does not ask first", () =>
+        {
+            vi.useFakeTimers();
+            startExam();
+            vi.setSystemTime(Date.now() + 61 * 60 * 1000);
+            clickButton("End now");
+            expect(document.querySelector("#modal-root [role=dialog]")).toBeNull();
+            expect(document.querySelector(".result-timeup")).not.toBeNull();
+        });
+
+        it("keeps the keyboard on the answer, on Back and Next and in the list of questions after a press", () =>
+        {
+            startExam();
+            const press = (id: string): void =>
+            {
+                const button = document.getElementById(id) as HTMLButtonElement;
+                button.focus();
+                button.click();
+                expect(document.activeElement?.id, id).toBe(id);
+            };
+            press("option-1");
+            press("exam-next");
+            press("exam-next");
+            press("exam-back");
+            // Back on the second question leads to the first, where Back is off: the keyboard goes to the question.
+            const back = document.getElementById("exam-back") as HTMLButtonElement;
+            back.focus();
+            back.click();
+            expect(document.activeElement).toBe(document.querySelector("[data-focus]"));
+            press("exam-dot-9");
+            expect(document.querySelector(".exam-progress")?.textContent).toBe("Question 10 of 33");
+            // On the last question Next turns into the button that finishes, in the same place, and keeps the keyboard.
+            press("exam-dot-31");
+            press("exam-next");
+            expect(buttonByText("Finish exam")?.id).toBe("exam-next");
+        });
+
+        it("asks before the page is left by a reload or by closing it, while the exam runs, and only then", () =>
+        {
+            const leave = (): boolean =>
+            {
+                const event = new Event("beforeunload", { cancelable: true });
+                window.dispatchEvent(event);
+                return event.defaultPrevented;
+            };
+            expect(leave()).toBe(false);
+            startExam();
+            expect(leave()).toBe(true);
+            clickButton("End now");
+            finishAnyway();
+            expect(leave()).toBe(false);
+        });
+
+        it("goes back to the step of the exam when the Back or Forward button leaves it, so the steps around it stay", () =>
+        {
+            clickButton("Train");
+            startExam();
+            const go = vi.spyOn(window.history, "go").mockImplementation(() => undefined);
+            const step = (window.history.state as { step: number }).step;
+            // What the browser does on Back: the step before, with its own number, and then the page is told.
+            window.history.replaceState({ step: step - 1 }, "", "#train");
+            window.dispatchEvent(new PopStateEvent("popstate"));
+            expect(go).toHaveBeenCalledWith(1);
+            // And on Forward from an earlier step.
+            window.history.replaceState({ step: step + 2 }, "", "#learn");
+            window.dispatchEvent(new PopStateEvent("popstate"));
+            expect(go).toHaveBeenLastCalledWith(-2);
+            expect(document.querySelector(".exam-progress")).not.toBeNull();
+        });
+
+        it("puts the exam back over an address typed by hand, as a step of its own", () =>
+        {
+            startExam();
+            const step = (window.history.state as { step: number }).step;
+            window.history.pushState(null, "", "#practice");
+            window.dispatchEvent(new HashChangeEvent("hashchange"));
+            expect(window.location.hash).toBe("#exam");
+            expect(window.history.state).toEqual({ step: step + 1 });
+            expect(document.querySelector(".exam-progress")).not.toBeNull();
+        });
+
+        it("offers no round of weak spots on the result when there are none", () =>
+        {
+            startExam();
+            answerExam(EXAM_SIZE);
+            pressFinishExam();
+            expect(buttonByText("Practice weak spots")?.disabled).toBe(true);
         });
     });
 
@@ -907,7 +1031,7 @@ describe("App: exam mode", () =>
             startExam();
             expect(vi.getTimerCount()).toBe(1);
             answerExam(33);
-            clickButton("Finish exam");
+            pressFinishExam();
             // Moving the focus to the result makes jsdom queue a task of its own. It is flushed so that only the timers of the app are counted.
             vi.advanceTimersByTime(0);
             expect(vi.getTimerCount()).toBe(0);
@@ -921,7 +1045,7 @@ describe("App: exam mode", () =>
             startExam();
             vi.advanceTimersByTime(30 * 60 * 1000);
             answerExam(33);
-            clickButton("Finish exam");
+            pressFinishExam();
             clickButton("New exam");
             // Moving the focus to the result makes jsdom queue a task of its own. It is flushed so that only the timers of the app are counted.
             vi.advanceTimersByTime(0);
@@ -1029,7 +1153,7 @@ describe("App: exam mode", () =>
             startExam();
             expect(document.querySelector("main.layout > .aside .exam-widget")).not.toBeNull();
             answerExam(33);
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(document.querySelector("main.layout > .aside .stats")).not.toBeNull();
             expect(document.querySelector(".layout.single")).toBeNull();
         });

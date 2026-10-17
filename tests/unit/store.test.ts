@@ -235,6 +235,66 @@ describe("Store", () =>
         });
     });
 
+    describe("a save that is no object, or answers that are broken", () =>
+    {
+        const DEFAULTS = { uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "" };
+
+        it.each(["null", "42", "\"text\"", "[1, 2]", "true"])("starts with the defaults when the save is %s, without an error", (raw) =>
+        {
+            window.localStorage.setItem(app.STORAGE_KEY, raw);
+            store.load();
+            expect(store.state).toEqual(DEFAULTS);
+        });
+
+        it.each(["null", "42", "[1]"])("starts with the defaults when an older version saved %s", (raw) =>
+        {
+            window.localStorage.setItem("lid-berlin-trainer-v3", raw);
+            store.load();
+            expect(store.state).toEqual(DEFAULTS);
+        });
+
+        it("keeps only the answer records that are whole: a number as the page writes it, counts, and a yes or no", () =>
+        {
+            const good = { right: 2, wrong: 1, lastWrong: true };
+            const records = {
+                "1": good,
+                "2": null,
+                "3": "x",
+                "4": { right: "a", wrong: 0, lastWrong: false },
+                "5": { right: 5, wrong: -9, lastWrong: true },
+                "6": { right: 1.5, wrong: 0, lastWrong: false },
+                "7": { right: 1, wrong: 0 },
+                "05": good,
+                "5.0": good,
+                "-3": good,
+                "0": good,
+                "": good,
+                "x": good,
+                "8": { right: 0, wrong: 3, lastWrong: true, extra: "dropped" },
+            };
+            window.localStorage.setItem(app.STORAGE_KEY, JSON.stringify({ records }));
+            store.load();
+            expect(store.state.records).toEqual({ "1": good, "8": { right: 0, wrong: 3, lastWrong: true } });
+            // Nothing that is left can break the numbers on the page.
+            expect(store.accuracyPercentIn(() => true)).toBe(33);
+            expect(store.weakNumbersIn(() => true)).toEqual([1, 8]);
+        });
+
+        it("keeps the records of an older version only when they are whole too", () =>
+        {
+            window.localStorage.setItem("lid-berlin-trainer-v2", JSON.stringify({ records: { "301": { right: 1, wrong: 0, lastWrong: false }, "9": null } }));
+            store.load();
+            expect(store.state.records).toEqual({ "321": { right: 1, wrong: 0, lastWrong: false } });
+        });
+
+        it("names a subject once, however often a save names it", () =>
+        {
+            window.localStorage.setItem(app.STORAGE_KEY, JSON.stringify({ topics: ["grundrechte", "grundrechte", "grundrechte"] }));
+            store.load();
+            expect(store.state.topics).toEqual(["grundrechte"]);
+        });
+    });
+
     describe("load with unusable values", () =>
     {
         it.each([

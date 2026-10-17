@@ -1,4 +1,4 @@
-import { BUNDLE, correctOptionIndex, embedBundle, expect, finishAnyway, LAST_GENERAL, nameOfNumber, openApp, pressOption, QUESTIONS, shownNumber, test } from "./fixtures";
+import { BUNDLE, correctOptionIndex, embedBundle, expect, finishAnyway, LAST_GENERAL, nameOfNumber, openApp, pressOption, QUESTIONS, shownNumber, test, pressFinishExam } from "./fixtures";
 import type { Page } from "@playwright/test";
 
 /** Widest viewport that counts as a phone. */
@@ -99,7 +99,7 @@ test.describe("Show original", () =>
         await page.getByRole("tab", { name: "Exam (33)" }).click();
         await page.getByRole("button", { name: "Start exam" }).click();
         await page.getByRole("button", { name: "Question 33", exact: true }).click();
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await finishAnyway(page);
         await page.locator(".review-item").nth(3).getByRole("button", { name: ORIGINAL_BUTTON }).click();
         await expect(page.getByRole("dialog")).toBeVisible();

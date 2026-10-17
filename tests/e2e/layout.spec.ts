@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { answerExam, embedBundle, bundleWithTexts, expect, finishAnyway, openApp, pressOption, QUESTIONS, startRound, test, weakState } from "./fixtures";
+import { answerExam, embedBundle, bundleWithTexts, expect, finishAnyway, openApp, pressOption, QUESTIONS, startRound, test, weakState, pressFinishExam } from "./fixtures";
 
 /** Widest viewport that counts as a phone. */
 const PHONE_MAX_WIDTH = 480;
@@ -83,7 +83,7 @@ test.describe("layout", () =>
         await page.getByRole("button", { name: "Start exam" }).click();
         await expectNoHorizontalScroll(page, "running exam");
         await answerExam(page, 0);
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await expectNoHorizontalScroll(page, "exam result with 33 missed questions");
     });
 
@@ -100,7 +100,7 @@ test.describe("layout", () =>
         await page.getByRole("tab", { name: "Exam (33)" }).click();
         await page.getByRole("button", { name: "Start exam" }).click();
         await answerExam(page, 0);
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await expectNoHorizontalScroll(page, "exam review with long words");
     });
 });
@@ -420,7 +420,7 @@ test.describe("the same layout in every mode", () =>
         await page.getByRole("button", { name: "Start exam" }).click();
         await same("running exam");
         await answerExam(page, 0);
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await same("exam result");
     });
 });

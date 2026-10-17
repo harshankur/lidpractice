@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { answerExam, chooseFromListbox, correctOptionIndex, expect, openApp, pressOption, nameOfNumber, QUESTIONS, shownNumber, stat, test } from "./fixtures";
+import { answerExam, chooseFromListbox, correctOptionIndex, expect, openApp, pressOption, nameOfNumber, QUESTIONS, shownNumber, stat, test, pressFinishExam } from "./fixtures";
 
 /** Text of the exam result headline in German. */
 const GERMAN_PASSED = "Bestanden";
@@ -96,7 +96,7 @@ test.describe("interface language", () =>
         await page.getByRole("button", { name: "Prüfung starten" }).click();
         await expect(page.locator(".exam-progress")).toHaveText("Frage 1 von 33");
         await answerExam(page, 20);
-        await page.getByRole("button", { name: "Prüfung beenden" }).click();
+        await pressFinishExam(page, "Prüfung beenden");
         await expect(page.locator(".result-label")).toHaveText(GERMAN_PASSED);
         await expect(page.locator(".result-score")).toHaveText("20 von 33");
         await expect(page.getByRole("heading", { name: "Rückblick: 13 verpasst" })).toBeVisible();

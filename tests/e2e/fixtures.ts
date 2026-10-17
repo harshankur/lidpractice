@@ -385,6 +385,20 @@ export async function answerExam(page: Page, correct: number, unansweredFrom = E
 }
 
 /**
+ * Presses the button that finishes the exam on its last question, once the moment has passed in which it ignores a
+ * press: a press at once is taken for a second tap meant for Next.
+ * @param page Playwright page.
+ * @param label Text of the button, in the language of the site.
+ */
+export async function pressFinishExam(page: Page, label = "Finish exam"): Promise<void>
+{
+    const button = page.getByRole("button", { name: label });
+    await expect(button).toBeVisible();
+    await page.waitForTimeout(CONFIRM_GUARD_MS);
+    await button.click();
+}
+
+/**
  * Confirms the prompt before the exam is finished, once the moment has passed in which its button ignores a press.
  * @param page Playwright page.
  * @param label Text of the confirming button.

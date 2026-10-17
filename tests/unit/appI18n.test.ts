@@ -117,7 +117,8 @@ describe("App: language, theme and tabs", () =>
             window.history.replaceState({}, "", "/?x=1");
             const replace = vi.spyOn(window.history, "replaceState");
             app = await import("../../src/app");
-            expect(replace).not.toHaveBeenCalled();
+            // The page numbers the step of the history it is at, and changes nothing of the address.
+            expect(replace.mock.calls.every(([, , url]) => url === undefined)).toBe(true);
             expect(window.location.search).toBe("?x=1");
         });
 
@@ -246,7 +247,7 @@ describe("App: language, theme and tabs", () =>
             {
                 pressKey("ArrowRight");
             }
-            (document.querySelector(".footer-row .primary:last-child") as HTMLElement).click();
+            afterGuard(() => (document.querySelector(".footer-row .primary:last-child") as HTMLElement).click());
             expectNoRawKeys("finish confirmation");
             afterGuard(() => (document.querySelector(".confirm .danger") as HTMLElement).click());
             expectNoRawKeys("exam result");
@@ -283,7 +284,7 @@ describe("App: language, theme and tabs", () =>
             {
                 pressKey("ArrowRight");
             }
-            clickButton("Prüfung beenden");
+            afterGuard(() => clickButton("Prüfung beenden"));
             expect(document.querySelector(".confirm p")?.textContent).toBe("33 Fragen sind noch unbeantwortet und zählen als falsch.");
             expect(document.querySelector(".confirm-detail")?.textContent).toBe("0 nie geöffnet, 33 geöffnet und offen gelassen.");
             finishAnyway("Trotzdem beenden");

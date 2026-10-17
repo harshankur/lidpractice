@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { answerExam, expect, finishAnyway, openApp, STORAGE_KEY, test, weakState } from "./fixtures";
+import { answerExam, expect, finishAnyway, openApp, STORAGE_KEY, test, weakState, pressFinishExam } from "./fixtures";
 
 /** Controls whose popup is drawn by the browser or the operating system. */
 const NATIVE_POPUP_CONTROLS = "select, datalist, input[type=date], input[type=datetime-local], input[type=time], input[type=month], input[type=week], input[type=color]";
@@ -46,7 +46,7 @@ test.describe("nothing the browser or the operating system draws", () =>
         await expect(page.locator(NATIVE_POPUP_CONTROLS)).toHaveCount(0);
         await page.getByRole("button", { name: "Start exam" }).click();
         await answerExam(page, 5, 30);
-        await page.getByRole("button", { name: "Finish exam" }).click();
+        await pressFinishExam(page);
         await expect(page.locator(NATIVE_POPUP_CONTROLS)).toHaveCount(0);
         await finishAnyway(page);
         await expect(page.locator(NATIVE_POPUP_CONTROLS)).toHaveCount(0);

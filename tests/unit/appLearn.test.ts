@@ -5,7 +5,7 @@ import { dayNumber } from "../../src/learn/schedule";
 import type { CourseFile, CourseTexts, LessonSpec, UnitSpec } from "../../src/learn/types";
 import {
     breakServer, buttonByText, chooseFromListbox, chooseTranslation, clickButton, correctIndex, finishAnyway, mountApp, optionButtons, pressKey, requests, serveCourseFile, settle,
-    shownNumber, slots, startExam, statValue, REAL_QUESTIONS, type AppExports,
+    shownNumber, slots, startExam, statValue, REAL_QUESTIONS, type AppExports, pressFinishExam,
 } from "../helpers/appHarness";
 
 /** The real course: these tests drive the tab the way a user does, with the lessons a user gets. */
@@ -1660,8 +1660,8 @@ describe("App: the Learn tab", () =>
             click("learn-back");
             click("tab-practice");
             expect(window.history.length).toBe(start + 4);
-            // A step carries nothing but its address.
-            expect(window.history.state).toBeNull();
+            // A step carries its address and its number, so the page knows how far the Back button went.
+            expect(window.history.state).toEqual({ step: expect.any(Number) as number });
         });
 
         it("links every lesson of the list with its address, and leaves a press that asks for a new tab to the browser", async () =>
@@ -2279,7 +2279,7 @@ describe("App: the Learn tab", () =>
                     clickButton("Next");
                 }
             }
-            clickButton("Finish exam");
+            pressFinishExam();
             expect(saved(app).exams).toEqual([{ day: TODAY, score: 33, total: 33 }]);
             click("tab-learn");
             await settle();
