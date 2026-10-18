@@ -9,7 +9,7 @@ import { STATE_IDS, questionName } from "../states";
 import type { Store } from "../store";
 import { DEFAULT_LOCALE, type LearnFiles, type LearnProgress, type Locale, type PresentedQuestion, type Question } from "../types";
 import { renderChronology, renderEraLegend } from "./chronology";
-import { CourseBook, STATE_LESSON_PREFIX } from "./course";
+import { CourseBook, STATE_LESSON_NAME, STATE_LESSON_PREFIX } from "./course";
 import { LearnLoader } from "./loader";
 import { mapModel, renderMap } from "./maps";
 import { READY_CARD_PERCENT, READY_EXAMS, READY_EXAM_SCORE, boxCounts, coverage, dueCount, lessonState, nextStep, readPercent, readiness, weakCount } from "./progress";
@@ -357,7 +357,19 @@ export class LearnTab
     public hash(): string
     {
         const page = this.page;
-        return routeHash(page.name === "lesson" ? { page: "lesson", lesson: page.id } : { page: page.name });
+        return LearnTab.address(page.name === "lesson" ? { page: "lesson", lesson: page.id } : { page: page.name });
+    }
+
+    /**
+     * The address of a place of the tab as the page writes it: in the address bar, and in the links that lead to it.
+     * The lesson about the user's state is written without the state ({@link STATE_LESSON_NAME}); only a link that
+     * is handed on (see share) names it, so that whoever opens it can be told which state it was made for.
+     * @param route The place.
+     * @returns The part of the address after the "#" sign, with the sign.
+     */
+    private static address(route: LearnRoute): string
+    {
+        return routeHash(route.page === "lesson" && route.lesson.startsWith(STATE_LESSON_PREFIX) ? { ...route, lesson: STATE_LESSON_NAME } : route);
     }
 
     /**
@@ -510,14 +522,18 @@ export class LearnTab
     }
 
     /**
-     * The lesson an address names. The lesson about a state exists for the user's own state only: a link that was made
-     * for another state leads to it, and the lesson says so.
+     * The lesson an address names. The lesson about a state exists for the user's own state only: the address the page
+     * writes for it names no state, and a link that was made for another state leads to it too, and the lesson says so.
      * @param id The lesson id of the address.
      * @param book The course.
      * @returns The lesson, or undefined when the course has none of that name.
      */
     private lessonOf(id: string, book: CourseBook): Lesson | undefined
     {
+        if (id === STATE_LESSON_NAME)
+        {
+            return book.lesson(`${STATE_LESSON_PREFIX}${book.stateId}`);
+        }
         const lesson = book.lesson(id);
         const other = id.slice(STATE_LESSON_PREFIX.length);
         if (lesson || !id.startsWith(STATE_LESSON_PREFIX) || !STATE_IDS.includes(other))
@@ -563,7 +579,7 @@ export class LearnTab
         this.left = undefined;
         this.arrival = this.arrivalFor(page, from, section, "return");
         // The address is put right: it names the page that is shown, and a section only when the lesson has it.
-        this.host.visit(page.name === "lesson" && section !== undefined ? routeHash({ page: "lesson", lesson: page.id, section }) : this.hash(), false);
+        this.host.visit(page.name === "lesson" && section !== undefined ? LearnTab.address({ page: "lesson", lesson: page.id, section }) : this.hash(), false);
     }
 
     /**
@@ -802,7 +818,8 @@ export class LearnTab
     /**
      * Hands the link of a place to the user: to the share sheet of a phone, or to the clipboard, and then its button
      * says for a moment that the link was copied. Where the page may do neither, the link is shown in the dialog, to
-     * be copied by hand.
+     * be copied by hand. Unlike the address of the page, the link of the lesson about the user's state names the state,
+     * so that whoever opens it is told which state it was made for.
      * @param route The place.
      * @param title What it is called.
      */
@@ -845,13 +862,13 @@ export class LearnTab
      */
     private sectionLink(route: Extract<LearnRoute, { page: "lesson" }>, title: string): HTMLElement
     {
-        const hash = routeHash(route);
-        const copied = this.noted === hash;
+        const copied = this.noted === routeHash(route);
         const label = copied ? t("learn.share.copied") : t("learn.share.section", { title });
         return el("a", {
             id: `link-${route.section ?? ""}`,
             class: copied ? "section-link is-noted" : "section-link",
-            href: hash,
+            // The link leads to the section on this page; a press hands on the address with the state of the lesson (see share).
+            href: LearnTab.address(route),
             title: label,
             "aria-label": label,
             onclick: (event: Event) => LearnTab.onLink(event, () => this.share(route, title)),
@@ -1066,7 +1083,7 @@ export class LearnTab
             el("a", {
                 id: "learn-back",
                 class: "secondary sm",
-                href: routeHash({ page: "home" }),
+                href: LearnTab.address({ page: "home" }),
                 onclick: (event: Event) => LearnTab.onLink(event, () => this.go({ name: "home" })),
             }, icon("arrowBack"), el("span", {}, t("learn.back"))),
             el("span", { class: "learn-crumb" }, ...richNodes(label)));
@@ -1167,7 +1184,7 @@ export class LearnTab
                         el("a", {
                             id: `lesson-${lesson.id}`,
                             class: "lesson-row",
-                            href: routeHash({ page: "lesson", lesson: lesson.id }),
+                            href: LearnTab.address({ page: "lesson", lesson: lesson.id }),
                             onclick: (event: Event) => LearnTab.onLink(event, () => this.openLesson(lesson)),
                         },
                             el("span", { class: "lesson-title" }, ...richNodes(lesson.title)),
@@ -1446,7 +1463,7 @@ export class LearnTab
             renderUnit(unit, tools),
             el("div", { class: "footer-row" },
                 // A plain link: the address leads to the lesson, so it also opens in a new tab of the browser.
-                el("a", { id: "why-lesson", class: "secondary", href: routeHash({ page: "lesson", lesson: place.lesson.id, section: place.unit }) }, icon("book"), el("span", {}, t("learn.why.open"))),
+                el("a", { id: "why-lesson", class: "secondary", href: LearnTab.address({ page: "lesson", lesson: place.lesson.id, section: place.unit }) }, icon("book"), el("span", {}, t("learn.why.open"))),
                 el("button", { id: "why-close", class: "primary", type: "button", onclick: () => this.host.closeDialog() }, t("modal.close"))));
     }
 

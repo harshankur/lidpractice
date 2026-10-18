@@ -16,6 +16,13 @@ const YEAR_DIGITS = 4;
 /** The lesson id of the lesson about the user's state begins with this, followed by the state id. */
 export const STATE_LESSON_PREFIX = "land-";
 
+/**
+ * The name of the lesson about the user's state in the address the page writes, whatever the state is: the id of its
+ * template in the files of the course. The address names no state, because it is kept in the history of the browser
+ * and counted as the page that is open (with the visitor's consent), and neither may tell which state the user chose.
+ */
+export const STATE_LESSON_NAME = "land";
+
 /** Matches the placeholders of the lesson about the user's state. */
 const STATE_PLACEHOLDER = /\{(state|answer|arms)\}/g;
 

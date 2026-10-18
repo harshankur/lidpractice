@@ -1903,12 +1903,33 @@ describe("App: the Learn tab", () =>
             await settle();
             expect(textIn(".lesson-head h2")).toBe("Your state: Berlin");
             expect(textIn(".lesson-linked")).toBe("This link was made for Bavaria. You see the lesson about your own state, Berlin. You can change your state at the bottom of the page.");
-            expect(hash()).toBe("#learn/land-berlin/wappen");
+            // The address of the page names no state: it is the lesson about the user's state, whichever that is.
+            expect(hash()).toBe("#learn/land/wappen");
             expect(saved(app)).not.toHaveProperty("state", "bayern");
             // The note belongs to that visit by link: it is gone when the lesson is opened from the list.
             click("learn-back");
             click("lesson-land-berlin");
             expect(document.querySelector(".lesson-linked")).toBeNull();
+        });
+
+        it("writes the lesson about the user's state with one address whatever the state is, and opens that lesson by it", async () =>
+        {
+            app = await mountApp(undefined, { place: "#learn/land/wappen" });
+            await settle();
+            expect(textIn(".lesson-head h2")).toBe("Your state: Berlin");
+            expect(document.querySelector(".lesson-linked")).toBeNull();
+            expect(hash()).toBe("#learn/land/wappen");
+            seed({ state: "bayern" });
+            app = await mountApp(undefined, { place: "#learn/land" });
+            await settle();
+            expect(textIn(".lesson-head h2")).toBe("Your state: Bavaria");
+            expect(document.querySelector(".lesson-linked")).toBeNull();
+            expect(hash()).toBe("#learn/land");
+            // Nothing the page writes names the state: the address, the links of the list, the way back from a question.
+            expect(JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string).lastPlace).toBe("#learn/land");
+            click("learn-back");
+            expect(find("#lesson-land-bayern").getAttribute("href")).toBe("#learn/land");
+            expect(Array.from(document.querySelectorAll("a[href^='#']")).map((link) => link.getAttribute("href")).filter((href) => href?.includes("bayern"))).toEqual([]);
         });
 
         it("has no such note for a link to the user's own state, and leads to the list for a state that does not exist", async () =>
@@ -1933,7 +1954,7 @@ describe("App: the Learn tab", () =>
             clickButton("Let’s go");
             expect(textIn(".lesson-head h2")).toBe("Your state: Bavaria");
             expect(document.querySelector(".lesson-linked")).toBeNull();
-            expect(hash()).toBe("#learn/land-bayern");
+            expect(hash()).toBe("#learn/land");
             expect(JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string).state).toBe("bayern");
         });
 
@@ -1943,7 +1964,7 @@ describe("App: the Learn tab", () =>
             app = await mountApp(undefined, { place: "#learn/land-bayern" });
             await settle();
             expect(textIn(".lesson-head h2")).toBe("Your state: Hesse");
-            expect(hash()).toBe("#learn/land-hessen");
+            expect(hash()).toBe("#learn/land");
         });
 
         it("follows the Back and Forward buttons of the browser, and tells one step from the two events it fires", async () =>
@@ -2006,8 +2027,10 @@ describe("App: the Learn tab", () =>
             await openLearn();
             click("lesson-land-berlin");
             await settle();
+            expect(hash()).toBe("#learn/land");
             await chooseFromListbox("state", "sachsen");
-            expect(hash()).toBe("#learn/land-sachsen");
+            expect(textIn(".lesson-head h2")).toBe("Your state: Saxony");
+            expect(hash()).toBe("#learn/land");
             click("reset-progress");
             click("reset-progress");
             expect(hash()).toBe("#learn");
@@ -2094,6 +2117,26 @@ describe("App: the Learn tab", () =>
             find("#learn-share").click();
             await settle();
             expect(copied).toEqual([`${base()}#learn/${FIRST.id}`]);
+        });
+
+        it("names the state in the link of the lesson about the user's state, though the address of the page does not", async () =>
+        {
+            giveClipboard();
+            click("learn-back");
+            click("lesson-land-berlin");
+            await settle();
+            expect(window.location.hash).toBe("#learn/land");
+            const land = LESSONS.find((lesson) => lesson.template === "state") as LessonSpec;
+            const links = Array.from(document.querySelectorAll<HTMLAnchorElement>(".lesson-body .unit-title > a.section-link"));
+            expect(links.map((link) => link.getAttribute("href"))).toEqual(unitsOf(land).map((unit) => `#learn/land/${unit.id}`));
+            find("#learn-share").click();
+            await settle();
+            links[0].click();
+            await settle();
+            // Whoever opens the link is told which state it was made for.
+            expect(copied).toEqual([`${base()}#learn/land-berlin`, `${base()}#learn/land-berlin/${unitsOf(land)[0].id}`]);
+            expect(find("#learn-share .swap:not(.is-off)").textContent).toBe("Share");
+            expect(find(`#link-${unitsOf(land)[0].id}`).className).toBe("section-link is-noted");
         });
 
         it("has a small link next to the heading of every section, with the address of that section", async () =>
@@ -2244,7 +2287,7 @@ describe("App: the Learn tab", () =>
                 // A question of the user's state, which training and exams mix in: the lesson about the state explains it.
                 expect(textOf("modal-title")).toMatch(/^Question BE \d+: why$/);
                 expect(textIn("#modal-root .why-from")).toBe("From the lesson “Your state: Berlin”");
-                expect(find("#why-lesson").getAttribute("href")).toMatch(/^#learn\/land-berlin\/[a-z-]+$/);
+                expect(find("#why-lesson").getAttribute("href")).toMatch(/^#learn\/land\/[a-z-]+$/);
                 return;
             }
             const { lesson, unit } = placeOf(number);
@@ -2402,7 +2445,7 @@ describe("App: the Learn tab", () =>
             why.click();
             expect(textOf("modal-title")).toBe(`Question ${label}: why`);
             expect(textIn("#modal-root .why-from")).toBe("From the lesson “Your state: Berlin”");
-            expect(find("#why-lesson").getAttribute("href")).toMatch(/^#learn\/land-berlin\//);
+            expect(find("#why-lesson").getAttribute("href")).toMatch(/^#learn\/land\//);
             click("why-close");
             expect(document.activeElement?.id).toBe(`why-${position}`);
         });
