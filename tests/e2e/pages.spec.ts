@@ -1,9 +1,13 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect, openApp, test } from "./fixtures";
 
-/** The legal notice and the privacy notice that every site of the author shares; the privacy link opens this site's section. */
+/**
+ * The legal notice and the privacy notice that every site of the author shares; the privacy link opens this site's section, in
+ * German for a German page and in English for any other.
+ */
 const LEGAL_NOTICE_URL = "https://harshankur.com/impressum";
 const PRIVACY_NOTICE_URL = "https://harshankur.com/datenschutz#lidpractice";
+const PRIVACY_NOTICE_URL_ENGLISH = "https://harshankur.com/datenschutz#en-lidpractice";
 
 /** The copyright line, as it reads on every page. */
 const COPYRIGHT = "LiD Practice © 2026 Harsh Ankur";
@@ -19,13 +23,13 @@ const ENGLISH_LABELS = ["Legal notice", "Privacy"] as const;
  * @param container What holds the two lines.
  * @param labels The names of the legal notice link and of the privacy link, as the page shows them.
  */
-async function expectLegalFooter(container: Locator, labels: readonly [string, string]): Promise<void>
+async function expectLegalFooter(container: Locator, labels: readonly [string, string], privacyUrl = PRIVACY_NOTICE_URL_ENGLISH): Promise<void>
 {
     const legal = container.locator(".site-legal");
     const copyright = container.locator(".site-copyright");
     await expect(legal.getByRole("link")).toHaveCount(2);
     await expect(legal.getByRole("link", { name: labels[0], exact: true })).toHaveAttribute("href", LEGAL_NOTICE_URL);
-    await expect(legal.getByRole("link", { name: labels[1], exact: true })).toHaveAttribute("href", PRIVACY_NOTICE_URL);
+    await expect(legal.getByRole("link", { name: labels[1], exact: true })).toHaveAttribute("href", privacyUrl);
     await expect(copyright).toHaveText(COPYRIGHT);
     for (const link of await container.locator(".site-legal a, .site-copyright a").all())
     {
@@ -60,7 +64,7 @@ test.describe("footer of the app", () =>
     test("names the legal links in German in German", async ({ page }) =>
     {
         await openApp(page, { locale: "de" });
-        await expectLegalFooter(page.locator("footer.site-footer"), ["Impressum", "Datenschutz"]);
+        await expectLegalFooter(page.locator("footer.site-footer"), ["Impressum", "Datenschutz"], PRIVACY_NOTICE_URL);
     });
 
     test("names the legal links in Arabic in Arabic", async ({ page }) =>
@@ -89,7 +93,7 @@ test.describe("page for an address that does not exist", () =>
         await expect(page.getByRole("heading", { name: "Seite nicht gefunden" })).toBeVisible();
         await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
         // German first, as the page is.
-        await expectLegalFooter(page.locator("footer"), ["Impressum / Legal notice", "Datenschutz / Privacy"]);
+        await expectLegalFooter(page.locator("footer"), ["Impressum / Legal notice", "Datenschutz / Privacy"], PRIVACY_NOTICE_URL);
         // The fonts come from the root of the site even this deep, and nothing comes from anywhere else.
         const origin = new URL(page.url()).origin;
         await page.evaluate(() => document.fonts.ready);

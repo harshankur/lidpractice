@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 import { JSDOM } from "jsdom";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readBundle } from "../../scripts/lib/data.mjs";
-import { LEGAL_NOTICE_URL, PRIVACY_NOTICE_URL } from "../../src/constants";
+import { LEGAL_NOTICE_URL, PRIVACY_NOTICE_URL, PRIVACY_NOTICE_URL_ENGLISH } from "../../src/constants";
 import identity from "../../src/identity.json";
 import de from "../../src/locales/de.json";
 import en from "../../src/locales/en.json";
@@ -108,7 +108,8 @@ function expectLegalFooter(container: Element, order: "de" | "en"): void
     const [first, second] = order === "de" ? [de, en] : [en, de];
     expect([...legal.querySelectorAll("a")].map((link) => [link.textContent, link.getAttribute("href"), link.getAttribute("lang")])).toEqual([
         [`${first["footer.legalNotice"]} / ${second["footer.legalNotice"]}`, LEGAL_NOTICE_URL, null],
-        [`${first["footer.privacy"]} / ${second["footer.privacy"]}`, PRIVACY_NOTICE_URL, null],
+        // The privacy notice's section in the language the page leads with.
+        [`${first["footer.privacy"]} / ${second["footer.privacy"]}`, order === "de" ? PRIVACY_NOTICE_URL : PRIVACY_NOTICE_URL_ENGLISH, null],
     ]);
     for (const link of legal.querySelectorAll("a"))
     {
@@ -181,6 +182,7 @@ describe("build.mjs", () =>
             ]);
             expect(LEGAL_NOTICE_URL).toBe("https://harshankur.com/impressum");
             expect(PRIVACY_NOTICE_URL).toBe("https://harshankur.com/datenschutz#lidpractice");
+            expect(PRIVACY_NOTICE_URL_ENGLISH).toBe("https://harshankur.com/datenschutz#en-lidpractice");
         });
 
         it("deploys dist to Cloudflare as static assets, with the 404 page and without usage reports", () =>

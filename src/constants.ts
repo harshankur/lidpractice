@@ -98,12 +98,26 @@ export const CATALOGUE_IMAGE_DIGITS = 3;
 
 /**
  * The legal notice (Impressum) and the privacy notice (Datenschutzerklaerung). Every site of the operator shares one of each,
- * on the operator's own site; the privacy notice has a section for this site, which the link opens. Their labels are in the
- * language of the interface (`footer.legalNotice`, `footer.privacy`): "Impressum" and "Datenschutz" in German, "Legal notice"
- * and "Privacy" in English.
+ * on the operator's own site; the privacy notice has a section for this site in German and one in English, and the link opens
+ * the one in the reader's language (privacyNoticeUrl). Their labels are in the language of the interface (`footer.legalNotice`,
+ * `footer.privacy`): "Impressum" and "Datenschutz" in German, "Legal notice" and "Privacy" in English.
  */
 export const LEGAL_NOTICE_URL: string = identity.legalNoticeUrl;
+/** This site's section of the privacy notice in German. */
 export const PRIVACY_NOTICE_URL: string = identity.privacyNoticeUrl;
+/** The same section in English. */
+export const PRIVACY_NOTICE_URL_ENGLISH: string = identity.privacyNoticeUrlEnglish;
+
+/**
+ * This site's section of the privacy notice for a reader of a language: the German one in German, and the English one in every
+ * other language, as the notice is written in those two.
+ * @param locale The language of the interface.
+ * @returns The address.
+ */
+export function privacyNoticeUrl(locale: string): string
+{
+    return locale === "de" ? PRIVACY_NOTICE_URL : PRIVACY_NOTICE_URL_ENGLISH;
+}
 
 /** The author, as named in the copyright line at the bottom of the page, with the address of their site and the year of the first release. */
 export const AUTHOR_NAME: string = identity.author;

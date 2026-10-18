@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { FAQ_ENTRIES, MESSAGE_LINKS } from "../../src/content";
+import { FAQ_ENTRIES, messageLinks } from "../../src/content";
+
+const MESSAGE_LINKS = messageLinks("en");
 import de from "../../src/locales/de.json";
 import en from "../../src/locales/en.json";
 
@@ -73,7 +75,10 @@ describe("FAQ content", () =>
 
     it("sends the privacy answer to this site's section of the privacy notice, in every language", () =>
     {
-        expect(MESSAGE_LINKS.privacy).toBe("https://harshankur.com/datenschutz#lidpractice");
+        // The section in the reader's language: German in German, English in every other language.
+        expect(messageLinks("de").privacy).toBe("https://harshankur.com/datenschutz#lidpractice");
+        expect(MESSAGE_LINKS.privacy).toBe("https://harshankur.com/datenschutz#en-lidpractice");
+        expect(messageLinks("ar").privacy).toBe("https://harshankur.com/datenschutz#en-lidpractice");
         for (const code of ["de", "en", "ar", "uk", "tr", "es", "hi"])
         {
             const catalog = JSON.parse(readFileSync(`src/locales/${code}.json`, "utf8")) as Record<string, string>;

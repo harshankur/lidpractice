@@ -1,6 +1,6 @@
 import { questionName } from "./states";
 import { BAMF_CATALOGUE_PAGE_URL, BAMF_CATALOGUE_PDF_URL, CATALOGUE_STAND, CONFIRM_GUARD_MS, CONTACT_EMAIL, LOCAL_CATALOGUE_PDF, REPO_URL } from "./constants";
-import { FAQ_ENTRIES, MESSAGE_LINKS } from "./content";
+import { FAQ_ENTRIES, messageLinks } from "./content";
 import { el } from "./dom";
 import { i18n, t, type MessageKey, type MessageParams, type RichPart } from "./i18n";
 import {
@@ -54,7 +54,7 @@ export function renderRich(parts: RichPart[]): Node[]
  */
 function richParagraph(key: MessageKey, params: MessageParams = {}): HTMLElement
 {
-    return el("p", {}, ...renderRich(i18n.rich(key, MESSAGE_LINKS, params)));
+    return el("p", {}, ...renderRich(i18n.rich(key, messageLinks(i18n.locale), params)));
 }
 
 /**

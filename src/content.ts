@@ -1,5 +1,5 @@
 import {
-    BAMF_CATALOGUE_PAGE_URL, BAMF_CATALOGUE_PDF_URL, LICENSE_URL, LOCAL_CATALOGUE_PDF, PRIVACY_NOTICE_URL, REPO_URL,
+    BAMF_CATALOGUE_PAGE_URL, BAMF_CATALOGUE_PDF_URL, LICENSE_URL, LOCAL_CATALOGUE_PDF, REPO_URL, privacyNoticeUrl,
 } from "./constants";
 import { msg, type MessageKey } from "./i18n";
 
@@ -28,12 +28,19 @@ export const FAQ_ENTRIES: FaqEntry[] = [
     { id: "license", question: msg("faq.license.q"), answers: [msg("faq.license.a1")] },
 ];
 
-/** Where the `[text](linkId)` links of the messages lead. */
-export const MESSAGE_LINKS: Record<string, string> = {
-    bamfPage: BAMF_CATALOGUE_PAGE_URL,
-    bamfPdf: BAMF_CATALOGUE_PDF_URL,
-    copy: LOCAL_CATALOGUE_PDF,
-    repo: REPO_URL,
-    license: LICENSE_URL,
-    privacy: PRIVACY_NOTICE_URL,
-};
+/**
+ * Where the `[text](linkId)` links of the messages lead, for a reader of a language: the privacy notice opens in theirs.
+ * @param locale The language of the interface.
+ * @returns The address by link id.
+ */
+export function messageLinks(locale: string): Record<string, string>
+{
+    return {
+        bamfPage: BAMF_CATALOGUE_PAGE_URL,
+        bamfPdf: BAMF_CATALOGUE_PDF_URL,
+        copy: LOCAL_CATALOGUE_PDF,
+        repo: REPO_URL,
+        license: LICENSE_URL,
+        privacy: privacyNoticeUrl(locale),
+    };
+}

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    buttonByText, clickButton, finishAnyway, makeQuestion, mountApp, numberOfLabel, optionButtons, pressKey, REAL_QUESTIONS, shownNumber,
+    buttonByText, chooseFromListbox, clickButton, finishAnyway, makeQuestion, mountApp, numberOfLabel, optionButtons, pressKey, REAL_QUESTIONS, shownNumber,
     startExam, startRound, statValue, pressFinishExam,
 } from "../helpers/appHarness";
 
@@ -345,20 +345,32 @@ describe("App: original question, report and About dialog", () =>
             expect(line.nextElementSibling?.className).toBe("site-copyright");
             expect(Array.from(line.children).map((link) => [link.tagName, link.textContent, link.getAttribute("href"), link.getAttribute("target"), link.getAttribute("rel")])).toEqual([
                 ["A", "Legal notice", "https://harshankur.com/impressum", "_blank", "noopener"],
-                ["A", "Privacy", "https://harshankur.com/datenschutz#lidpractice", "_blank", "noopener"],
+                // The privacy notice's section in English, as the interface is.
+                ["A", "Privacy", "https://harshankur.com/datenschutz#en-lidpractice", "_blank", "noopener"],
             ]);
         });
 
+        it("follow a change of the interface language in place, the privacy link to the section in that language", async () =>
+        {
+            await mountApp(undefined, { locale: "en" });
+            const privacy = () => document.querySelectorAll(".site-footer .site-legal a")[1];
+            expect(privacy().getAttribute("href")).toBe("https://harshankur.com/datenschutz#en-lidpractice");
+            await chooseFromListbox("site-language", "de");
+            expect(privacy().textContent).toBe("Datenschutz");
+            expect(privacy().getAttribute("href")).toBe("https://harshankur.com/datenschutz#lidpractice");
+        });
+
         it.each([
-            ["de", "Impressum", "Datenschutz"],
-            ["ar", "إشعار قانوني", "الخصوصية"],
-            ["uk", "Правова інформація", "Конфіденційність"],
-        ] as const)("read in the language of the interface, %s, and carry no language of their own", async (locale, legalNotice, privacy) =>
+            ["de", "Impressum", "Datenschutz", "#lidpractice"],
+            ["ar", "إشعار قانوني", "الخصوصية", "#en-lidpractice"],
+            ["uk", "Правова інформація", "Конфіденційність", "#en-lidpractice"],
+        ] as const)("read in the language of the interface, %s, and carry no language of their own", async (locale, legalNotice, privacy, section) =>
         {
             await mountApp(undefined, { locale });
             const links = Array.from(document.querySelectorAll(".site-footer .site-legal a"));
             expect(links.map((link) => link.textContent)).toEqual([legalNotice, privacy]);
-            expect(links.map((link) => link.getAttribute("href"))).toEqual(["https://harshankur.com/impressum", "https://harshankur.com/datenschutz#lidpractice"]);
+            // The privacy notice is in German and English: the German section in German, the English one in any other language.
+            expect(links.map((link) => link.getAttribute("href"))).toEqual(["https://harshankur.com/impressum", `https://harshankur.com/datenschutz${section}`]);
             for (const link of links)
             {
                 expect(link.hasAttribute("lang")).toBe(false);

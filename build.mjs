@@ -42,7 +42,8 @@ const noscriptText = readdirSync("src/locales")
  * The end of a page that does not follow the language setting: the links to the legal notice and the privacy notice that every
  * site of the operator shares, in a line of their own, and below it the copyright line. Every link opens in a new tab. The
  * notices are written in German and English, so each link is named in both, each name in its own span with its language and
- * direction, in the order the page puts its languages.
+ * direction, in the order the page puts its languages; the privacy link opens this site's section in the language the page leads
+ * with.
  * @param {string[]} locales The languages of the names, the page's first.
  * @returns HTML of the two lines.
  */
@@ -54,7 +55,7 @@ function legalFooter(locales)
         .join(" / ");
     const link = (href, content) => `<a href="${escapeHtml(href)}" target="_blank" rel="noopener">${content}</a>`;
     return `<p class="site-legal">${link(identity.legalNoticeUrl, label("footer.legalNotice"))} `
-        + `${link(identity.privacyNoticeUrl, label("footer.privacy"))}</p>\n`
+        + `${link(locales[0] === "de" ? identity.privacyNoticeUrl : identity.privacyNoticeUrlEnglish, label("footer.privacy"))}</p>\n`
         + `<p class="site-copyright">${escapeHtml(identity.name)} &copy; ${identity.copyrightYear} ${link(identity.authorUrl, escapeHtml(identity.author))}</p>`;
 }
 // The text for visitors without JavaScript leads with the default language of the site; the 404 page leads with German.
