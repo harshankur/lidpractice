@@ -23,6 +23,7 @@ import {
     EXAM_STATE_COUNT, CONFIRM_GUARD_MS, LAST_GENERAL_NUMBER, MS_PER_SECOND, SECONDS_PER_MINUTE, OPTION_LETTERS, TOAST_DURATION_MS, TWO_STEP_TIMEOUT_MS,
 } from "./constants";
 import { Clock, type ClockLevel } from "./clock";
+import { Consent, SETTINGS_BUTTON_ID } from "./consent";
 import { clampedText, el, icon, revealInStrip, stackedTexts, twoStepLabel, type Child } from "./dom";
 import { ErrorBoundary } from "./errorBoundary";
 import { formatClock } from "./format";
@@ -233,6 +234,8 @@ export class App
     /** Handle of the timer that notes the place of the window in the history, or 0. */
     private scrollNote = 0;
     private readonly modal: Modal;
+    /** The question about counting visits in detail, and the card that asks it. */
+    private readonly consent: Consent;
     private readonly actions: ViewActions = {
         showOriginal: (question) => this.modal.show(originalView(question, this.actions)),
         showReport: (question) => this.modal.show(reportView(question, this.actions)),
@@ -244,16 +247,26 @@ export class App
      * @param root Element to render into.
      * @param toast Element used for error messages.
      * @param modalRoot Element the dialog is rendered into.
+     * @param consentRoot Element the question about counting visits in detail is drawn into.
      * @param languages Fetches the languages that are not in the page, when they are asked for.
      * @param learnFiles Where the files of the Learn tab are.
      */
-    public constructor(bank: QuestionBank, root: HTMLElement, toast: HTMLElement, modalRoot: HTMLElement, languages: LanguageLoader, learnFiles: LearnFiles = { texts: {} })
+    public constructor(bank: QuestionBank, root: HTMLElement, toast: HTMLElement, modalRoot: HTMLElement, consentRoot: HTMLElement, languages: LanguageLoader, learnFiles: LearnFiles = { texts: {} })
     {
         this.languages = languages;
         this.bank = bank;
         this.root = root;
         this.toast = toast;
-        this.modal = new Modal(modalRoot, [root]);
+        this.consent = new Consent(consentRoot, {
+            // Never over the first-visit setup or another dialog, and never during an exam: the question waits until they are over.
+            mayAsk: () => this.store.state.setupDone && !this.modal.isOpen && !this.examRuns(),
+            changed: () =>
+            {
+                document.title = this.title();
+            },
+        });
+        // The card about counting lies outside the app: a dialog blocks it too. When a dialog closes, the question may come up.
+        this.modal = new Modal(modalRoot, [root, consentRoot], () => this.consent.consider());
         // A problem with the storage is told in words, once, and in the user's language: before the page is drawn it waits for that.
         this.store.onProblem = (problem) =>
         {
@@ -388,6 +401,8 @@ export class App
         // The round that was open before the page was loaded anew goes on, when it still fits.
         this.rounds.practice = this.restoreRound() ?? this.newTopicRound();
         this.openAddress();
+        // Once the address is put right: the counter reads it when it starts.
+        this.consent.start(i18n.locale);
         this.started = true;
         this.render();
         for (const problem of this.store.problems)
@@ -511,11 +526,13 @@ export class App
     /**
      * The title of the page, which the browser shows on its tab, in its history and in a bookmark: the name of what
      * shows (a lesson, a page of the Learn tab, or else the tab) in front of the name of the site. The plain address
-     * of the site keeps the plain name of the site, as it keeps its plain address.
+     * of the site keeps the plain name of the site, as it keeps its plain address. While the page is counted in detail
+     * it is the plain name everywhere: the counter sends the title with every page, and the name of a page is in the
+     * language the visitor chose and names the state in the lesson about it. Which page is open is in its address.
      */
     private title(): string
     {
-        if (window.location.hash === "")
+        if (window.location.hash === "" || this.consent.counting)
         {
             return APP_NAME;
         }
@@ -1796,6 +1813,9 @@ export class App
             // Keep keyboard users oriented after the question changes.
             heading.setAttribute("tabindex", "-1");
         }
+        // The question follows the language of the site, and may come up now: after an exam, for example.
+        this.consent.setLocale(i18n.locale);
+        this.consent.consider();
     }
 
     /**
@@ -1840,7 +1860,8 @@ export class App
 
     /**
      * Footer with the source of the questions, the entry points to the About dialog and to reporting, the links to the
-     * legal notice and the privacy notice in a line of their own, and the copyright line below them.
+     * legal notice and the privacy notice in a line of their own with "Privacy settings", which opens the question about
+     * counting visits in detail, and the copyright line below them.
      */
     private renderFooter(): HTMLElement
     {
@@ -1857,7 +1878,9 @@ export class App
                 el("button", { class: "link-button", type: "button", onclick: () => this.actions.showReport(null) }, t("footer.report"))),
             el("p", { class: "site-legal" },
                 el("a", { href: LEGAL_NOTICE_URL, target: "_blank", rel: "noopener" }, t("footer.legalNotice")),
-                el("a", { href: privacyNoticeUrl(i18n.locale), target: "_blank", rel: "noopener" }, t("footer.privacy"))),
+                el("a", { href: privacyNoticeUrl(i18n.locale), target: "_blank", rel: "noopener" }, t("footer.privacy")),
+                // A button, not a link: it opens the question on this page and leads nowhere.
+                el("button", { id: SETTINGS_BUTTON_ID, class: "link-button", type: "button", onclick: () => this.consent.openSettings() }, t("footer.privacySettings"))),
             el("p", { class: "site-copyright" },
                 document.createTextNode(`${APP_NAME} \u00a9 ${COPYRIGHT_YEAR} `),
                 el("a", { href: AUTHOR_URL, target: "_blank", rel: "noopener" }, AUTHOR_NAME)));
@@ -3313,13 +3336,14 @@ async function boot(): Promise<void>
     const root = document.getElementById("app") as HTMLElement;
     const toast = document.getElementById("toast") as HTMLElement;
     const modalRoot = document.getElementById("modal-root") as HTMLElement;
+    const consentRoot = document.getElementById("consent-root") as HTMLElement;
     const dataNode = document.getElementById("question-data") as HTMLElement;
     const bundle = JSON.parse(dataNode.textContent ?? "{}") as QuestionBundle;
     readImageSizes(document.getElementById("image-sizes"));
     const bank = new QuestionBank(bundle);
     const files = readLanguageFiles(document.getElementById("language-files"));
     const languages = new LanguageLoader(files, bank);
-    const app = new App(bank, root, toast, modalRoot, languages, files.learn);
+    const app = new App(bank, root, toast, modalRoot, consentRoot, languages, files.learn);
     ErrorBoundary.install((message, known) => app.showError(message, known));
     await app.start();
 }

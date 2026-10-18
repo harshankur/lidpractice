@@ -119,6 +119,27 @@ export function privacyNoticeUrl(locale: string): string
     return locale === "de" ? PRIVACY_NOTICE_URL : PRIVACY_NOTICE_URL_ENGLISH;
 }
 
+/**
+ * The hosts of the live site, exactly. Only there are visits counted in detail, and only with the visitor's consent: anywhere
+ * else (a local server, a preview, a test) the counter's script is not added, so nothing is asked and nothing is sent.
+ */
+export const LIVE_HOSTS: readonly string[] = identity.liveHosts;
+
+/**
+ * The consent script of the operator's own view counter. It keeps the visitor's answer, and loads the counter only after a yes.
+ * The site asks the question itself, in its own language and style, and hands the answer over (see consent.ts).
+ */
+export const CONSENT_SCRIPT_URL: string = identity.consentScriptUrl;
+
+/** The name the view counter knows this site by. The counter's script also keeps the visitor's answer under it. */
+export const COUNTER_APP: string = identity.counterApp;
+
+/**
+ * How many parts of an address after the "#" sign make a page for the counter: the tab and the page of the Learn tab
+ * ("#learn/<lesson>"), so a section of a lesson ("#learn/<lesson>/<section>") counts as its lesson.
+ */
+export const COUNTED_HASH_DEPTH = 2;
+
 /** The author, as named in the copyright line at the bottom of the page, with the address of their site and the year of the first release. */
 export const AUTHOR_NAME: string = identity.author;
 export const AUTHOR_URL: string = identity.authorUrl;

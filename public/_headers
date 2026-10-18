@@ -4,14 +4,17 @@
 # Cloudflare joins the values of a header that several matching rules set, so every header is set by one rule only:
 # the security headers for every address, and the cache policy by folder, with no two cache rules for the same address.
 #
-# The Content-Security-Policy allows only the site itself. The page inlines its script, its styles and its data, so it
-# needs 'unsafe-inline' for scripts and styles, and pictures may be data: addresses.
+# The Content-Security-Policy allows the site itself, and one other server: the operator's own view counter, for scripts
+# (its consent script, and the counter it loads after the visitor said yes) and for what the counter sends (fetch and
+# sendBeacon). The page adds the consent script on the live site only. Nothing else may be loaded or contacted. The page
+# inlines its script, its styles and its data, so it needs 'unsafe-inline' for scripts and styles, and pictures may be
+# data: addresses.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://views.harshankur.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://views.harshankur.com; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
   Strict-Transport-Security: max-age=31536000; includeSubDomains
 
 # The page changes with every release, so it is checked again on every visit.

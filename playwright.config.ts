@@ -28,7 +28,7 @@ export default defineConfig({
     projects: [
         { name: "desktop", use: { ...devices["Desktop Chrome"], channel } },
         // The phone project runs the core flows, the dialog and the layout checks, the rest is viewport independent.
-        { name: "mobile", testMatch: /(practice|layout|dialog|i18n|frontend|languages|learn|pages)\.spec\.ts/, use: { ...devices["Pixel 7"], channel } },
+        { name: "mobile", testMatch: /(practice|layout|dialog|i18n|frontend|languages|learn|pages|consent)\.spec\.ts/, use: { ...devices["Pixel 7"], channel } },
     ],
     webServer: {
         command: `npx http-server dist -p ${E2E_PORT} -c-1 --silent`,

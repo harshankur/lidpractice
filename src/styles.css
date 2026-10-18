@@ -781,6 +781,8 @@ button:disabled { cursor: not-allowed; }
     padding: 12px 16px;
     border-radius: 8px;
     font-weight: 600;
+    /* An error is seen also when the card about counting lies at the bottom of the page. */
+    z-index: 16;
 }
 
 
@@ -810,6 +812,54 @@ button:disabled { cursor: not-allowed; }
 .site-copyright { margin: 8px 0 0; }
 .site-footer a { color: inherit; text-underline-offset: 3px; }
 .site-footer a:hover { color: var(--fg); }
+
+/* ----- the question about counting visits in detail: a card over a corner of the page that blocks nothing ----- */
+/* Above the page and the rows that stick to its edges, below the lists that open and the dialog. */
+.consent {
+    position: fixed;
+    z-index: 15;
+    inset-inline-end: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: min(360px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    background: var(--surface);
+    color: var(--fg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-popover);
+    font-size: 0.875rem;
+}
+/* Where a tab has the row of buttons that sticks to the bottom edge, the card sits above it and never covers it. */
+body:has(.nav-row) .consent { bottom: calc(var(--h-control) + 24px + env(safe-area-inset-bottom, 0px)); }
+.consent p { margin: 0; }
+.consent a { color: inherit; text-underline-offset: 3px; }
+.consent-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.consent-title { font-size: 1rem; line-height: 1.3; }
+.consent-title:focus { outline: none; }
+.consent-close {
+    flex: none;
+    width: var(--h-control-sm);
+    height: var(--h-control-sm);
+    margin: -4px;
+    border-radius: var(--radius-control);
+    border: 1px solid var(--line);
+    background: transparent;
+    font-size: 1.25rem;
+    line-height: 1;
+}
+.consent-close:hover { border-color: var(--fg-muted); }
+.consent-current { font-weight: 700; }
+/* The two answers: one look, one size, side by side, so neither is the one to choose. A longer word wraps inside its half. */
+.consent-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 4px; }
+.consent-actions .secondary { height: auto; min-height: var(--h-control); padding-block: 6px; white-space: normal; text-align: center; }
+/* Room below the page as tall as the card, so the end of the page can be scrolled into view above it. */
+body.consent-open { padding-block-end: calc(48px + var(--consent-room, 0px)); }
 
 /* ----- dialog (one blocking modal for the whole page) ----- */
 body.modal-open { overflow: hidden; }
@@ -1238,6 +1288,9 @@ body.modal-open { overflow: hidden; }
     .clock-strip ~ .card, .clock-strip ~ .timeline { scroll-margin-top: calc(var(--h-control-sm) + 8px); }
 }
 @media (max-width: 520px) {
+    /* On a phone the card takes the whole width at the bottom, on the row of buttons where a tab has one. */
+    .consent { inset-inline: 0; width: auto; bottom: 0; border-radius: var(--radius) var(--radius) 0 0; border-bottom: 0; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+    body:has(.nav-row) .consent { bottom: calc(var(--h-control) + 16px + env(safe-area-inset-bottom, 0px)); padding-bottom: 16px; }
     .modal-backdrop { padding: 8px; }
     .modal-head { padding: 14px 14px 10px; }
     .modal-body { padding: 14px; }

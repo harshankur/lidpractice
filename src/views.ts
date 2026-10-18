@@ -196,7 +196,8 @@ export function aboutView(actions: ViewActions): ModalView
 {
     const faq = FAQ_ENTRIES.map((entry) => el("details", { class: "faq-item", id: `faq-${entry.id}` },
         el("summary", {}, t(entry.question)),
-        ...entry.answers.map((key) => richParagraph(key, { stand: CATALOGUE_STAND }))));
+        // The answer about data names the control at the bottom of the page by the words it carries there.
+        ...entry.answers.map((key) => richParagraph(key, { stand: CATALOGUE_STAND, settings: t("footer.privacySettings") }))));
     const content = el("div", { class: "about" },
         el("p", {}, t("about.intro", { stand: CATALOGUE_STAND })),
         el("h3", {}, t("about.bookletHeading")),

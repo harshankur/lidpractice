@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 import { JSDOM } from "jsdom";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { readBundle } from "../../scripts/lib/data.mjs";
-import { LEGAL_NOTICE_URL, PRIVACY_NOTICE_URL, PRIVACY_NOTICE_URL_ENGLISH } from "../../src/constants";
+import { CONSENT_SCRIPT_URL, LEGAL_NOTICE_URL, PRIVACY_NOTICE_URL, PRIVACY_NOTICE_URL_ENGLISH } from "../../src/constants";
 import identity from "../../src/identity.json";
 import de from "../../src/locales/de.json";
 import en from "../../src/locales/en.json";
@@ -215,7 +215,23 @@ describe("build.mjs", () =>
             const all = rules.get("/*") ?? [];
             expect(all.map((header) => header.split(":")[0])).toEqual(["X-Content-Type-Options", "Referrer-Policy", "X-Frame-Options", "Permissions-Policy", "Content-Security-Policy", "Strict-Transport-Security"]);
             expect(all).toContain("Strict-Transport-Security: max-age=31536000; includeSubDomains");
-            expect(all.find((header) => header.startsWith("Content-Security-Policy"))).toContain("default-src 'self'");
+            // The policy allows the site itself, and the operator's view counter for its scripts and what it sends, nothing more.
+            const counter = new URL(CONSENT_SCRIPT_URL).origin;
+            expect(counter).toBe("https://views.harshankur.com");
+            const policy = (all.find((header) => header.startsWith("Content-Security-Policy")) ?? "").replace(/^Content-Security-Policy:\s*/, "");
+            const directives = Object.fromEntries(policy.split(";").map((part) => part.trim().split(/\s+/)).map(([name, ...values]) => [name, values]));
+            expect(directives).toEqual({
+                "default-src": ["'self'"],
+                "script-src": ["'self'", "'unsafe-inline'", counter],
+                "style-src": ["'self'", "'unsafe-inline'"],
+                "img-src": ["'self'", "data:"],
+                "font-src": ["'self'"],
+                "connect-src": ["'self'", counter],
+                "object-src": ["'none'"],
+                "base-uri": ["'self'"],
+                "form-action": ["'none'"],
+                "frame-ancestors": ["'none'"],
+            });
             expect(all.some((header) => header.startsWith("Cache-Control"))).toBe(false);
             for (const path of ["/", "/index.html"])
             {
@@ -231,7 +247,8 @@ describe("build.mjs", () =>
                 expect(rules.get(path), path).toEqual(["Cache-Control: public, max-age=86400"]);
             }
             expect(rules.get("/catalogue/SOURCE.md")).toEqual(["Content-Type: text/markdown; charset=utf-8"]);
-            expect(text).not.toMatch(/https?:\/\//);
+            // The counter is the only other server the file names, in the two directives above.
+            expect([...text.matchAll(/https?:\/\/[^\s;]+/g)].map((match) => match[0])).toEqual([counter, counter]);
         });
 
         it("writes a page for an address that does not exist: German and English, a way home, the legal links and the copyright line", () =>
@@ -494,12 +511,15 @@ describe("build.mjs", () =>
             )).toBe(true);
         });
 
-        it("provides the container the dialog is drawn into, outside the app", () =>
+        it("provides the containers the dialog and the question about counting are drawn into, outside the app", () =>
         {
             const document = new JSDOM(defaultHtml).window.document;
-            const modalRoot = document.getElementById("modal-root");
-            expect(modalRoot).not.toBeNull();
-            expect((document.getElementById("app") as HTMLElement).contains(modalRoot)).toBe(false);
+            for (const id of ["modal-root", "consent-root"])
+            {
+                const container = document.getElementById(id);
+                expect(container, id).not.toBeNull();
+                expect((document.getElementById("app") as HTMLElement).contains(container), id).toBe(false);
+            }
         });
 
         it("embeds the catalogue page of every question", () =>
@@ -516,6 +536,35 @@ describe("build.mjs", () =>
             expect(document.querySelector("footer.site-footer")?.textContent).toContain("Stand 07.05.2025");
             expect(document.documentElement.lang).toBe("en");
             expect(document.querySelector(".question .bi-main")?.getAttribute("lang")).toBe("de");
+            // Off the live site the counter's consent script is not added, so nothing is asked and nothing is sent.
+            expect(document.querySelectorAll("script[src]")).toHaveLength(0);
+        });
+
+        it("adds the counter's consent script on the live site only, once and with the options of this site", async () =>
+        {
+            for (const host of ["lidpractice.de", "www.lidpractice.de"])
+            {
+                // jsdom fetches no script by default: the tag is added, and nothing is requested.
+                const dom = new JSDOM(defaultHtml, { runScripts: "dangerously", url: `https://${host}/?lang=de` });
+                const document = dom.window.document;
+                await started();
+                const scripts = [...document.querySelectorAll("script[src]")];
+                expect(scripts.map((script) => script.getAttribute("src"))).toEqual([CONSENT_SCRIPT_URL]);
+                const attributes = Object.fromEntries([...scripts[0].attributes].map((attribute) => [attribute.name, attribute.value]));
+                expect(attributes).toEqual({
+                    async: "",
+                    src: CONSENT_SCRIPT_URL,
+                    "data-app": "lidpractice",
+                    "data-hosts": "lidpractice.de,www.lidpractice.de",
+                    "data-ui": "none",
+                    "data-hash": "#learn,#practice,#train,#exam",
+                    "data-hash-depth": "2",
+                    "data-outbound": "false",
+                    "data-downloads": "false",
+                    "data-privacy-url": PRIVACY_NOTICE_URL,
+                });
+                expect(document.querySelector("#privacy-settings")?.textContent).toBe("Datenschutz-Einstellungen");
+            }
         });
     });
 

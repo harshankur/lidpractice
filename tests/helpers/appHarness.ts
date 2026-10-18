@@ -22,7 +22,7 @@ export type Question = FlatQuestion;
 export const REAL_QUESTIONS: Question[] = REAL_FLAT;
 
 /** Markup the build produces around the app, reduced to what the app needs. */
-const FIXTURE_HTML = `<div id="app"></div><div id="modal-root"></div><div id="toast" role="alert" hidden></div>`
+const FIXTURE_HTML = `<div id="app"></div><div id="modal-root"></div><div id="consent-root"></div><div id="toast" role="alert" hidden></div>`
     + `<script type="application/json" id="question-data"></script>`
     + `<script type="application/json" id="language-files"></script>`
     + `<script type="application/json" id="image-sizes">{"images/q-021.webp":[1208,379],"catalogue/q-001.webp":[1064,277]}</script>`;

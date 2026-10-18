@@ -38,16 +38,20 @@ export class Modal
     private body: HTMLElement | null = null;
     private dialog: HTMLElement | null = null;
     private closeHandler: (() => void) | undefined;
+    private readonly onClosed: () => void;
     private readonly onKeydown = (event: KeyboardEvent): void => this.handleKeydown(event);
 
     /**
      * @param root Container the dialog is rendered into, outside the app's own root.
      * @param background Page content that is blocked and hidden from assistive technology while the dialog is open.
+     * @param onClosed Called after the dialog closed, whatever it showed, once its own `onClose` has run: what waits for
+     *        no dialog to be open can go on then.
      */
-    public constructor(root: HTMLElement, background: HTMLElement[] = [])
+    public constructor(root: HTMLElement, background: HTMLElement[] = [], onClosed: () => void = () => undefined)
     {
         this.root = root;
         this.background = background;
+        this.onClosed = onClosed;
     }
 
     /** Whether the dialog is showing. */
@@ -126,6 +130,7 @@ export class Modal
         this.opener = null;
         target?.focus();
         closed?.();
+        this.onClosed();
     }
 
     /** Builds the dialog frame. */

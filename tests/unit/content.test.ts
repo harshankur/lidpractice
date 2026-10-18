@@ -68,7 +68,12 @@ describe("FAQ content", () =>
         expect(text("authentic")).toContain("Original");
         expect(text("answers")).toContain("does not mark the right answers");
         expect(text("privacy")).toContain("only in your own browser");
-        expect(text("privacy")).toContain("loads nothing from other servers");
+        expect(text("privacy")).toContain("nothing is loaded from other servers");
+        // Both levels of counting: the pages on the server, and more only with consent, which can be changed at the bottom of the page.
+        expect(text("privacy")).toContain("its server notes each request for a page, with nothing read from or stored on your device and without cookies");
+        expect(text("privacy")).toContain("Only if you allow it does it also count which tabs and lessons you open, how long a page stays visible and how far it is scrolled");
+        expect(text("privacy")).toContain("under \"{settings}\" at the bottom of the page");
+        expect(text("privacy")).toContain("Your answers to the questions, your results, your chosen state and your settings are never counted");
         expect(text("changes")).toContain("The catalogue has changed");
         expect(text("license")).toContain("Commercial use is not allowed");
     });
@@ -82,7 +87,8 @@ describe("FAQ content", () =>
         for (const code of ["de", "en", "ar", "uk", "tr", "es", "hi"])
         {
             const catalog = JSON.parse(readFileSync(`src/locales/${code}.json`, "utf8")) as Record<string, string>;
-            expect(catalog["faq.privacy.a1"], code).toMatch(/\]\(privacy\)/);
+            expect(catalog["faq.privacy.a2"], code).toMatch(/\]\(privacy\)/);
+            expect(catalog["faq.privacy.a2"], code).toContain("{settings}");
         }
     });
 

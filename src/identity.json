@@ -9,6 +9,12 @@
     "legalNoticeUrl": "https://harshankur.com/impressum",
     "privacyNoticeUrl": "https://harshankur.com/datenschutz#lidpractice",
     "privacyNoticeUrlEnglish": "https://harshankur.com/datenschutz#en-lidpractice",
+    "liveHosts": [
+        "lidpractice.de",
+        "www.lidpractice.de"
+    ],
+    "counterApp": "lidpractice",
+    "consentScriptUrl": "https://views.harshankur.com/consent.js",
     "storageVersion": 4,
     "defaultLocale": "de",
     "defaultUiLocale": "en",

@@ -119,12 +119,12 @@ describe("App: practice mode", () =>
             expect(statValue("Weak spots")).toBe("0");
         });
 
-        it("keeps the footer to the state list, the note, five links and the copyright line, because the settings of the looks are in the header", () =>
+        it("keeps the footer to the state list, the note, five links, the privacy settings and the copyright line, because the settings of the looks are in the header", () =>
         {
             const footer = document.querySelector("footer") as HTMLElement;
             expect(footer.querySelector(".site-settings")).toBeNull();
             expect(Array.from(footer.querySelectorAll("button, a")).map((control) => control.id || control.textContent)).toEqual([
-                "state-button", "About and FAQ", "Official catalogue (BAMF)", "Report a problem", "Legal notice", "Privacy", "Harsh Ankur"]);
+                "state-button", "About and FAQ", "Official catalogue (BAMF)", "Report a problem", "Legal notice", "Privacy", "privacy-settings", "Harsh Ankur"]);
         });
 
         it("names the state in the footer, and counts only its questions: 310, never 460", () =>

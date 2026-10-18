@@ -22,7 +22,7 @@ export const FAQ_ENTRIES: FaqEntry[] = [
     { id: "answers", question: msg("faq.answers.q"), answers: [msg("faq.answers.a1")] },
     { id: "translations", question: msg("faq.translations.q"), answers: [msg("faq.translations.a1")] },
     { id: "exam", question: msg("faq.exam.q"), answers: [msg("faq.exam.a1")] },
-    { id: "privacy", question: msg("faq.privacy.q"), answers: [msg("faq.privacy.a1")] },
+    { id: "privacy", question: msg("faq.privacy.q"), answers: [msg("faq.privacy.a1"), msg("faq.privacy.a2")] },
     { id: "changes", question: msg("faq.changes.q"), answers: [msg("faq.changes.a1"), msg("faq.changes.a2")] },
     { id: "report", question: msg("faq.report.q"), answers: [msg("faq.report.a1")] },
     { id: "license", question: msg("faq.license.q"), answers: [msg("faq.license.a1")] },

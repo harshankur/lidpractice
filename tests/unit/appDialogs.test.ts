@@ -347,7 +347,30 @@ describe("App: original question, report and About dialog", () =>
                 ["A", "Legal notice", "https://harshankur.com/impressum", "_blank", "noopener"],
                 // The privacy notice's section in English, as the interface is.
                 ["A", "Privacy", "https://harshankur.com/datenschutz#en-lidpractice", "_blank", "noopener"],
+                // Privacy settings opens a question on this page and leads nowhere: a button styled like the links.
+                ["BUTTON", "Privacy settings", null, null, null],
             ]);
+            const settings = line.lastElementChild as HTMLButtonElement;
+            expect([settings.id, settings.type, settings.className]).toEqual(["privacy-settings", "button", "link-button"]);
+            // Not the attribute the counter's script listens for: that would open the script's own prompt.
+            expect(settings.hasAttribute("data-viewcounter-consent")).toBe(false);
+        });
+
+        it("open the question about counting from Privacy settings, which says that nothing is counted off the live site", () =>
+        {
+            // Not the live site: the counter's script was not added, so there is nothing to answer, and the card says why.
+            expect(document.querySelectorAll("script[src]")).toHaveLength(0);
+            const settings = document.getElementById("privacy-settings") as HTMLButtonElement;
+            settings.focus();
+            settings.click();
+            const card = document.getElementById("consent") as HTMLElement;
+            expect(card.parentElement?.id).toBe("consent-root");
+            expect(document.getElementById("consent-unavailable")?.textContent).toBe("Nothing is counted at this address, so there is nothing to answer here.");
+            expect([...card.querySelectorAll("button")].map((button) => button.id)).toEqual(["consent-close"]);
+            expect(document.activeElement?.id).toBe("consent-title");
+            (document.getElementById("consent-close") as HTMLElement).click();
+            expect(document.getElementById("consent")).toBeNull();
+            expect(document.activeElement?.id).toBe("privacy-settings");
         });
 
         it("follow a change of the interface language in place, the privacy link to the section in that language", async () =>
@@ -358,6 +381,7 @@ describe("App: original question, report and About dialog", () =>
             await chooseFromListbox("site-language", "de");
             expect(privacy().textContent).toBe("Datenschutz");
             expect(privacy().getAttribute("href")).toBe("https://harshankur.com/datenschutz#lidpractice");
+            expect(document.getElementById("privacy-settings")?.textContent).toBe("Datenschutz-Einstellungen");
         });
 
         it.each([

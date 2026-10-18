@@ -223,6 +223,19 @@ describe("Modal", () =>
 
     describe("closing", () =>
     {
+        it("tells the page after every close, once the dialog is gone and its own handler has run, and never while it stays open", () =>
+        {
+            const told: string[] = [];
+            const page = new Modal(root, [], () => told.push(page.isOpen ? "open" : "closed"));
+            page.show({ title: "One", content: content(), onClose: () => told.push("view") });
+            page.update({ title: "Two", content: content(), onClose: () => told.push("view") });
+            expect(told).toEqual([]);
+            press("Escape");
+            expect(told).toEqual(["view", "closed"]);
+            page.close();
+            expect(told).toEqual(["view", "closed"]);
+        });
+
         it("closes with Escape and gives focus back", () =>
         {
             modal.show({ title: "Hello", content: content() });

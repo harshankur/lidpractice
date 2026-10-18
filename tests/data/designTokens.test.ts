@@ -68,13 +68,13 @@ describe("design tokens", () =>
         expect([...new Set(colours)].sort()).toEqual(["#fff"]);
     });
 
-    it("use one shadow for everything that floats, so the dialog and the list look the same", () =>
+    it("use one shadow for everything that floats, so the dialog, the list and the card about counting look the same", () =>
     {
         expect(light["--shadow-popover"]).toBeTruthy();
         const uses = [...css.matchAll(/box-shadow:\s*([^;]+);/g)].map((match) => match[1].trim());
         // The rest are rings made of tokens that mark the current question and its legend swatch.
         const floating = uses.filter((use) => !/^0 0 0 \d+px var\(--surface\), 0 0 0 \d+px var\(--ink\)$/.test(use));
-        expect(floating).toEqual(["var(--shadow-popover)", "var(--shadow-popover)"]);
+        expect(floating).toEqual(["var(--shadow-popover)", "var(--shadow-popover)", "var(--shadow-popover)"]);
     });
 
     it("pick the theme with a class on the root element, never an attribute", () =>
