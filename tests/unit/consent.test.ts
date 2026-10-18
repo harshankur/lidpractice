@@ -153,7 +153,7 @@ describe("the counter's consent script", () =>
         expect(document.querySelectorAll("script")).toHaveLength(0);
         consent.consider();
         expect(card()).toBeNull();
-        expect(consent.counting).toBe(false);
+        expect(consent.mayCount).toBe(false);
         // Nothing comes up by itself here, so there is no live region either.
         expect(document.getElementById("consent-announce")).toBeNull();
     });
@@ -192,31 +192,49 @@ describe("the counter's consent script", () =>
         expect(document.querySelectorAll("script")).toHaveLength(1);
     });
 
-    it("tells the page when it has arrived and when the answer changes, and counts only after a yes", () =>
+    it("takes the page for counted from the moment the script is added until the answer is known to be no, and tells it when that changes", () =>
     {
         installApi("granted");
         const consent = load();
-        // Not yet there: an answer given before does not count until the script that keeps it has run.
-        expect(consent.counting).toBe(false);
+        // The script may load the counter for an earlier yes before the page hears of it: until the answer is known, it is taken for a yes.
+        expect(consent.mayCount).toBe(true);
         arrive();
         expect(changed).toHaveBeenCalledTimes(1);
-        expect(consent.counting).toBe(true);
+        expect(consent.mayCount).toBe(true);
         (window as unknown as { viewcounterConsent: { deny(): void } }).viewcounterConsent.deny();
         expect(changed).toHaveBeenCalledTimes(2);
-        expect(consent.counting).toBe(false);
+        expect(consent.mayCount).toBe(false);
+        (window as unknown as { viewcounterConsent: { grant(): void } }).viewcounterConsent.grant();
+        expect(consent.mayCount).toBe(true);
+    });
+
+    it("knows the page is not counted once the answer is unset, and once the script failed to arrive", () =>
+    {
+        installApi("unset");
+        let consent = load();
+        expect(consent.mayCount).toBe(true);
+        arrive();
+        expect(consent.mayCount).toBe(false);
+        delete (window as unknown as Record<string, unknown>).viewcounterConsent;
+        consent = load();
+        changed.mockReset();
+        (script() as HTMLScriptElement).dispatchEvent(new Event("error"));
+        expect(changed).toHaveBeenCalledTimes(1);
+        expect(consent.mayCount).toBe(false);
+        expect(card()).toBeNull();
     });
 
     it("takes no answer from a script that offers no API or reports something else", () =>
     {
         const consent = load();
         arrive();
-        expect(consent.counting).toBe(false);
+        expect(consent.mayCount).toBe(false);
         expect(card()).toBeNull();
         installApi();
         answer = "maybe" as ConsentStatus;
         window.dispatchEvent(new CustomEvent(CONSENT_EVENT));
         expect(card()).toBeNull();
-        expect(consent.counting).toBe(false);
+        expect(consent.mayCount).toBe(false);
         consent.openSettings();
         expect(part("consent-unavailable").textContent).toContain("the counter’s script has not loaded");
     });
@@ -256,10 +274,10 @@ describe("the question that comes up by itself", () =>
         expect(part("consent-title").tagName).toBe("H2");
         expect(part("consent-title").textContent).toBe("Usage statistics");
         expect([...(card() as HTMLElement).querySelectorAll("p")].map((paragraph) => paragraph.textContent)).toEqual([
-            "This site always counts which pages are opened. That happens on its server, with nothing read from or stored on your device.",
+            "This site, run by Harsh Ankur, always counts which pages are opened, to see how it is used and improve it. That happens on its server, with nothing read from or stored on your device.",
             "With your consent it also counts which tabs and lessons you open, how long a page stays visible and how far it is scrolled. Never your answers, results, chosen state or settings.",
-            "No cookies. The counting runs on the operator’s own server, and nothing is passed on. You can change your answer at any time under \"Privacy settings\" at the bottom of the page.",
-            "Privacy notice",
+            "No cookies. The counting runs on the operator’s own server, and no third party receives it. You can change your answer at any time under \"Privacy settings\" at the bottom of the page.",
+            "Privacy notice (in German and English)",
         ]);
         const link = part("consent-privacy");
         expect([link.getAttribute("href"), link.getAttribute("target"), link.getAttribute("rel")]).toEqual([PRIVACY_NOTICE_URL_ENGLISH, "_blank", "noopener"]);
@@ -415,7 +433,7 @@ describe("answering", () =>
         part(id).click();
         expect(calls).toEqual([call]);
         expect(card()).toBeNull();
-        expect(consent.counting).toBe(call === "grant");
+        expect(consent.mayCount).toBe(call === "grant");
         consent.consider();
         expect(card()).toBeNull();
     });
@@ -542,7 +560,7 @@ describe("Privacy settings", () =>
         consent.openSettings();
         part("consent-deny").click();
         expect(calls).toEqual(["deny"]);
-        expect(consent.counting).toBe(false);
+        expect(consent.mayCount).toBe(false);
         expect(card()).toBeNull();
         expect(document.activeElement?.id).toBe("privacy-settings");
     });

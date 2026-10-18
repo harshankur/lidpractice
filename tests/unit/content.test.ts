@@ -74,6 +74,10 @@ describe("FAQ content", () =>
         expect(text("privacy")).toContain("Only if you allow it does it also count which tabs and lessons you open, how long a page stays visible and how far it is scrolled");
         expect(text("privacy")).toContain("under \"{settings}\" at the bottom of the page");
         expect(text("privacy")).toContain("Your answers to the questions, your results, your chosen state and your settings are never counted");
+        // Who counts and why, and no more than the truth about who receives it: the host carries the requests, no third party gets them.
+        expect(text("privacy")).toContain("The site, run by {author}, counts which pages are opened, to see how it is used and improve it");
+        expect(text("privacy")).toContain("no third party receives it");
+        expect(text("privacy")).not.toContain("passed on");
         expect(text("changes")).toContain("The catalogue has changed");
         expect(text("license")).toContain("Commercial use is not allowed");
     });
@@ -89,6 +93,8 @@ describe("FAQ content", () =>
             const catalog = JSON.parse(readFileSync(`src/locales/${code}.json`, "utf8")) as Record<string, string>;
             expect(catalog["faq.privacy.a2"], code).toMatch(/\]\(privacy\)/);
             expect(catalog["faq.privacy.a2"], code).toContain("{settings}");
+            expect(catalog["faq.privacy.a2"], code).toContain("{author}");
+            expect(catalog["consent.always"], code).toContain("{author}");
         }
     });
 

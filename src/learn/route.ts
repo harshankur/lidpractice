@@ -11,6 +11,8 @@
  * The other tabs have one address each, which is their name (see ../address.ts). The names are the ids of the course,
  * which are the same in every language, so a link works whatever language the site is shown in.
  */
+import { STATE_IDS } from "../states";
+import { STATE_LESSON_NAME, STATE_LESSON_PREFIX } from "./course";
 
 /** A place in the Learn tab that has an address. */
 export type LearnRoute =
@@ -88,4 +90,23 @@ export function pageHash(hash: string): string
         return "";
     }
     return routeHash(route.page === "lesson" ? { page: "lesson", lesson: route.lesson } : route);
+}
+
+/**
+ * The address the page keeps for an address it is given. A link to the lesson about a state names the state
+ * (`#learn/land-<state>`, as Share writes it); the page keeps the address of the lesson about the user's state instead,
+ * which names none (`#learn/land`), with the section of the link. It needs nothing of the course, so the page can put
+ * it right at once, before anything that reads the address (the history, and the counter with the visitor's consent)
+ * sees the state.
+ * @param hash The fragment of an address.
+ * @returns The fragment without the state, or the fragment as it is when it names no state.
+ */
+export function stateFreeHash(hash: string): string
+{
+    const route = parseRoute(hash);
+    if (route?.page !== "lesson" || !route.lesson.startsWith(STATE_LESSON_PREFIX) || !STATE_IDS.includes(route.lesson.slice(STATE_LESSON_PREFIX.length)))
+    {
+        return hash;
+    }
+    return routeHash({ ...route, lesson: STATE_LESSON_NAME });
 }

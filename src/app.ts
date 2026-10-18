@@ -31,6 +31,7 @@ import { FIRST_STRONG_ISOLATE, POP_ISOLATE, asLocale, asUiLocale, hasCatalog, i1
 import { readImageSizes, imageSizeAttributes } from "./imageSizes";
 import { LanguageLoader, readLanguageFiles } from "./languages";
 import { STATE_LESSON_PREFIX } from "./learn/course";
+import { stateFreeHash } from "./learn/route";
 import { LearnTab } from "./learn/learn";
 import { dayNumber } from "./learn/schedule";
 import { shortcutKey } from "./keys";
@@ -435,6 +436,9 @@ export class App
             window.history.replaceState({ step: this.step }, "", url);
         }
         const place = placeOf(window.location.hash);
+        // A link to the lesson about a state keeps its state in memory only (for the welcome dialog and the note in the
+        // lesson): the address loses it at once, before the counter's script is added.
+        this.keepStateOutOfAddress();
         const state = this.store.state;
         this.enterMode(place.mode);
         if (place.route)
@@ -526,13 +530,15 @@ export class App
     /**
      * The title of the page, which the browser shows on its tab, in its history and in a bookmark: the name of what
      * shows (a lesson, a page of the Learn tab, or else the tab) in front of the name of the site. The plain address
-     * of the site keeps the plain name of the site, as it keeps its plain address. While the page is counted in detail
-     * it is the plain name everywhere: the counter sends the title with every page, and the name of a page is in the
-     * language the visitor chose and names the state in the lesson about it. Which page is open is in its address.
+     * of the site keeps the plain name of the site, as it keeps its plain address. While the page may be counted in
+     * detail it is the plain name everywhere: the counter sends the title with every page, and the name of a page is in
+     * the language the visitor chose and names the state in the lesson about it. Which page is open is in its address.
+     * On the live site that holds from the moment the counter's script is added until the answer is known to be no, so
+     * the counter can never read a name (see Consent.mayCount).
      */
     private title(): string
     {
-        if (window.location.hash === "" || this.consent.counting)
+        if (window.location.hash === "" || this.consent.mayCount)
         {
             return APP_NAME;
         }
@@ -590,6 +596,10 @@ export class App
             // The address the page set itself, or one that was followed already: a step back fires two events.
             return;
         }
+        // Read before the state of a link to the lesson about a state is taken out of the address, which happens at once:
+        // the counter (with the visitor's consent) reads the address on the same event, and the course may still be on its way.
+        const place = placeOf(window.location.hash);
+        this.keepStateOutOfAddress();
         const to = App.stepOf(window.history.state);
         if (this.examRuns())
         {
@@ -612,7 +622,6 @@ export class App
             // A step the page did not make, such as an address typed by hand: it gets its number now.
             window.history.replaceState({ step: this.step }, "");
         }
-        const place = placeOf(window.location.hash);
         if (!place.route && place.mode === this.mode)
         {
             // Another spelling of the address of the tab that shows: there is nothing to show, only the address to put right.
@@ -665,6 +674,21 @@ export class App
         {
             window.history.replaceState({ step: this.step, y: Math.round(window.scrollY) }, "");
         }, SCROLL_NOTE_MS);
+    }
+
+    /**
+     * Takes the state out of an address that names the lesson about a state, without loading the page again: the page
+     * keeps the address of the lesson about the user's state, whatever the state is (see stateFreeHash).
+     */
+    private keepStateOutOfAddress(): void
+    {
+        const url = new URL(window.location.href);
+        const hash = stateFreeHash(url.hash);
+        if (hash !== url.hash)
+        {
+            url.hash = hash;
+            window.history.replaceState(window.history.state, "", url);
+        }
     }
 
     /** Takes the language out of the address without loading the page again. */

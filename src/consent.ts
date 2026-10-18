@@ -17,7 +17,7 @@
  * any time, with the answer given so far, so it can be changed.
  */
 import { modeHash } from "./address";
-import { CONSENT_SCRIPT_URL, COUNTED_HASH_DEPTH, COUNTER_APP, LIVE_HOSTS, privacyNoticeUrl } from "./constants";
+import { AUTHOR_NAME, CONSENT_SCRIPT_URL, COUNTED_HASH_DEPTH, COUNTER_APP, LIVE_HOSTS, privacyNoticeUrl } from "./constants";
 import { el } from "./dom";
 import { ErrorBoundary } from "./errorBoundary";
 import { t } from "./i18n";
@@ -115,6 +115,8 @@ export class Consent
     private script: HTMLScriptElement | null = null;
     /** Whether the consent script has arrived and offers its API. */
     private ready = false;
+    /** Whether the consent script has arrived or failed to: until then, the answer is not known. */
+    private settled = false;
     /** Whether the card showed on this page load already: it comes up by itself once at most. */
     private shown = false;
     /** The card while it shows. */
@@ -175,14 +177,29 @@ export class Consent
         script.setAttribute(PRIVACY_ATTRIBUTE, privacyNoticeUrl(locale));
         // A script that does not arrive (a content blocker, no network) leaves the question unasked: "Privacy settings" says why.
         script.addEventListener("load", () => this.update());
+        script.addEventListener("error", () =>
+        {
+            // Nothing will count in detail: the page is told, so it names its pages again.
+            this.settled = true;
+            this.host.changed();
+        });
         this.script = script;
         document.head.append(script);
     }
 
-    /** Whether the page is counted in detail now: the counter's script is there and the visitor said yes. */
-    public get counting(): boolean
+    /**
+     * Whether the page may be counted in detail now, as far as it can tell. On the live site that is so from the moment
+     * the consent script is added until it is known not to be: the script loads the counter at once for a visitor who
+     * said yes before, and only then tells the page, so until the answer is known it is taken for a yes. It is no once
+     * the script failed to arrive, offers no answer, or reports any answer but yes. Off the live site, never.
+     */
+    public get mayCount(): boolean
     {
-        return this.status() === "granted";
+        if (this.script === null)
+        {
+            return false;
+        }
+        return !this.settled || this.status() === "granted";
     }
 
     /** Whether the card shows. */
@@ -302,6 +319,7 @@ export class Consent
      */
     private update(): void
     {
+        this.settled = true;
         this.ready = consentApi() !== undefined;
         this.host.changed();
         this.redraw();
@@ -395,7 +413,8 @@ export class Consent
         const content = status === null
             ? [el("p", { id: "consent-unavailable" }, t(this.live ? "consent.blocked" : "consent.elsewhere")), privacy]
             : [
-                el("p", {}, t("consent.always")),
+                // Who counts, and why: the operator named in the identity of the site.
+                el("p", {}, t("consent.always", { author: AUTHOR_NAME })),
                 el("p", {}, t("consent.detail")),
                 el("p", {}, t("consent.where", { settings: t("footer.privacySettings") })),
                 privacy,

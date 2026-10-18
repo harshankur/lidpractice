@@ -1,5 +1,5 @@
 import { questionName } from "./states";
-import { BAMF_CATALOGUE_PAGE_URL, BAMF_CATALOGUE_PDF_URL, CATALOGUE_STAND, CONFIRM_GUARD_MS, CONTACT_EMAIL, LOCAL_CATALOGUE_PDF, REPO_URL } from "./constants";
+import { AUTHOR_NAME, BAMF_CATALOGUE_PAGE_URL, BAMF_CATALOGUE_PDF_URL, CATALOGUE_STAND, CONFIRM_GUARD_MS, CONTACT_EMAIL, LOCAL_CATALOGUE_PDF, REPO_URL } from "./constants";
 import { FAQ_ENTRIES, messageLinks } from "./content";
 import { el } from "./dom";
 import { i18n, t, type MessageKey, type MessageParams, type RichPart } from "./i18n";
@@ -196,8 +196,8 @@ export function aboutView(actions: ViewActions): ModalView
 {
     const faq = FAQ_ENTRIES.map((entry) => el("details", { class: "faq-item", id: `faq-${entry.id}` },
         el("summary", {}, t(entry.question)),
-        // The answer about data names the control at the bottom of the page by the words it carries there.
-        ...entry.answers.map((key) => richParagraph(key, { stand: CATALOGUE_STAND, settings: t("footer.privacySettings") }))));
+        // The answer about data names the operator, and the control at the bottom of the page by the words it carries there.
+        ...entry.answers.map((key) => richParagraph(key, { stand: CATALOGUE_STAND, settings: t("footer.privacySettings"), author: AUTHOR_NAME }))));
     const content = el("div", { class: "about" },
         el("p", {}, t("about.intro", { stand: CATALOGUE_STAND })),
         el("h3", {}, t("about.bookletHeading")),

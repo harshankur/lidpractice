@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LEARN_ROOT, RESERVED_NAMES, SECTION_NAME, pageHash, parseRoute, routeHash, type LearnRoute } from "../../src/learn/route";
+import { LEARN_ROOT, RESERVED_NAMES, SECTION_NAME, pageHash, parseRoute, routeHash, stateFreeHash, type LearnRoute } from "../../src/learn/route";
 
 /** Every kind of place, with its address. */
 const PLACES: [LearnRoute, string][] = [
@@ -81,5 +81,22 @@ describe("the addresses of the Learn tab", () =>
         {
             expect(SECTION_NAME.test(name), name).toBe(false);
         }
+    });
+});
+
+describe("the address the page keeps for a link to the lesson about a state", () =>
+{
+    it.each([
+        ["#learn/land-bayern", "#learn/land"],
+        ["#learn/land-schleswig-holstein/wappen", "#learn/land/wappen"],
+        ["#LEARN/Land-Hessen", "#learn/land"],
+    ])("takes the state out of %s, with nothing of the course", (hash, kept) =>
+    {
+        expect(stateFreeHash(hash)).toBe(kept);
+    });
+
+    it.each(["", "#practice", "#learn", "#learn/land", "#learn/land/wappen", "#learn/wuerde/artikel-1", "#learn/land-atlantis", "#learn/timeline"])("leaves %s as it is: it names no state", (hash) =>
+    {
+        expect(stateFreeHash(hash)).toBe(hash);
     });
 });

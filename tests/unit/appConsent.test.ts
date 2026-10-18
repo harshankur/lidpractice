@@ -197,8 +197,8 @@ describe("App on the live site: counting in detail, only with consent", () =>
     it("keeps what the visitor chose out of the title while the page is counted in detail: the title is the plain name", async () =>
     {
         await openLive({ place: "#train", locale: "de" });
-        expect(document.title).toBe("Trainieren | LiD Practice");
         arrive();
+        expect(document.title).toBe("Trainieren | LiD Practice");
         (document.getElementById("consent-allow") as HTMLElement).click();
         expect(calls).toEqual(["grant"]);
         // The counter sends the title with every page: it must not tell the language of the site or anything chosen.
@@ -216,6 +216,82 @@ describe("App on the live site: counting in detail, only with consent", () =>
         expect(document.getElementById("consent-current")?.textContent).toBe("Deine aktuelle Antwort: erlaubt.");
         (document.getElementById("consent-deny") as HTMLElement).click();
         expect(document.title).toBe("Dein Bundesland: Berlin | LiD Practice");
+    });
+
+    it("keeps the title plain from the moment the counter's script is added until the answer is known not to be yes", async () =>
+    {
+        const appended: string[] = [];
+        const append = HTMLHeadElement.prototype.append;
+        vi.spyOn(HTMLHeadElement.prototype, "append").mockImplementation(function (this: HTMLHeadElement, ...nodes: (Node | string)[])
+        {
+            appended.push(document.title);
+            append.apply(this, nodes);
+        });
+        document.title = "Something else";
+        await openLive({ place: "#train", locale: "de" });
+        // The page set its title right after it added the script, before the script could run: the plain name.
+        expect(document.title).toBe("LiD Practice");
+        // The script runs, and for an earlier yes loads the counter, which reads the title, before the page hears of it.
+        installApi("granted");
+        const readByCounter = document.title;
+        scripts()[0].dispatchEvent(new Event("load"));
+        expect(readByCounter).toBe("LiD Practice");
+        expect(document.title).toBe("LiD Practice");
+        expect(appended).toHaveLength(1);
+        // Known to be unset: the page is named again.
+        await openLive({ place: "#train", locale: "de" });
+        expect(document.title).toBe("LiD Practice");
+        arrive();
+        expect(document.title).toBe("Trainieren | LiD Practice");
+        // The script did not arrive: nothing counts, and the page is named.
+        await openLive({ place: "#train", locale: "de" });
+        expect(document.title).toBe("LiD Practice");
+        scripts()[0].dispatchEvent(new Event("error"));
+        expect(document.title).toBe("Trainieren | LiD Practice");
+    });
+
+    it("takes the state out of the address of a shared link at once, before the counter's script is added and before the course is there", async () =>
+    {
+        const seen: { hash: string; lesson: boolean }[] = [];
+        const append = HTMLHeadElement.prototype.append;
+        vi.spyOn(HTMLHeadElement.prototype, "append").mockImplementation(function (this: HTMLHeadElement, ...nodes: (Node | string)[])
+        {
+            seen.push({ hash: window.location.hash, lesson: document.querySelector(".lesson-head") !== null });
+            append.apply(this, nodes);
+        });
+        await openLive({ place: "#learn/land-bayern/wappen" });
+        expect(seen).toEqual([{ hash: "#learn/land/wappen", lesson: false }]);
+        arrive("granted");
+        await settle();
+        // The state of the link is kept in memory for the note, and nowhere in the address.
+        expect(document.querySelector(".lesson-linked")?.textContent).toContain("This link was made for Bavaria");
+        expect(window.location.hash).toBe("#learn/land/wappen");
+    });
+
+    it("takes the state out of an address the browser goes to, before anything else listening on the same event reads it", async () =>
+    {
+        await openLive();
+        arrive("granted");
+        // A listener added after the page, as the counter's is: it sees the address the page has put right.
+        const read: string[] = [];
+        const listener = (): void =>
+        {
+            read.push(window.location.hash);
+        };
+        window.addEventListener("popstate", listener);
+        window.addEventListener("hashchange", listener);
+        window.history.pushState(null, "", "#learn/land-hessen");
+        window.dispatchEvent(new PopStateEvent("popstate"));
+        window.dispatchEvent(new HashChangeEvent("hashchange"));
+        window.removeEventListener("popstate", listener);
+        window.removeEventListener("hashchange", listener);
+        expect(read).toEqual(["#learn/land", "#learn/land"]);
+        // The course was not there yet: it arrives, and the lesson says which state the link was for.
+        expect(document.querySelector(".lesson-head")).toBeNull();
+        await settle();
+        expect(document.querySelector(".lesson-head h2")?.textContent).toBe("Your state: Berlin");
+        expect(document.querySelector(".lesson-linked")?.textContent).toContain("This link was made for Hesse");
+        expect(window.location.hash).toBe("#learn/land");
     });
 
     it("follows an answer given in another tab of the site", async () =>
@@ -274,6 +350,7 @@ describe("App on the live site: counting in detail, only with consent", () =>
         const answers = [...document.querySelectorAll("#faq-privacy p")].map((paragraph) => paragraph.textContent);
         expect(answers).toHaveLength(2);
         expect(answers[1]).toContain("under \"Privacy settings\" at the bottom of the page");
+        expect(answers[1]).toContain("The site, run by Harsh Ankur, counts which pages are opened");
         expect(document.querySelector("#faq-privacy a")?.getAttribute("href")).toBe(PRIVACY_NOTICE_URL_ENGLISH);
     });
 });
