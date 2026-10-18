@@ -145,6 +145,7 @@ export class QuestionBank
         const german = question.texts[DEFAULT_LOCALE].a;
         // The texts are looked up when they are read, not now: the questions of a language that is fetched later reach a question that is on screen.
         const options: PresentedOption[] = german.map((_, index) => ({
+            index,
             get texts(): Record<Locale, string>
             {
                 const texts = {} as Record<Locale, string>;
@@ -160,5 +161,17 @@ export class QuestionBank
             question,
             options: question.img || !shuffle ? options : shuffled(options),
         };
+    }
+
+    /**
+     * Builds a presented question with its options in an order that was shown before.
+     * @param question Source question.
+     * @param order The places of the options in the catalogue, in the order to show them.
+     * @returns Question with ordered options.
+     */
+    public presentInOrder(question: Question, order: readonly number[]): PresentedQuestion
+    {
+        const { options } = this.present(question, false);
+        return { question, options: order.map((index) => options[index]) };
     }
 }

@@ -186,6 +186,22 @@ describe("QuestionBank.present", () =>
         expect(correct?.texts.en).toBe("Answer 3");
     });
 
+    it("knows the place of every option in the catalogue, and shows the options again in an order that was shown before", () =>
+    {
+        const bank = new app.QuestionBank(toBundle([...makeBank(4, 1), makeQuestion(9, { r: 2 })]));
+        const question = bank.byNumber(9) as NonNullable<ReturnType<typeof bank.byNumber>>;
+        const presented = bank.present(question);
+        expect(presented.options.map((option) => option.index).sort()).toEqual([0, 1, 2, 3]);
+        for (const option of presented.options)
+        {
+            expect(option.texts.de).toBe(`Antwort ${option.index + 1}`);
+        }
+        const again = bank.presentInOrder(question, [3, 1, 0, 2]);
+        expect(again.question).toBe(question);
+        expect(again.options.map((option) => option.texts.de)).toEqual(["Antwort 4", "Antwort 2", "Antwort 1", "Antwort 3"]);
+        expect(again.options.map((option) => option.isCorrect)).toEqual([false, false, false, true]);
+    });
+
     it("shuffles options of text questions (all 24 orders appear)", () =>
     {
         const bank = new app.QuestionBank(toBundle([makeQuestion(5)]));

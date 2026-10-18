@@ -11,7 +11,7 @@ import type { PresentedQuestion, Question } from "../../src/types";
  */
 const present: Presenter = (n, shuffle) =>
 {
-    const options = [0, 1, 2, 3].map((index) => ({ texts: { de: `A${n}-${index}`, en: `a${n}-${index}` }, isCorrect: index === 0 }));
+    const options = [0, 1, 2, 3].map((index) => ({ index, texts: { de: `A${n}-${index}`, en: `a${n}-${index}` }, isCorrect: index === 0 }));
     return { question: { n } as Question, options: shuffle ? options.reverse() : options } as PresentedQuestion;
 };
 
@@ -26,6 +26,69 @@ function numbers(round: Round): number[]
 {
     return round.slots.map((slot) => slot.n);
 }
+
+/** Builds a question as shown, with its options in the order of their places in the catalogue. */
+const presentAgain = (n: number, order: number[]): PresentedQuestion =>
+{
+    const options = present(n, false).options;
+    return { question: { n } as Question, options: order.map((index) => options[index]) } as PresentedQuestion;
+};
+
+describe("a round that is saved and goes on later", () =>
+{
+    it("goes on where it stood, with every answer, every skip and the order the options were shown in", () =>
+    {
+        const round = new Round([10, 20, 30, 40], "booklet", present);
+        round.answer(rightIndex(round));
+        round.advance();
+        round.advance();
+        round.answer(1);
+        const saved = round.snapshot();
+        expect(saved.slots.map((slot) => [slot.n, slot.outcome, slot.selected])).toEqual([[10, "correct", 0], [20, "skipped", null], [30, "wrong", 1], [40, "open", null]]);
+        // The order of the booklet keeps the printed order of the options: the places of the catalogue, in the order shown.
+        expect(saved.slots[0].options).toEqual([0, 1, 2, 3]);
+        expect(saved.slots[3].options).toBeNull();
+        const again = Round.restore(JSON.parse(JSON.stringify(saved)) as typeof saved, present, presentAgain);
+        expect(again.snapshot()).toEqual(saved);
+        expect(numbers(again)).toEqual([10, 20, 30, 40]);
+        expect(again.current?.n).toBe(30);
+        expect(again.current?.item?.options.map((option) => option.texts.de)).toEqual(["A30-0", "A30-1", "A30-2", "A30-3"]);
+        expect(again.current?.selected).toBe(1);
+        again.advance();
+        expect(again.current?.n).toBe(40);
+        expect(again.current?.item).not.toBeNull();
+    });
+
+    it("keeps what a round in random order has not drawn yet, and ends as it would have", () =>
+    {
+        const round = new Round([1, 2, 3], "random", present);
+        round.answer(rightIndex(round));
+        const saved = round.snapshot();
+        expect(saved.remaining).toHaveLength(2);
+        // Shuffled when shown (here: reversed), and shown in that order again.
+        expect(saved.slots[0].options).toEqual([3, 2, 1, 0]);
+        const again = Round.restore(saved, present, presentAgain);
+        expect(again.current?.item?.options.map((option) => option.isCorrect)).toEqual([false, false, false, true]);
+        again.advance();
+        again.answer(0);
+        again.advance();
+        again.answer(0);
+        again.advance();
+        expect(again.ended).toBe(true);
+        expect(new Set(again.slots.map((slot) => slot.n))).toEqual(new Set([1, 2, 3]));
+    });
+
+    it("keeps an ended round ended, and its lock", () =>
+    {
+        const round = new Round([5], "booklet", present, true);
+        round.answer(0);
+        round.advance();
+        const again = Round.restore(round.snapshot(), present, presentAgain);
+        expect(again.ended).toBe(true);
+        expect(again.current).toBeUndefined();
+        expect(again.locked).toBe(true);
+    });
+});
 
 describe("Round in booklet order", () =>
 {

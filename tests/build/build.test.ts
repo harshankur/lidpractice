@@ -29,7 +29,7 @@ const INTERFACE_FILES = 5;
 const COURSE_LOCALES = ["de", "en", "ar", "uk", "tr", "es", "hi"];
 
 /** The most characters the page may have. It holds the German questions, two interface languages, the styles and the code; everything else is fetched. */
-const PAGE_BUDGET = 420000;
+const PAGE_BUDGET = 440000;
 
 /** Every sandbox and output folder created by this file, removed at the end. */
 const workDirs: string[] = [];

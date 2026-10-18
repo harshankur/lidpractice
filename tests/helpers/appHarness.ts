@@ -170,6 +170,8 @@ export interface MountOptions
     serverFault?: "missing" | "offline" | "wrong";
     /** The part of the address after the "#" sign, with the sign, when the page is opened by a link to a tab or to a place of the Learn tab: "#train", "#learn/wuerde". */
     place?: string;
+    /** What the browser keeps with the step of its history the page is opened on, as after a reload. */
+    historyState?: unknown;
 }
 
 /** The languages the course of the Learn tab is written in. */
@@ -220,7 +222,7 @@ export async function mountApp(questions: Question[] = REAL_QUESTIONS, options: 
     document.body.innerHTML = FIXTURE_HTML;
     document.documentElement.className = "";
     const locale = options.locale === undefined ? "en" : options.locale;
-    window.history.replaceState(null, "", `${locale === null ? "/" : `/?lang=${locale}`}${options.place ?? ""}`);
+    window.history.replaceState(options.historyState ?? null, "", `${locale === null ? "/" : `/?lang=${locale}`}${options.place ?? ""}`);
     if (!options.firstVisit)
     {
         markSetupDone();

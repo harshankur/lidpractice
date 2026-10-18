@@ -1,5 +1,5 @@
 import { randomInt } from "./random";
-import type { PresentedQuestion, RoundOrder } from "./types";
+import type { PresentedQuestion, RoundOrder, SavedRound } from "./types";
 
 /** How a question of a round stands. */
 export type SlotOutcome = "correct" | "wrong" | "skipped" | "open";
@@ -98,6 +98,51 @@ export class Round
         {
             this.ensureItem(0);
         }
+    }
+
+    /**
+     * The round as it is saved: what was done with every question, and the order its options were shown in.
+     * @returns A plain object that can be written as JSON.
+     */
+    public snapshot(): SavedRound
+    {
+        return {
+            order: this.order,
+            lock: this.lock,
+            view: this.view,
+            resume: this.resume,
+            ended: this.ended,
+            remaining: [...this.remaining],
+            slots: this.slots.map((slot) => ({ n: slot.n, outcome: slot.outcome, selected: slot.selected, options: slot.item ? slot.item.options.map((option) => option.index) : null })),
+        };
+    }
+
+    /**
+     * A round that goes on where a saved one stood. The saved round must have been checked: every question exists, and
+     * the orders of options fit their questions.
+     * @param saved The saved round.
+     * @param present Builds a question that comes up for the first time.
+     * @param presentAgain Builds a question that was shown, with its options in the order they were shown in.
+     * @returns The round.
+     */
+    public static restore(saved: SavedRound, present: Presenter, presentAgain: (questionNumber: number, options: number[]) => PresentedQuestion): Round
+    {
+        const round = new Round([], saved.order, present, saved.lock);
+        round.remaining.push(...saved.remaining);
+        round.slots.push(...saved.slots.map((slot): RoundSlot => ({
+            n: slot.n,
+            outcome: slot.outcome,
+            selected: slot.selected,
+            item: slot.options ? presentAgain(slot.n, slot.options) : null,
+        })));
+        round.view = saved.view;
+        round.resume = saved.resume;
+        round.ended = saved.ended;
+        if (round.view >= 0)
+        {
+            round.ensureItem(round.view);
+        }
+        return round;
     }
 
     /** The slot that is shown, or undefined at the end of the round. */

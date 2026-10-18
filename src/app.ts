@@ -46,7 +46,7 @@ import { DEFAULT_STATE, STATE_IDS, questionName, stateOfNumber } from "./states"
 import { ALL_TOPICS, describeSubjects, sameTopics } from "./topics";
 import {
     DEFAULT_LOCALE, DEFAULT_UI_LOCALE, LOCALES, MODES, TRANSLATION_LOCALES, UI_LOCALES, automaticTranslation, directionOf, type AppMode, type ExamState, type Locale, type PresentedQuestion, type Question,
-    type LearnFiles, type QuestionBundle, type RoundOrder, type ThemeChoice,
+    type LearnFiles, type QuestionBundle, type RoundOrder, type SavedPracticeRound, type ThemeChoice,
 } from "./types";
 import { aboutView, finishView, originalView, reportView, type ViewActions } from "./views";
 
@@ -100,6 +100,9 @@ const TWO_STEP_BUTTONS: Record<TwoStep, { id: string; className: string; label: 
     startOver: { id: "exam-start-over", className: "secondary sm two-step", label: msg("exam.startOver"), confirm: msg("exam.startOverConfirm") },
 };
 
+/** How long scrolling has to rest before its place is noted in the history of the browser. */
+const SCROLL_NOTE_MS = 300;
+
 /** What the user is told about each problem with the storage of the browser. */
 const STORAGE_MESSAGES: Record<StorageProblem, MessageKey> = { unreadable: msg("storage.unreadable"), unsaved: msg("storage.unsaved") };
 
@@ -116,7 +119,7 @@ type RoundMode = "practice";
  * Where the questions of a round come from: the chosen subjects, every weak spot there is, the weak spots inside the
  * chosen subjects, the mistakes of the round before, or a lesson of the Learn tab.
  */
-type RoundSource = "topics" | "weak" | "weakSelection" | "mistakes" | "lesson";
+type RoundSource = SavedPracticeRound["source"];
 
 /** A round with a note about what it is made of. */
 interface ActiveRound
@@ -227,6 +230,8 @@ export class App
      * the page can tell how far the Back or Forward button went, and return there while an exam runs.
      */
     private step = 0;
+    /** Handle of the timer that notes the place of the window in the history, or 0. */
+    private scrollNote = 0;
     private readonly modal: Modal;
     private readonly actions: ViewActions = {
         showOriginal: (question) => this.modal.show(originalView(question, this.actions)),
@@ -380,7 +385,8 @@ export class App
         });
         void document.fonts?.ready.then(() => this.revealOpenTab());
         this.practiceClock = new Clock(this.store.state.clockMode, this.store.state.clockMinutes);
-        this.rounds.practice = this.newTopicRound();
+        // The round that was open before the page was loaded anew goes on, when it still fits.
+        this.rounds.practice = this.restoreRound() ?? this.newTopicRound();
         this.openAddress();
         this.started = true;
         this.render();
@@ -401,13 +407,17 @@ export class App
      */
     private openAddress(): void
     {
+        // What the browser kept with this step of its history over a reload: its number, and where the window was.
+        const kept: unknown = window.history.state;
+        this.step = App.stepOf(kept) ?? 0;
+        const left = App.scrollOf(kept);
         const remembered = this.store.state.lastPlace;
         if (window.location.hash === "" && remembered !== "")
         {
             // The plain address of the site goes on where the user was last, and says so. A link names its own place and wins.
             const url = new URL(window.location.href);
             url.hash = remembered;
-            window.history.replaceState(null, "", url);
+            window.history.replaceState({ step: this.step }, "", url);
         }
         const place = placeOf(window.location.hash);
         const state = this.store.state;
@@ -421,7 +431,7 @@ export class App
                 // A first visit by a link to the lesson about a state: that state is the one offered in the welcome dialog.
                 state.state = linkedState;
             }
-            this.learn.follow(route);
+            this.learn.follow(route, left);
         }
         else
         {
@@ -429,8 +439,7 @@ export class App
             this.setAddress(this.hash(), false);
         }
         // The step the page is at: kept by the browser across a reload, and 0 for a new tab.
-        this.step = App.stepOf(window.history.state) ?? 0;
-        window.history.replaceState({ step: this.step }, "");
+        window.history.replaceState(left === undefined ? { step: this.step } : { step: this.step, y: left }, "");
         if ("scrollRestoration" in window.history)
         {
             // The page is drawn by this code, so this code puts the window where the user was. The browser would do it before the page is drawn.
@@ -469,6 +478,17 @@ export class App
         {
             action();
         }
+    }
+
+    /**
+     * Where the window was on a step of the history, as the page noted it.
+     * @param state What the browser keeps with the step.
+     * @returns The distance from the top in pixels, or undefined when none was noted.
+     */
+    private static scrollOf(state: unknown): number | undefined
+    {
+        const y = (state as { y?: unknown } | null)?.y;
+        return typeof y === "number" && Number.isFinite(y) && y >= 0 ? y : undefined;
     }
 
     /**
@@ -591,7 +611,7 @@ export class App
         this.enterMode(place.mode);
         if (place.route)
         {
-            this.learn.follow(place.route);
+            this.learn.follow(place.route, App.scrollOf(window.history.state));
         }
         else
         {
@@ -613,7 +633,21 @@ export class App
         if (this.mode === "learn" && !this.modal.isOpen)
         {
             this.learn.scrolled();
+            this.keepScrollInHistory();
         }
+    }
+
+    /**
+     * Notes in the step of the browser's history where the window is, a moment after scrolling stops. The step keeps it
+     * over a reload of the page and over the Back and Forward buttons, where the memory of the page itself is gone.
+     */
+    private keepScrollInHistory(): void
+    {
+        window.clearTimeout(this.scrollNote);
+        this.scrollNote = window.setTimeout(() =>
+        {
+            window.history.replaceState({ step: this.step, y: Math.round(window.scrollY) }, "");
+        }, SCROLL_NOTE_MS);
     }
 
     /** Takes the language out of the address without loading the page again. */
@@ -805,6 +839,50 @@ export class App
         const round = new Round(numbers, order, (questionNumber, shuffle) =>
             this.bank.present(this.bank.byNumber(questionNumber) as Question, shuffle), this.store.state.lockAnswers);
         return { round, source };
+    }
+
+    /**
+     * The round of practice that was open before the page was loaded anew, when it still fits: every question is one of
+     * the user's, and every order of options and every answer fits its question. Otherwise a new round starts.
+     * @returns The round, or null.
+     */
+    private restoreRound(): ActiveRound | null
+    {
+        const saved = this.store.state.round;
+        if (!saved)
+        {
+            return null;
+        }
+        const pool = this.pool();
+        const optionCount = (questionNumber: number): number => (this.bank.byNumber(questionNumber) as Question).texts[DEFAULT_LOCALE].a.length;
+        const known = [...saved.slots.map((slot) => slot.n), ...saved.remaining].every((questionNumber) => pool.has(questionNumber) && this.bank.byNumber(questionNumber) !== undefined);
+        const fits = known && saved.slots.length > 0 && saved.view < saved.slots.length && saved.resume < saved.slots.length
+            && (saved.source !== "lesson" || saved.lesson !== null)
+            && saved.slots.every((slot) =>
+            {
+                const count = optionCount(slot.n);
+                const order = slot.options;
+                return (slot.selected === null || slot.selected < count)
+                    && (order === null || (order.length === count && new Set(order).size === count && order.every((index) => index < count)));
+            });
+        if (!fits)
+        {
+            return null;
+        }
+        const round = Round.restore(saved, (questionNumber, shuffle) => this.bank.present(this.bank.byNumber(questionNumber) as Question, shuffle),
+            (questionNumber, order) => this.bank.presentInOrder(this.bank.byNumber(questionNumber) as Question, order));
+        this.lessonRound = saved.source === "lesson" ? saved.lesson : null;
+        return { round, source: saved.source };
+    }
+
+    /** Saves the round of practice that is open once something was done in it, so it goes on after the page is loaded anew. */
+    private keepRound(): void
+    {
+        const active = this.rounds.practice;
+        const snapshot = active ? { ...active.round.snapshot(), source: active.source, lesson: active.source === "lesson" ? this.lessonRound : null } : null;
+        // A round in which nothing was done yet is no different from the one a new visit starts: nothing is kept, and a first visit saves nothing.
+        const touched = snapshot !== null && (snapshot.source !== "topics" || snapshot.ended || snapshot.view !== 0 || snapshot.slots.some((slot) => slot.outcome !== "open"));
+        this.store.keepRound(touched ? snapshot : null);
     }
 
     /**
@@ -1711,6 +1789,7 @@ export class App
             document.documentElement.scrollIntoView?.({ block: "start" });
             document.getElementById(RESULT_ID)?.focus();
         }
+        this.keepRound();
         const heading = this.root.querySelector<HTMLElement>("[data-focus]");
         if (heading && this.mode !== "exam")
         {

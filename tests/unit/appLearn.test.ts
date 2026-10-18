@@ -1621,6 +1621,30 @@ describe("App: the Learn tab", () =>
             expect(saved(app).learn.seen[FIRST.id]).toEqual(before);
         });
 
+        it("notes where the window was in the step of the history, and puts a lesson there again after the page was loaded anew", async () =>
+        {
+            vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
+            await openLearn();
+            click(`lesson-${FIRST.id}`);
+            layOut();
+            scrollTo(2300);
+            // Noted once the scrolling rests.
+            vi.advanceTimersByTime(299);
+            expect((window.history.state as { y?: number }).y).toBeUndefined();
+            vi.advanceTimersByTime(1);
+            const kept = window.history.state as { step: number; y: number };
+            expect(kept.y).toBe(2300);
+            // The page is loaded anew on that step, as after a reload or the way back past another site.
+            vi.useRealTimers();
+            app = await mountApp(undefined, { place: `#learn/${FIRST.id}`, historyState: kept });
+            layOut();
+            await settle();
+            expect(textIn(".lesson-head h2")).toBe(titleOf(FIRST));
+            expect(position).toBe(2300);
+            // The step keeps its place. (Its number is not compared: pages of earlier tests still have timers that write theirs.)
+            expect((window.history.state as { y: number }).y).toBe(2300);
+        });
+
         it("takes no note of scrolling in another tab, under a dialog, or where nothing has a size", async () =>
         {
             await openLearn();

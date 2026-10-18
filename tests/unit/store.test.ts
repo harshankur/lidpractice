@@ -25,7 +25,7 @@ describe("Store", () =>
     {
         it("starts in English without a translation, with the system theme, all topics and Berlin, booklet order, answers open and no records", () =>
         {
-            expect(store.state).toEqual({ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "" });
+            expect(store.state).toEqual({ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "", round: null });
             expect(store.seenCount).toBe(0);
             expect(store.weakNumbers).toEqual([]);
             expect(store.accuracyPercent).toBeNull();
@@ -132,7 +132,7 @@ describe("Store", () =>
             store.state.order = "booklet";
             store.recordAnswer(1, false);
             store.resetProgress();
-            expect(store.state).toEqual({ uiLanguage: "en", translation: "en", translationLanguage: "auto", theme: "dark", topics: ["familie-bildung-alltag"], state: "hessen", includeState: false, setupDone: true, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: true, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "" });
+            expect(store.state).toEqual({ uiLanguage: "en", translation: "en", translationLanguage: "auto", theme: "dark", topics: ["familie-bildung-alltag"], state: "hessen", includeState: false, setupDone: true, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: true, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "", round: null });
             const saved = JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string);
             expect(saved.records).toEqual({});
             expect(saved.translation).toBe("en");
@@ -145,12 +145,12 @@ describe("Store", () =>
         it("keeps defaults when nothing is stored", () =>
         {
             store.load();
-            expect(store.state).toEqual({ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "" });
+            expect(store.state).toEqual({ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "", round: null });
         });
 
         it("restores a saved state", () =>
         {
-            const saved = { uiLanguage: "en", translation: "en", translationLanguage: "auto", theme: "light", topics: ["familie-bildung-alltag"], state: "hamburg", includeState: false, setupDone: true, clockMode: "down", clockMinutes: 15, examMinutes: 40, lockAnswers: true, order: "booklet", records: { "9": { right: 2, wrong: 1, lastWrong: true } }, learn: { read: { symbole: 20000 }, seen: { symbole: { at: "", percent: 100 }, wuerde: { at: "artikel-1", percent: 40 } }, cards: { "symbole/flagge": { box: 2, due: 20004 } }, last: "wuerde" }, exams: [{ day: 20001, score: 28, total: 33 }], lastPlace: "#learn/wuerde" };
+            const saved = { uiLanguage: "en", translation: "en", translationLanguage: "auto", theme: "light", topics: ["familie-bildung-alltag"], state: "hamburg", includeState: false, setupDone: true, clockMode: "down", clockMinutes: 15, examMinutes: 40, lockAnswers: true, order: "booklet", records: { "9": { right: 2, wrong: 1, lastWrong: true } }, learn: { read: { symbole: 20000 }, seen: { symbole: { at: "", percent: 100 }, wuerde: { at: "artikel-1", percent: 40 } }, cards: { "symbole/flagge": { box: 2, due: 20004 } }, last: "wuerde" }, exams: [{ day: 20001, score: 28, total: 33 }], lastPlace: "#learn/wuerde", round: null };
             window.localStorage.setItem(app.STORAGE_KEY, JSON.stringify(saved));
             store.load();
             expect(store.state).toEqual(saved);
@@ -160,7 +160,7 @@ describe("Store", () =>
         {
             window.localStorage.setItem(app.STORAGE_KEY, JSON.stringify({ uiLanguage: "en" }));
             store.load();
-            expect(store.state).toEqual({ ...{ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "" }, uiLanguage: "en" });
+            expect(store.state).toEqual({ ...{ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "", round: null }, uiLanguage: "en" });
         });
 
         it("falls back to defaults and reports when the saved text is not JSON", () =>
@@ -169,7 +169,7 @@ describe("Store", () =>
             app.ErrorBoundary.install(reporter);
             window.localStorage.setItem(app.STORAGE_KEY, "{not json");
             store.load();
-            expect(store.state).toEqual({ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "" });
+            expect(store.state).toEqual({ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "", round: null });
             // The store tells the page, which says it in words in the user's language; the error itself is only logged.
             expect(reporter).not.toHaveBeenCalled();
             expect([...store.problems]).toEqual(["unreadable"]);
@@ -241,7 +241,7 @@ describe("Store", () =>
 
     describe("a save that is no object, or answers that are broken", () =>
     {
-        const DEFAULTS = { uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "" };
+        const DEFAULTS = { uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "", round: null };
 
         it.each(["null", "42", "\"text\"", "[1, 2]", "true"])("starts with the defaults when the save is %s, without an error", (raw) =>
         {
@@ -299,6 +299,50 @@ describe("Store", () =>
         });
     });
 
+    describe("the round of practice that was open", () =>
+    {
+        const round = { order: "booklet", lock: false, view: 1, resume: 1, ended: false, remaining: [], source: "topics", lesson: null,
+            slots: [{ n: 1, outcome: "correct", selected: 2, options: [1, 0, 3, 2] }, { n: 2, outcome: "open", selected: null, options: null }] };
+
+        it("keeps a round of the right shape, and forgets one with any part of the wrong shape", () =>
+        {
+            window.localStorage.setItem(app.STORAGE_KEY, JSON.stringify({ round }));
+            store.load();
+            expect(store.state.round).toEqual(round);
+            for (const broken of [
+                { ...round, order: "sideways" },
+                { ...round, view: -2 },
+                { ...round, resume: 1.5 },
+                { ...round, remaining: [0] },
+                { ...round, source: "elsewhere" },
+                { ...round, source: "lesson", lesson: { title: 3, numbers: [1] } },
+                { ...round, slots: [{ n: 1, outcome: "maybe", selected: null, options: null }] },
+                { ...round, slots: [{ n: 1, outcome: "open", selected: -1, options: null }] },
+                { ...round, slots: [{ n: 1, outcome: "open", selected: null, options: ["a"] }] },
+                { ...round, slots: "many" },
+                "a round",
+            ])
+            {
+                window.localStorage.setItem(app.STORAGE_KEY, JSON.stringify({ round: broken }));
+                store.load();
+                expect(store.state.round, JSON.stringify(broken)).toBeNull();
+            }
+        });
+
+        it("saves a round only when it changed, and forgets it with the progress", () =>
+        {
+            store.load();
+            const save = vi.spyOn(store, "save");
+            store.keepRound(null);
+            expect(save).not.toHaveBeenCalled();
+            store.keepRound(round as never);
+            store.keepRound(JSON.parse(JSON.stringify(round)) as never);
+            expect(save).toHaveBeenCalledTimes(1);
+            store.resetProgress();
+            expect(store.state.round).toBeNull();
+        });
+    });
+
     describe("load with unusable values", () =>
     {
         it.each([
@@ -321,7 +365,7 @@ describe("Store", () =>
         {
             window.localStorage.setItem(app.STORAGE_KEY, JSON.stringify(saved));
             store.load();
-            expect(store.state).toEqual({ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "" });
+            expect(store.state).toEqual({ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "", round: null });
         });
 
         it("keeps the valid fields next to a broken one", () =>
@@ -445,7 +489,7 @@ describe("Store", () =>
             const old = { uiLanguage: "en", questionLanguage: "both", theme: "dark", scope: "familie-bildung-alltag", records: { "9": { right: 2, wrong: 1, lastWrong: true } } };
             window.localStorage.setItem(OLD_KEY, JSON.stringify(old));
             store.load();
-            expect(store.state).toEqual({ ...{ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "" }, uiLanguage: "en", translation: "en", translationLanguage: "auto", theme: "dark", records: old.records });
+            expect(store.state).toEqual({ ...{ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "", round: null }, uiLanguage: "en", translation: "en", translationLanguage: "auto", theme: "dark", records: old.records });
         });
 
         it("starts without a translation when the old version showed German only", () =>

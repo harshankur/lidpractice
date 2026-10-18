@@ -156,7 +156,7 @@ describe("a catalogue question inside a lesson", () =>
     /** Question 2 with its options in the order of the catalogue. */
     const item: PresentedQuestion = {
         question: question(2),
-        options: ["A", "B", "C", "D"].map((letter, index) => ({ texts: everyLanguage(`Antwort ${letter}`), isCorrect: index === 1 })),
+        options: ["A", "B", "C", "D"].map((letter, index) => ({ index, texts: everyLanguage(`Antwort ${letter}`), isCorrect: index === 1 })),
     };
 
     /**

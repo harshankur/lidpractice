@@ -2141,6 +2141,48 @@ describe("App: practice mode", () =>
             expect(document.activeElement).toBe(document.querySelector("[data-focus]"));
         });
 
+        it("goes on with the round where it stood after the page is loaded anew: the answers, the skips and the order of the options", async () =>
+        {
+            startRound({ order: "booklet" });
+            const first = shownNumber();
+            answerRight();
+            nextButton().click();
+            nextButton().click();
+            const third = shownNumber();
+            const options = optionButtons().map((button) => button.textContent);
+            const states = slotStates();
+            app = await mountApp();
+            expect(shownNumber()).toBe(third);
+            expect(optionButtons().map((button) => button.textContent)).toEqual(options);
+            expect(slotStates()).toEqual(states);
+            expect(statValue("Seen")).toBe("1 of 310");
+            // The answered question shows its answer, as before.
+            (slots()[0] as HTMLButtonElement).click();
+            expect(shownNumber()).toBe(first);
+            expect(document.querySelector(".verdict > span")?.textContent).toBe("Correct.");
+        });
+
+        it("starts a new round after a new load when the saved one does not fit any more, and saves nothing for a round that was not touched", async () =>
+        {
+            const fresh = JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string) as { round?: unknown };
+            expect(fresh.round ?? null).toBeNull();
+            startRound({ scope: "berlin", order: "booklet" });
+            answerRight();
+            expect(JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string).round.slots).toHaveLength(10);
+            // Another state: the questions of the round are not the user's any more.
+            const saved = JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string) as Record<string, unknown>;
+            window.localStorage.setItem(app.STORAGE_KEY, JSON.stringify({ ...saved, state: "bayern" }));
+            app = await mountApp();
+            const named = (): string[] => slots().map((slot) => slot.getAttribute("aria-label") ?? "");
+            expect(named().some((label) => /\bBE \d/.test(label))).toBe(false);
+            expect(slotStates().every((state) => state !== "correct")).toBe(true);
+            // An order of options that does not fit its question: a new round, with nothing answered.
+            const broken = { ...saved, round: { ...(saved.round as Record<string, unknown>), slots: [{ n: 321, outcome: "correct", selected: 1, options: [0, 0, 1, 2] }] } };
+            window.localStorage.setItem(app.STORAGE_KEY, JSON.stringify(broken));
+            app = await mountApp();
+            expect(slotStates().every((state) => state !== "correct")).toBe(true);
+        });
+
         it("tells once, in words, that nothing can be kept when the browser blocks the storage", async () =>
         {
             vi.spyOn(Storage.prototype, "setItem").mockImplementation(() =>

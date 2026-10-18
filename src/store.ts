@@ -7,6 +7,7 @@ import { SECTION_NAME } from "./learn/route";
 import { LAST_BOX, grade, introduce } from "./learn/schedule";
 import {
     DEFAULT_UI_LOCALE, TRANSLATION_LOCALES, UI_LOCALES, automaticTranslation, type ExamResult, type LearnProgress, type Locale, type QuestionRecord, type RoundOrder, type SavedCard,
+    type SavedPracticeRound, type SavedSlot,
     type SavedState, type SeenLesson, type ThemeChoice, type TranslationChoice,
 } from "./types";
 
@@ -20,6 +21,12 @@ const BERLIN_SHIFT = 20;
 
 /** Orders of a round, for checking saved values. */
 const ROUND_ORDERS: readonly RoundOrder[] = ["random", "booklet"];
+
+/** What can have happened to a question of a saved round. */
+const SLOT_OUTCOMES: readonly SavedSlot["outcome"][] = ["correct", "wrong", "skipped", "open"];
+
+/** What a saved round of practice can be made of. */
+const ROUND_SOURCES: readonly SavedPracticeRound["source"][] = ["topics", "weak", "weakSelection", "mistakes", "lesson"];
 
 /** What can go wrong with the storage of the browser: the save cannot be read, or nothing can be kept. */
 export type StorageProblem = "unreadable" | "unsaved";
@@ -58,6 +65,7 @@ export class Store
             learn: { read: {}, seen: {}, cards: {}, last: null },
             exams: [],
             lastPlace: "",
+            round: null,
         };
     }
 
@@ -104,7 +112,46 @@ export class Store
             exams: Store.examResults(parsed.exams),
             // Only the address of a page as the page itself writes it: anything else is forgotten.
             lastPlace: typeof parsed.lastPlace === "string" && pageOf(parsed.lastPlace) === parsed.lastPlace && parsed.lastPlace !== modeHash(START_MODE) ? parsed.lastPlace : defaults.lastPlace,
+            round: Store.practiceRound(parsed.round),
         };
+    }
+
+    /**
+     * Keeps a saved round of practice when every part of it has the right shape. Whether its questions still are the
+     * user's is for the page to check, which knows them.
+     * @param saved What was saved.
+     * @returns The round, or null.
+     */
+    private static practiceRound(saved: unknown): SavedPracticeRound | null
+    {
+        const round = Store.plain(saved) as Partial<SavedPracticeRound>;
+        const numbers = (value: unknown): value is number[] => Array.isArray(value) && value.every((entry) => Number.isInteger(entry) && entry > 0);
+        const slots = Array.isArray(round.slots) ? round.slots as unknown[] : null;
+        const slotOk = (value: unknown): boolean =>
+        {
+            const slot = Store.plain(value) as Partial<SavedSlot>;
+            return Number.isInteger(slot.n) && (slot.n as number) > 0 && SLOT_OUTCOMES.includes(slot.outcome as SavedSlot["outcome"])
+                && (slot.selected === null || Store.isCount(slot.selected)) && (slot.options === null || (Array.isArray(slot.options) && slot.options.every((entry) => Store.isCount(entry))));
+        };
+        const lesson = round.lesson === null ? null : Store.plain(round.lesson) as Partial<NonNullable<SavedPracticeRound["lesson"]>>;
+        const lessonOk = lesson === null || (typeof lesson.title === "string" && numbers(lesson.numbers));
+        const ok = ROUND_ORDERS.includes(round.order as RoundOrder) && typeof round.lock === "boolean" && typeof round.ended === "boolean"
+            && Number.isInteger(round.view) && (round.view as number) >= -1 && Store.isCount(round.resume)
+            && numbers(round.remaining) && slots !== null && slots.every(slotOk) && ROUND_SOURCES.includes(round.source as SavedPracticeRound["source"]) && lessonOk;
+        return ok ? (JSON.parse(JSON.stringify(round)) as SavedPracticeRound) : null;
+    }
+
+    /**
+     * Keeps the round of practice that is open, so it goes on after the page was loaded anew. It is saved only when it changed.
+     * @param round The round as it is saved, or null for none.
+     */
+    public keepRound(round: SavedPracticeRound | null): void
+    {
+        if (JSON.stringify(round) !== JSON.stringify(this.state.round))
+        {
+            this.state.round = round;
+            this.save();
+        }
     }
 
     /**
@@ -452,6 +499,7 @@ export class Store
         this.state.records = {};
         this.state.learn = { read: {}, seen: {}, cards: {}, last: null };
         this.state.exams = [];
+        this.state.round = null;
         this.save();
     }
 

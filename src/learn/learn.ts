@@ -162,6 +162,8 @@ export class LearnTab
     private cached: { key: string; book: CourseBook } | null = null;
     /** A place that is to be shown as soon as the course is there. */
     private pending: LearnRoute | null = null;
+    /** Where the window was on that place, as the step of the browser's history kept it, or undefined. */
+    private left: number | undefined;
     /** Where the window goes after the next draw of a page, or null to leave it where it is. */
     private arrival: Arrival | null = null;
     /**
@@ -471,9 +473,10 @@ export class LearnTab
      * browser leads to it. It is shown with the next draw of the tab, or as soon as the course has arrived.
      * @param route The place.
      */
-    public follow(route: LearnRoute): void
+    public follow(route: LearnRoute, left?: number): void
     {
         this.pending = route;
+        this.left = left;
     }
 
     /** Goes back to the top of the list of lessons, when the user presses the tab of the tab that is open. The focus stays on that tab. */
@@ -552,6 +555,12 @@ export class LearnTab
             page = { name: pending.page };
         }
         this.page = page;
+        if (this.left !== undefined && section === undefined)
+        {
+            // The browser kept where the window was on this step of its history, also over a reload of the page.
+            this.scrolls.set(LearnTab.keyOf(page), this.left);
+        }
+        this.left = undefined;
         this.arrival = this.arrivalFor(page, from, section, "return");
         // The address is put right: it names the page that is shown, and a section only when the lesson has it.
         this.host.visit(page.name === "lesson" && section !== undefined ? routeHash({ page: "lesson", lesson: page.id, section }) : this.hash(), false);

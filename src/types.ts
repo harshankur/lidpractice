@@ -137,6 +137,8 @@ export interface Question extends QuestionEntry
 /** One answer option after shuffling. */
 export interface PresentedOption
 {
+    /** The place of the option in the catalogue, from 0: what is saved when the order it was shown in has to be kept. */
+    index: number;
     /** The option in every language. */
     texts: Record<Locale, string>;
     /** Whether this option is the correct answer. */
@@ -243,6 +245,38 @@ export interface SavedState
     exams: ExamResult[];
     /** The page that was open last, as the part of its address after "#" with the sign ("#train", "#learn/wuerde"), or "" for the tab the site opens with. */
     lastPlace: string;
+    /** The round of practice that was open, so it goes on after the page was loaded anew, or null. */
+    round: SavedPracticeRound | null;
+}
+
+/** A question of a round as it is saved: what was done with it, and the order its options were shown in. */
+export interface SavedSlot
+{
+    n: number;
+    outcome: "correct" | "wrong" | "skipped" | "open";
+    selected: number | null;
+    /** The places of the options in the catalogue, in the order they were shown, or null before the question was shown. */
+    options: number[] | null;
+}
+
+/** A round of practice as it is saved. */
+export interface SavedRound
+{
+    order: RoundOrder;
+    lock: boolean;
+    view: number;
+    resume: number;
+    ended: boolean;
+    /** The questions a round in random order has not drawn yet. */
+    remaining: number[];
+    slots: SavedSlot[];
+}
+
+/** The round of practice that is saved: the round, what it is made of, and for a round over a lesson its title and questions. */
+export interface SavedPracticeRound extends SavedRound
+{
+    source: "topics" | "weak" | "weakSelection" | "mistakes" | "lesson";
+    lesson: { title: string; numbers: number[] } | null;
 }
 
 /** State of a running or finished exam. */
