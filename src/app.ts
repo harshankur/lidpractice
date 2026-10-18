@@ -35,10 +35,10 @@ import { dayNumber } from "./learn/schedule";
 import { shortcutKey } from "./keys";
 import { Listbox } from "./listbox";
 import { Modal } from "./modal";
-import { pickRandom } from "./random";
+import { pickRandom, shuffled } from "./random";
 import { Round } from "./round";
 import { Trainer, type TrainReason } from "./train";
-import { Store } from "./store";
+import { Store, type StorageProblem } from "./store";
 import { applyTheme } from "./theme";
 import { renderTimeline, scrollTimelineToCurrent } from "./timeline";
 import { renderTopicPanel, type TopicPanelConfig } from "./topicPanel";
@@ -99,6 +99,9 @@ const TWO_STEP_BUTTONS: Record<TwoStep, { id: string; className: string; label: 
     reset: { id: "reset-progress", className: "secondary sm two-step danger-text", label: msg("stats.reset"), confirm: msg("stats.resetConfirm") },
     startOver: { id: "exam-start-over", className: "secondary sm two-step", label: msg("exam.startOver"), confirm: msg("exam.startOverConfirm") },
 };
+
+/** What the user is told about each problem with the storage of the browser. */
+const STORAGE_MESSAGES: Record<StorageProblem, MessageKey> = { unreadable: msg("storage.unreadable"), unsaved: msg("storage.unsaved") };
 
 /** Id of the result card of the exam, which takes the keyboard focus when the result appears. */
 const RESULT_ID = "exam-result";
@@ -246,6 +249,14 @@ export class App
         this.root = root;
         this.toast = toast;
         this.modal = new Modal(modalRoot, [root]);
+        // A problem with the storage is told in words, once, and in the user's language: before the page is drawn it waits for that.
+        this.store.onProblem = (problem) =>
+        {
+            if (this.started)
+            {
+                this.showError(t(STORAGE_MESSAGES[problem]), true);
+            }
+        };
         this.learn = new LearnTab({
             bank,
             store: this.store,
@@ -264,6 +275,13 @@ export class App
             closeDialog: () => this.modal.close(),
             visit: (hash, step) => this.setAddress(hash, step),
             link: (hash) => this.linkTo(hash),
+            clearError: (message) =>
+            {
+                if (!this.toast.hidden && this.toast.textContent === message)
+                {
+                    this.toast.hidden = true;
+                }
+            },
         }, learnFiles);
     }
 
@@ -354,13 +372,22 @@ export class App
         document.addEventListener("keydown", (event) => this.handleKey(event));
         document.addEventListener("click", (event) => this.releaseOnClick(event));
         // The row of tabs is measured when the page is drawn. Its words get another width when the font arrives or the window changes, so it is measured again then.
-        window.addEventListener("resize", () => this.revealOpenTab());
+        window.addEventListener("resize", () =>
+        {
+            this.revealOpenTab();
+            // The strip of the round gets another width: the question that shows is brought back into it.
+            scrollTimelineToCurrent(this.root);
+        });
         void document.fonts?.ready.then(() => this.revealOpenTab());
         this.practiceClock = new Clock(this.store.state.clockMode, this.store.state.clockMinutes);
         this.rounds.practice = this.newTopicRound();
         this.openAddress();
         this.started = true;
         this.render();
+        for (const problem of this.store.problems)
+        {
+            this.showError(t(STORAGE_MESSAGES[problem]), true);
+        }
         if (!this.store.state.setupDone)
         {
             this.showSetup();
@@ -427,6 +454,20 @@ export class App
         if (this.examRuns())
         {
             event.preventDefault();
+        }
+    }
+
+    /**
+     * Runs the action of a button that moves on to another question, but not for the second click of a double click: that
+     * click lands on the same button for the next question and would skip it.
+     * @param event The click.
+     * @param action What the button does.
+     */
+    private static once(event: Event, action: () => void): void
+    {
+        if ((event as MouseEvent).detail < 2)
+        {
+            action();
         }
     }
 
@@ -671,10 +712,11 @@ export class App
     /**
      * Shows a short error message at the bottom of the page.
      * @param message Text to show.
+     * @param known Whether the text was written for the user. The text of an unexpected error gets a line that says so in front of it.
      */
-    public showError(message: string): void
+    public showError(message: string, known = false): void
     {
-        this.toast.textContent = t("toast.error", { message });
+        this.toast.textContent = known ? message : t("toast.error", { message });
         this.toast.hidden = false;
         // A new message gets its own full time: the timer of the one before would take it away early.
         window.clearTimeout(this.toastTimer);
@@ -1072,7 +1114,8 @@ export class App
     {
         const general = pickRandom(this.bank.general, EXAM_GENERAL_COUNT);
         const local = pickRandom(this.bank.ofState(this.store.state.state), EXAM_STATE_COUNT);
-        const items = [...general, ...local].map((question) => this.bank.present(question));
+        // The questions of the state are mixed in among the general ones, so where they come up tells nothing.
+        const items = shuffled([...general, ...local]).map((question) => this.bank.present(question));
         const clock = new Clock("down", this.store.state.examMinutes);
         clock.start(Date.now());
         this.exam = {
@@ -1216,7 +1259,8 @@ export class App
         }
         if (this.mode === "exam")
         {
-            return t("clock.note.exam", { minutes: EXAM_DURATION_MINUTES });
+            // While the exam runs its time cannot be changed any more: the note says what happens at the end instead.
+            return this.examRuns() ? t("clock.note.examRuns") : t("clock.note.exam", { minutes: EXAM_DURATION_MINUTES });
         }
         return clock.mode === "down" ? t("clock.note.down") : t("clock.note.up");
     }
@@ -1309,7 +1353,9 @@ export class App
         const backwardKey = i18n.dir === "rtl" ? "arrowright" : "arrowleft";
         // Any key that is not on the way to the waiting button or a press of it takes its wait for a second press back.
         // Escape does so on the button too, and does nothing else then.
-        if (!PASSIVE_KEYS.includes(key) && (key === "escape" || !this.onArmedButton(target)) && this.release() && key === "escape")
+        // Only a press of the waiting button itself (Enter or Space on it) keeps the wait; any other key on it, such as M, ends it.
+        const pressesArmed = this.onArmedButton(target) && (key === "enter" || key === " ");
+        if (!PASSIVE_KEYS.includes(key) && (key === "escape" || !pressesArmed) && this.release() && key === "escape")
         {
             return;
         }
@@ -2336,7 +2382,7 @@ export class App
                 onclick: () => this.stepBack(),
             }, icon("arrowBack"), el("span", {}, t("action.previous"))),
             round.view >= 0
-                ? el("button", { id: "round-next", class: quiet ? "secondary" : "primary", type: "button", onclick: () => this.advance() },
+                ? el("button", { id: "round-next", class: quiet ? "secondary" : "primary", type: "button", onclick: (event: Event) => App.once(event, () => this.advance()) },
                     el("span", { class: "swap-box" }, ...stackedTexts(texts, texts.indexOf(label))), icon("arrowForward"))
                 : null);
     }
@@ -2826,14 +2872,15 @@ export class App
                 column.append(marker);
             }
             column.append(this.renderQuestionCard(session.item, session.selected, true, !trainer.answered, session.gaveUp));
-            if (trainer.answered)
-            {
-                column.append(this.trainNote(trainer, topic));
-            }
             column.append(el("div", { class: "footer-row nav-row" },
                 el("button", { id: "train-give-up", class: "secondary", type: "button", disabled: trainer.answered, onclick: () => this.giveUpTrain() }, t("train.dontKnow")),
-                el("button", { id: "train-next", class: "primary", type: "button", disabled: !trainer.answered, onclick: () => this.nextTrain() },
+                el("button", { id: "train-next", class: "primary", type: "button", disabled: !trainer.answered, onclick: (event: Event) => App.once(event, () => this.nextTrain()) },
                     trainer.remaining === 0 ? t("train.finish") : t("train.next"))));
+            if (trainer.answered)
+            {
+                // Below the buttons: what an answer did comes up there, so the buttons do not move down under the pointer.
+                column.append(this.trainNote(trainer, topic));
+            }
         }
         return el("div", { class: "layout" }, column, this.renderAside());
     }
@@ -3045,7 +3092,7 @@ export class App
                         }
                     },
                 }, t("exam.finish"))
-                : el("button", { id: "exam-next", class: "primary", type: "button", onclick: () => this.moveExam(1) }, t("exam.next")));
+                : el("button", { id: "exam-next", class: "primary", type: "button", onclick: (event: Event) => App.once(event, () => this.moveExam(1)) }, t("exam.next")));
 
         const column = el("section", { class: "stage" }, this.renderClockStrip(), bar, navigator, this.renderQuestionCard(item, exam.answers[exam.current], false), controls);
         return el("div", { class: "layout" }, column, this.renderAside());
@@ -3194,7 +3241,7 @@ async function boot(): Promise<void>
     const files = readLanguageFiles(document.getElementById("language-files"));
     const languages = new LanguageLoader(files, bank);
     const app = new App(bank, root, toast, modalRoot, languages, files.learn);
-    ErrorBoundary.install((message) => app.showError(message));
+    ErrorBoundary.install((message, known) => app.showError(message, known));
     await app.start();
 }
 

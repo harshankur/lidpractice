@@ -272,9 +272,13 @@ test.describe("the Learn tab", () =>
         const count = cardCount(FIRST);
         await expect(page.locator("#learn-next")).toHaveText(`Review ${count} cards`);
         await page.locator("#learn-next").click();
+        // The clock of the page stands still here: it is moved on a second before each rating, as time passes while a card is read.
+        let moment = new Date(2026, 9, 13, 9, 0).getTime();
         for (let index = 0; index < count; index++)
         {
             await page.locator("#flash-answer-show").click();
+            moment += 1000;
+            await page.clock.setFixedTime(moment);
             await page.locator("#flash-known").click();
         }
         await expect(page.locator(".flash-end h3")).toHaveText("Done for now");

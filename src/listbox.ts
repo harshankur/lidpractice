@@ -83,6 +83,9 @@ const TYPE_AHEAD_MS = 600;
 /** Arrow shown on the button. */
 const CHEVRON_ICON = "chevronDown";
 
+/** The space between two words of the text of a button. */
+const WORD_SPACE = " ";
+
 /**
  * A choice list that replaces the browser's own select: a button that opens a
  * list drawn by the page, following the ARIA listbox pattern. Arrow keys, Home, End and Page keys move,
@@ -121,6 +124,9 @@ export class Listbox
         const buttonContent: Child[] = [
             config.icon ? config.icon() : null,
             config.iconOnly ? null : (config.prefix ? el("span", { class: "listbox-prefix" }, config.prefix) : null),
+            // A space between what the list is for and what is chosen: the button lays them out apart anyway, but its text
+            // must read as words, so that it is part of the name and a user of voice control can say what it shows.
+            config.iconOnly || !config.prefix ? null : document.createTextNode(WORD_SPACE),
             config.iconOnly ? null : labelOf(chosen, chosen?.short ?? chosen?.label ?? "", 1),
             config.iconOnly ? null : el("span", { class: "listbox-chevron", "aria-hidden": "true" }, icon(CHEVRON_ICON)),
         ];

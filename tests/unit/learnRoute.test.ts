@@ -26,6 +26,15 @@ describe("the addresses of the Learn tab", () =>
         expect(RESERVED_NAMES).toEqual(["timeline", "maps"]);
     });
 
+    it("are read as typed by hand: with capitals, and with a slash too many", () =>
+    {
+        expect(parseRoute("#Learn")).toEqual({ page: "home" });
+        expect(parseRoute("#learn/Wuerde")).toEqual({ page: "lesson", lesson: "wuerde" });
+        expect(parseRoute("#LEARN/GEWALTEN/LEGISLATIVE")).toEqual({ page: "lesson", lesson: "gewalten", section: "legislative" });
+        expect(parseRoute("#learn//wuerde")).toEqual({ page: "lesson", lesson: "wuerde" });
+        expect(parseRoute("#learn/wuerde//")).toEqual({ page: "lesson", lesson: "wuerde" });
+    });
+
     it("are read with or without the sign in front, and with a slash at the end", () =>
     {
         expect(parseRoute("learn/wuerde")).toEqual({ page: "lesson", lesson: "wuerde" });
@@ -36,7 +45,7 @@ describe("the addresses of the Learn tab", () =>
 
     it("are no address of the tab when they start with anything else: the other tabs have names of their own", () =>
     {
-        for (const hash of ["", "#", "#practice", "#learner", "#learning/wuerde", "#Learn", "#exam/learn", "# learn"])
+        for (const hash of ["", "#", "#practice", "#learner", "#learning/wuerde", "#exam/learn", "# learn"])
         {
             expect(parseRoute(hash), hash).toBeNull();
         }
@@ -44,7 +53,7 @@ describe("the addresses of the Learn tab", () =>
 
     it("lead to the list of lessons when they name something that cannot exist", () =>
     {
-        for (const hash of ["#learn/Wuerde", "#learn/wuerde/Artikel 1", "#learn/a/b/c", "#learn//wuerde", "#learn/wuerde//", "#learn/-wuerde", "#learn/wuerde-", "#learn/w%C3%BCrde", "#learn/timeline/1933", "#learn/maps/states", "#learn/<script>"])
+        for (const hash of ["#learn/wuerde/Artikel 1", "#learn/a/b/c", "#learn/-wuerde", "#learn/wuerde-", "#learn/w%C3%BCrde", "#learn/timeline/1933", "#learn/maps/states", "#learn/<script>"])
         {
             expect(parseRoute(hash), hash).toEqual({ page: "home" });
         }

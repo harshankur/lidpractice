@@ -21,6 +21,9 @@ const BERLIN_SHIFT = 20;
 /** Orders of a round, for checking saved values. */
 const ROUND_ORDERS: readonly RoundOrder[] = ["random", "booklet"];
 
+/** What can go wrong with the storage of the browser: the save cannot be read, or nothing can be kept. */
+export type StorageProblem = "unreadable" | "unsaved";
+
 /**
  * Loads and saves {@link SavedState}. All storage access goes through
  * {@link ErrorBoundary.run}, so a blocked or full storage never breaks the page.
@@ -29,6 +32,10 @@ export class Store
 {
     /** Current state, always valid even if storage is unavailable. */
     public state: SavedState = Store.defaultState();
+    /** The problems with the storage the page was told about, each once. */
+    public readonly problems = new Set<StorageProblem>();
+    /** Called once for each problem with the storage. The page shows a message once it can show one in the user's language. */
+    public onProblem: (problem: StorageProblem) => void = () => undefined;
 
     /** Creates the default state: German interface, German only (no translation), system theme, all topics, booklet order. */
     private static defaultState(): SavedState
@@ -227,10 +234,10 @@ export class Store
     {
         for (const key of LEGACY_STORAGE_KEYS)
         {
-            const raw = ErrorBoundary.run(() => window.localStorage.getItem(key), null);
+            const raw = ErrorBoundary.run(() => window.localStorage.getItem(key), null, null);
             if (raw)
             {
-                const old = Store.plain(ErrorBoundary.run(() => JSON.parse(raw) as unknown, {}));
+                const old = Store.plain(ErrorBoundary.run(() => JSON.parse(raw) as unknown, {}, null));
                 const showedEnglish = old.questionLanguage === "en" || old.questionLanguage === "both";
                 const oldTopics = Array.isArray(old.topics) ? (old.topics as unknown[]).filter((topic) => typeof topic === "string") as string[] : null;
                 return {
@@ -252,7 +259,7 @@ export class Store
     {
         for (const key of LEGACY_STORAGE_KEYS)
         {
-            ErrorBoundary.run(() => window.localStorage.removeItem(key), undefined);
+            ErrorBoundary.run(() => window.localStorage.removeItem(key), undefined, null);
         }
     }
 
@@ -283,7 +290,12 @@ export class Store
      */
     public load(): void
     {
-        const raw = ErrorBoundary.run(() => window.localStorage.getItem(STORAGE_KEY), null);
+        const raw = ErrorBoundary.run(() => window.localStorage.getItem(STORAGE_KEY), undefined, null);
+        if (raw === undefined)
+        {
+            // The browser does not let the page at its storage at all: nothing can be read, and nothing will be kept.
+            this.notice("unsaved");
+        }
         if (!raw)
         {
             const legacy = Store.readLegacy();
@@ -294,7 +306,13 @@ export class Store
             }
             return;
         }
-        this.state = Store.sanitize(ErrorBoundary.run(() => JSON.parse(raw) as unknown, {}));
+        const unreadable = {};
+        const parsed = ErrorBoundary.run(() => JSON.parse(raw) as unknown, unreadable, null);
+        if (parsed === unreadable)
+        {
+            this.notice("unreadable");
+        }
+        this.state = Store.sanitize(parsed);
         Store.dropLegacy();
     }
 
@@ -304,11 +322,29 @@ export class Store
      */
     public save(): boolean
     {
-        return ErrorBoundary.run(() =>
+        const saved = ErrorBoundary.run(() =>
         {
             window.localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
             return true;
-        }, false);
+        }, false, null);
+        if (!saved)
+        {
+            this.notice("unsaved");
+        }
+        return saved;
+    }
+
+    /**
+     * Tells the page once about a problem with the storage, so it can tell the user in words that fit.
+     * @param problem What went wrong.
+     */
+    private notice(problem: StorageProblem): void
+    {
+        if (!this.problems.has(problem))
+        {
+            this.problems.add(problem);
+            this.onProblem(problem);
+        }
     }
 
     /**

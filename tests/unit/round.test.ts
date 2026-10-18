@@ -36,6 +36,13 @@ describe("Round in booklet order", () =>
         round = new Round([30, 10, 20, 40, 50], "booklet", present);
     });
 
+    it("gives a question that is named twice one place only", () =>
+    {
+        const twice = new Round([5, 5, 7, 5], "booklet", present);
+        expect(numbers(twice)).toEqual([5, 7]);
+        expect(twice.total).toBe(2);
+    });
+
     it("has a slot for every question, ascending, all open, so the future is known", () =>
     {
         expect(numbers(round)).toEqual([10, 20, 30, 40, 50]);

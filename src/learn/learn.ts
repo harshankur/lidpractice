@@ -1,5 +1,5 @@
 import type { QuestionBank } from "../bank";
-import { EXAM_GENERAL_COUNT, EXAM_PASS_MARK, EXAM_STATE_COUNT, PERCENT } from "../constants";
+import { CONFIRM_GUARD_MS, EXAM_GENERAL_COUNT, EXAM_PASS_MARK, EXAM_STATE_COUNT, PERCENT } from "../constants";
 import { clampedText, el, icon, twoStepLabel, type Child } from "../dom";
 import { ErrorBoundary } from "../errorBoundary";
 import { i18n, t } from "../i18n";
@@ -61,6 +61,11 @@ export interface LearnHost
      * @param hash The part of the address after the "#" sign, with the sign.
      */
     link(hash: string): string;
+    /**
+     * Takes a message about a failure back from the bottom of the page, when it is the one that shows.
+     * @param message The text of the message.
+     */
+    clearError(message: string): void;
 }
 
 /** What the tab shows. */
@@ -175,6 +180,8 @@ export class LearnTab
     private noteTimer = 0;
     /** The state a link to the lesson about a state was made for, when it is not the user's own. */
     private linked: string | null = null;
+    /** When the answer of the flash card that is up came up, so a press right after it is not taken as rating the card. */
+    private revealedAt = 0;
     /** The question whose explanation the dialog shows, or null while it does not. */
     private why: number | null = null;
 
@@ -220,6 +227,11 @@ export class LearnTab
             {
                 // The course of another language has arrived: the page is drawn where the user was, and the focus stays on the list of languages.
                 this.arrival = { at: "offset", y: left, focus: "keep" };
+            }
+            if (loaded)
+            {
+                // A message that the lessons could not be loaded is not true any more.
+                this.host.clearError(t("learn.loadFailed"));
             }
             this.host.render();
             if (this.why !== null)
@@ -291,7 +303,7 @@ export class LearnTab
         const key = [locale, stateId, this.host.bank.hasQuestions(locale)].join(" ");
         if (this.cached?.key !== key)
         {
-            const book = ErrorBoundary.run(() => new CourseBook(file, texts, this.stateFacts(stateId, locale)), null);
+            const book = ErrorBoundary.run(() => new CourseBook(file, texts, this.stateFacts(stateId, locale)), null, t("learn.loadFailed"));
             if (!book)
             {
                 this.status = "failed";
@@ -652,23 +664,21 @@ export class LearnTab
         const names = sections.map((section) => section.dataset.anchor as string);
         // The furthest section reading got to before, or -1 for none: a section the lesson no longer has counts as none.
         let reached = names.indexOf(this.host.store.state.learn.seen[page.id]?.at ?? "");
-        let seen = 0;
         for (const [index, section] of sections.entries())
         {
-            const { top } = section.getBoundingClientRect();
-            if (top <= READING_LINE)
+            if (section.getBoundingClientRect().top <= READING_LINE)
             {
                 reached = Math.max(reached, index);
             }
-            if (top < height * SEEN_SHARE)
-            {
-                seen += 1;
-            }
         }
         const end = stage.querySelector<HTMLElement>(".lesson-end");
-        const whole = end !== null && end.getBoundingClientRect().top < height;
-        // The end of the lesson is one more step than its last section, so a lesson is only read in full when its end was in view.
-        this.host.store.seeLesson(page.id, names[reached] ?? "", whole ? PERCENT : Math.floor((seen / (sections.length + 1)) * PERCENT));
+        const endTop = end?.getBoundingClientRect().top ?? stage.getBoundingClientRect().bottom;
+        // The share is measured along the length of the lesson, from its first section to its end, up to a line low in
+        // the window: a long section counts for its length, not as one of many. A lesson is only read in full when its end was in view.
+        const start = sections[0]?.getBoundingClientRect().top ?? endTop;
+        const share = endTop > start ? Math.min(1, Math.max(0, (height * SEEN_SHARE - start) / (endTop - start))) : 0;
+        const whole = end !== null && endTop < height;
+        this.host.store.seeLesson(page.id, names[reached] ?? "", whole ? PERCENT : Math.floor(share * PERCENT));
     }
 
     // ----- what a lesson remembers -----
@@ -897,7 +907,23 @@ export class LearnTab
         if (session.current && !session.revealed)
         {
             session.reveal();
+            this.revealedAt = Date.now();
             this.drawCards(book, "flash-known");
+        }
+    }
+
+    /**
+     * A press of a button that rates the card. The keyboard is on "Got it" once the answer shows, so a second press of
+     * Space or Enter that was meant to show the answer would rate the card: a press right after the answer came up is not taken.
+     * @param session The run through the cards.
+     * @param known Whether the user knew it.
+     * @param book The course.
+     */
+    private pressRating(session: CardSession, known: boolean, book: CourseBook): void
+    {
+        if (Date.now() - this.revealedAt >= CONFIRM_GUARD_MS)
+        {
+            this.rateCard(session, known, book);
         }
     }
 
@@ -1467,8 +1493,8 @@ export class LearnTab
             el("h3", { class: "flash-front" }, ...richNodes(card.front)),
             revealBox("flash-answer", this.cardBack(card, book), session.revealed, () => this.revealCard(session, book)),
             el("div", { class: "footer-row flash-actions" },
-                el("button", { id: "flash-again", class: "secondary", type: "button", disabled: !session.revealed, onclick: () => this.rateCard(session, false, book) }, t("learn.cards.again")),
-                el("button", { id: "flash-known", class: "primary", type: "button", disabled: !session.revealed, onclick: () => this.rateCard(session, true, book) }, t("learn.cards.known"))),
+                el("button", { id: "flash-again", class: "secondary", type: "button", disabled: !session.revealed, onclick: () => this.pressRating(session, false, book) }, t("learn.cards.again")),
+                el("button", { id: "flash-known", class: "primary", type: "button", disabled: !session.revealed, onclick: () => this.pressRating(session, true, book) }, t("learn.cards.known"))),
             el("p", { class: "hint flash-keys" }, t("learn.cards.keys"))));
     }
 

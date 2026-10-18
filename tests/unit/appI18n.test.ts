@@ -184,7 +184,7 @@ describe("App: language, theme and tabs", () =>
         {
             app = await mountApp(undefined, { locale: "de" });
             const button = document.getElementById("site-language-button") as HTMLElement;
-            expect(button.textContent).toBe("Sprache der SeiteDeutsch");
+            expect(button.textContent).toBe("Sprache der Seite Deutsch");
             expect(button.getAttribute("aria-label")).toBe("Sprache der Seite: Deutsch");
             (button as HTMLButtonElement).click();
             expect([...document.querySelectorAll("#site-language-list [role=option]")].map((option) => option.textContent)).toEqual(["Deutsch", "English", "العربية", "Українська", "Türkçe", "Español", "हिन्दी"]);
@@ -419,7 +419,7 @@ describe("App: language, theme and tabs", () =>
             expect(button.classList.contains("is-icon-only")).toBe(false);
             expect(button.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
             expect(button.querySelector(".listbox-prefix")?.textContent).toBe("Appearance");
-            expect(button.textContent).toBe("AppearanceAuto");
+            expect(button.textContent).toBe("Appearance Auto");
             expect(document.getElementById("site-language-button")?.querySelector(".listbox-prefix")?.textContent).toBe("Site language");
         });
 
@@ -429,7 +429,7 @@ describe("App: language, theme and tabs", () =>
             expect([...document.querySelectorAll("#theme-list [role=option]")].map((option) => option.textContent)).toEqual([
                 "Automatic (like device)", "Light", "Dark"]);
             (document.querySelector("#theme-list [data-value=dark]") as HTMLElement).click();
-            expect(document.getElementById("theme-button")?.textContent).toBe("AppearanceDark");
+            expect(document.getElementById("theme-button")?.textContent).toBe("Appearance Dark");
         });
 
         it("forces dark and light with a class on the root element", async () =>

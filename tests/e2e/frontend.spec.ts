@@ -79,7 +79,7 @@ test.describe("error message", () =>
         await page.goto("/?lang=en");
         const toast = page.getByRole("alert");
         await expect(toast).toBeVisible();
-        await expect(toast).toContainText("Something went wrong");
+        await expect(toast).toHaveText("Your saved progress could not be read, so the page starts fresh.");
         // The clock also moved while the page loaded, so stay well clear of the limit on the first step.
         await page.clock.runFor(TOAST_MS - LOAD_MARGIN_MS);
         await expect(toast).toBeVisible();
@@ -92,7 +92,7 @@ test.describe("error message", () =>
         allowedErrors.push(/console: SyntaxError/);
         await page.addInitScript((key) => window.localStorage.setItem(key, "{broken"), STORAGE_KEY);
         await page.goto("/?lang=de");
-        await expect(page.getByRole("alert")).toContainText("Etwas ist schiefgelaufen");
+        await expect(page.getByRole("alert")).toHaveText("Dein gespeicherter Fortschritt ließ sich nicht lesen, die Seite beginnt neu.");
     });
 });
 

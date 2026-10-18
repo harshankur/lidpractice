@@ -112,6 +112,32 @@ describe("App: exam mode", () =>
             expect(numbers.filter((number) => number > app.LAST_GENERAL_NUMBER)).toHaveLength(3);
         });
 
+        it("mixes the questions of the state in among the general ones, so their place tells nothing", () =>
+        {
+            /** The places of the state questions in a new exam. */
+            const places = (): number[] =>
+            {
+                startExam();
+                const found: number[] = [];
+                for (let index = 0; index < EXAM_SIZE; index++)
+                {
+                    if (shownNumber() > app.LAST_GENERAL_NUMBER)
+                    {
+                        found.push(index);
+                    }
+                    pressKey("ArrowRight");
+                }
+                clickButton("End now");
+                finishAnyway();
+                clickButton("New exam");
+                return found;
+            };
+            // The last three places every time would happen by chance once in more than five thousand exams.
+            const seen = [places(), places(), places()];
+            expect(seen.every((found) => found.length === 3)).toBe(true);
+            expect(seen.some((found) => found.join() !== "30,31,32")).toBe(true);
+        });
+
         it("does not reveal whether an answer is right", () =>
         {
             startExam();
@@ -1193,6 +1219,38 @@ describe("App: exam mode", () =>
             expect(document.querySelector(".confirm")?.textContent).toContain("32 questions are still unanswered");
             finishAnyway();
             expect(document.querySelector(".result-score")?.textContent).toMatch(/^[01] of 33$/);
+        });
+
+        it("ends the wait of Start over with any key on it but Enter and Space, and M then marks the question", () =>
+        {
+            startExam();
+            const button = document.getElementById("exam-start-over") as HTMLButtonElement;
+            button.focus();
+            button.click();
+            expect(visibleText(document.getElementById("exam-start-over") as HTMLElement)).toBe("Tap again: new exam");
+            pressKey("m", {}, document.getElementById("exam-start-over") as HTMLElement);
+            expect(visibleText(document.getElementById("exam-start-over") as HTMLElement)).toBe("Start over");
+            expect(document.getElementById("exam-mark")?.getAttribute("aria-pressed")).toBe("true");
+        });
+
+        it("says while the exam runs that it ends when the time is up, not that the time can be changed", () =>
+        {
+            clickButton("Exam (33)");
+            expect(document.getElementById("clock-note")?.textContent).toContain("You can make it shorter");
+            clickButton("Start exam");
+            expect(document.getElementById("clock-note")?.textContent).toBe("Counts down. The exam ends when the time is up.");
+        });
+
+        it("does not skip a question for the second click of a double click on Next", () =>
+        {
+            startExam();
+            const next = (): HTMLElement => document.getElementById("exam-next") as HTMLElement;
+            next().dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
+            next().dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 2 }));
+            expect(document.querySelector(".exam-progress")?.textContent).toBe("Question 2 of 33");
+            // A press by the keyboard has no count of clicks and always moves on.
+            next().dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 0 }));
+            expect(document.querySelector(".exam-progress")?.textContent).toBe("Question 3 of 33");
         });
 
         it("has a Start over button that needs a second press, and then starts a new exam with a full clock", () =>

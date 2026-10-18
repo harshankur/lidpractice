@@ -284,7 +284,7 @@ describe("App: the addresses of the tabs", () =>
 
     it.each([
         ["#somewhere", "practice"],
-        ["#Train", "practice"],
+        ["#Train", "train"],
         ["#exams", "practice"],
         ["#train/", "train"],
         ["#exam/now", "exam"],

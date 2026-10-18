@@ -76,7 +76,7 @@ function stateOf(round: Round, index: number, slot: RoundSlot): SlotState
  */
 function slotLabel(round: Round, index: number, slot: RoundSlot): string
 {
-    if (index === round.view && !round.ended)
+    if (index === round.view)
     {
         return t("timeline.slot.current", { n: questionName(slot.n) });
     }
@@ -107,7 +107,8 @@ function slotLabel(round: Round, index: number, slot: RoundSlot): string
 function renderSlot(round: Round, index: number, stopIndex: number, handlers: TimelineHandlers): HTMLElement
 {
     const slot = round.slots[index];
-    const isCurrent = index === round.view && !round.ended;
+    // The question that shows is the current one, also when a round that has ended shows a skipped question again.
+    const isCurrent = index === round.view;
     const state = stateOf(round, index, slot);
     const classes = ["slot", `is-${state}`, isCurrent ? "is-current" : "", isCurrent && slot.outcome === "skipped" ? "was-skipped" : ""].filter(Boolean);
     return el("li", {},
@@ -159,13 +160,15 @@ export function renderTimeline(round: Round, legendOpen: boolean, handlers: Time
     };
     const earlier = el("button", { class: "timeline-scroll", type: "button", "aria-label": t("timeline.scrollEarlier"), onclick: () => scroll(-1) }, icon("chevronStart")) as HTMLButtonElement;
     const later = el("button", { class: "timeline-scroll", type: "button", "aria-label": t("timeline.scrollLater"), onclick: () => scroll(1) }, icon("chevronEnd")) as HTMLButtonElement;
-    // An arrow that cannot scroll any further is off, so the ends of the strip are known without looking for them.
+    // An arrow that cannot scroll any further looks off, so the ends of the strip are known without looking for them.
     // In a right to left page scrollLeft is 0 at the start and negative beyond it, so only its size counts.
+    // An arrow at an end of the strip says so (aria-disabled, and drawn faint), but stays a button that can be pressed: a
+    // press at the end scrolls nowhere, and a state that missed a scroll can never keep the user from scrolling.
     const updateArrows = (): void =>
     {
         const travelled = Math.abs(strip.scrollLeft);
-        earlier.disabled = travelled <= 0;
-        later.disabled = travelled + strip.clientWidth >= strip.scrollWidth - SCROLL_END_TOLERANCE;
+        earlier.setAttribute("aria-disabled", String(travelled <= 0));
+        later.setAttribute("aria-disabled", String(travelled + strip.clientWidth >= strip.scrollWidth - SCROLL_END_TOLERANCE));
     };
     strip.addEventListener("scroll", updateArrows);
     // The end of a scroll is told once more: a busy browser can leave out the last scroll event of an animation, and an
@@ -189,7 +192,9 @@ export function renderTimeline(round: Round, legendOpen: boolean, handlers: Time
         : null;
     return el("nav", { class: "timeline", "aria-label": t("timeline.label") },
         head,
-        el("div", { class: "timeline-body" },
+        // The arrows are checked again when the pointer or the keyboard comes to the strip: whatever scrolling went unnoticed,
+        // an arrow is never off while there is still something to scroll to.
+        el("div", { class: "timeline-body", onpointerover: updateArrows, onfocusin: updateArrows },
             earlier,
             strip,
             later),

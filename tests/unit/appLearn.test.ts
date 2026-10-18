@@ -5,7 +5,7 @@ import { dayNumber } from "../../src/learn/schedule";
 import type { CourseFile, CourseTexts, LessonSpec, UnitSpec } from "../../src/learn/types";
 import {
     breakServer, buttonByText, chooseFromListbox, chooseTranslation, clickButton, correctIndex, finishAnyway, mountApp, optionButtons, pressKey, requests, serveCourseFile, settle,
-    shownNumber, slots, startExam, statValue, REAL_QUESTIONS, type AppExports, pressFinishExam,
+    shownNumber, slots, startExam, statValue, REAL_QUESTIONS, type AppExports, pressFinishExam, afterGuard,
 } from "../helpers/appHarness";
 
 /** The real course: these tests drive the tab the way a user does, with the lessons a user gets. */
@@ -63,6 +63,16 @@ function click(id: string): void
 
 /** The text of an element by its id. */
 const textOf = (id: string): string => document.getElementById(id)?.textContent ?? "";
+
+/**
+ * Rates the flash card that is up, a moment after its answer came up: a press at once is taken for a second press
+ * meant to show the answer, and ignored.
+ * @param id The button: "flash-known" or "flash-again".
+ */
+function rate(id: string): void
+{
+    afterGuard(() => click(id));
+}
 
 /** The first element that matches a selector, and its text. */
 const find = (selector: string): HTMLElement => document.querySelector(selector) as HTMLElement;
@@ -176,7 +186,9 @@ describe("App: the Learn tab", () =>
             await openLearn();
             expect(textIn(".learn-wait [role=alert]")).toBe("The lessons could not be loaded. Check your connection and try again.");
             expect(document.querySelector(".learn-top")).toBeNull();
-            expect((document.getElementById("toast") as HTMLElement).textContent).toBe("Something went wrong: The lessons could not be loaded. Check your connection and try again.");
+            // A failure the page expects is told in its own words, without the line for an unexpected error in front.
+            const toast = document.getElementById("toast") as HTMLElement;
+            expect(toast.textContent).toBe("The lessons could not be loaded. Check your connection and try again.");
             // Nothing is asked for again until the user asks.
             const asked = requests.length;
             click("tab-practice");
@@ -187,6 +199,8 @@ describe("App: the Learn tab", () =>
             await settle();
             expect(textIn(".learn-top h2")).toBe("Learn the material");
             expect(document.querySelectorAll(".lesson-row")).toHaveLength(LESSONS.length);
+            // The message at the bottom is not true any more, so it goes.
+            expect(toast.hidden).toBe(true);
         });
 
         it("does not show a course with a hole in it", async () =>
@@ -683,6 +697,24 @@ describe("App: the Learn tab", () =>
             expect((document.getElementById("flash-known") as HTMLButtonElement).disabled).toBe(true);
         });
 
+        it("take no rating from a second press that comes right after the answer showed, where the keyboard went to Got it", () =>
+        {
+            click("lesson-cards");
+            pressKey("Enter");
+            expect(document.activeElement?.id).toBe("flash-known");
+            // The second Enter lands on Got it at once: it was meant for the answer, not as a rating.
+            click("flash-known");
+            expect(textIn(".flash-front")).toBe(frontOf(cards[0]));
+            expect(saved(app).learn.cards).toEqual({});
+            // A moment later the press counts.
+            rate("flash-known");
+            expect(textIn(".flash-front")).toBe(frontOf(cards[1]));
+            // The keys for the rating are a choice of their own and count at once.
+            pressKey(" ");
+            pressKey("2");
+            expect(textIn(".flash-front")).toBe(frontOf(cards[2]));
+        });
+
         it("uncover the answer in German and in the site's language, say where the catalogue asks for it, and then take a rating", () =>
         {
             click("lesson-cards");
@@ -695,7 +727,7 @@ describe("App: the Learn tab", () =>
             expect((document.getElementById("flash-known") as HTMLButtonElement).disabled).toBe(false);
             // The focus goes to the button a user most often wants next.
             expect(document.activeElement?.id).toBe("flash-known");
-            click("flash-known");
+            rate("flash-known");
             expect(textIn(".flash-front")).toBe(frontOf(cards[1]));
             expect(textIn(".flash-meta span")).toBe(`${cards.length - 1} cards to go`);
             expect(find("#flash-answer").className).toBe("reveal");
@@ -708,9 +740,9 @@ describe("App: the Learn tab", () =>
         {
             click("lesson-cards");
             click("flash-answer-show");
-            click("flash-known");
+            rate("flash-known");
             click("flash-answer-show");
-            click("flash-again");
+            rate("flash-again");
             expect(saved(app).learn.cards).toEqual({});
             find(".modal-close").click();
             expect(boxes()).toEqual(["0", "0", "0", "0", "0"]);
@@ -778,11 +810,11 @@ describe("App: the Learn tab", () =>
             find("#lesson-cards").focus();
             click("lesson-cards");
             click("flash-answer-show");
-            click("flash-again");
+            rate("flash-again");
             for (let step = 0; step < cards.length; step++)
             {
                 click("flash-answer-show");
-                click("flash-known");
+                rate("flash-known");
             }
             expect(textIn(".flash-end h3")).toBe("Done for now");
             expect(textIn(".flash-end p")).toBe(`Cards gone through: ${cards.length}. Needed a second look: 1.`);
@@ -805,7 +837,7 @@ describe("App: the Learn tab", () =>
         {
             click("lesson-cards");
             click("flash-answer-show");
-            click("flash-known");
+            rate("flash-known");
             pressKey("Escape");
             expect(dialog()).toBeNull();
             expect(find("#app").hasAttribute("inert")).toBe(false);
@@ -832,7 +864,7 @@ describe("App: the Learn tab", () =>
             click("lesson-cards");
             expect(textIn(".flash-meta .tag")).toBe("Box 1 of 5");
             click("flash-answer-show");
-            click("flash-known");
+            rate("flash-known");
             expect(saved(app).learn.cards[cards[0]]).toEqual({ box: 1, due: TODAY + 1 });
         });
     });
@@ -863,7 +895,7 @@ describe("App: the Learn tab", () =>
             while (document.getElementById("flash-answer-show"))
             {
                 click("flash-answer-show");
-                click("flash-known");
+                rate("flash-known");
             }
         }
 
@@ -923,7 +955,7 @@ describe("App: the Learn tab", () =>
             click("learn-review");
             const missed = textIn(".flash-front");
             click("flash-answer-show");
-            click("flash-again");
+            rate("flash-again");
             knowAll();
             const states = Object.values(saved(app).learn.cards);
             // One card is in the first box again, due tomorrow; knowing it at the second try did not move it.
@@ -972,7 +1004,7 @@ describe("App: the Learn tab", () =>
             {
                 lessonsSeen.push(textIn(".flash-lesson"));
                 click("flash-answer-show");
-                click("flash-known");
+                rate("flash-known");
             }
             expect(lessonsSeen).toHaveLength(20);
             expect(lessonsSeen.some((lesson, index) => index > 0 && lesson === lessonsSeen[index - 1])).toBe(false);
@@ -1353,33 +1385,35 @@ describe("App: the Learn tab", () =>
             }
         });
 
-        it("notes how far a lesson was read: the furthest section that reached the top of the window, and the share that has come into view", async () =>
+        it("notes how far a lesson was read: the furthest section that reached the top of the window, and the share of its length that has come into view", async () =>
         {
             await openLearn();
             click(`lesson-${FIRST.id}`);
             layOut();
             const all = sections();
             expect(all).toEqual(["guess", ...FIRST.blocks.map((block) => block.id), "cards", "check"]);
-            const share = (seen: number): number => Math.floor((seen / (all.length + 1)) * 100);
+            // The share of the length of the lesson, from its first section to its end, that lies above a line at 80% of the window.
+            const share = (scrolled: number): number => Math.floor(((HEIGHT * 0.8 - (FIRST_TOP - scrolled)) / (all.length * STEP)) * 100);
             // At the top: the first section is in view, none has reached the top of the window.
             scrollTo(0);
-            expect(saved(app).learn.seen).toEqual({ [FIRST.id]: { at: "", percent: share(1) } });
-            // Scrolled so that the third section is just below the top edge: reading is there, and three sections were seen.
+            expect(saved(app).learn.seen).toEqual({ [FIRST.id]: { at: "", percent: share(0) } });
+            // Scrolled so that the third section is just below the top edge: reading is there.
             scrollTo(topOf(all[2]) - 100);
-            expect(saved(app).learn.seen[FIRST.id]).toEqual({ at: all[2], percent: share(3) });
+            expect(saved(app).learn.seen[FIRST.id]).toEqual({ at: all[2], percent: share(topOf(all[2]) - 100) });
             // Back up, as on the way to the list at the top of the page: neither the place nor the share goes back.
             scrollTo(topOf(all[1]) - 100);
-            expect(saved(app).learn.seen[FIRST.id]).toEqual({ at: all[2], percent: share(3) });
+            expect(saved(app).learn.seen[FIRST.id]).toEqual({ at: all[2], percent: share(topOf(all[2]) - 100) });
             scrollTo(0);
-            expect(saved(app).learn.seen[FIRST.id]).toEqual({ at: all[2], percent: share(3) });
+            expect(saved(app).learn.seen[FIRST.id]).toEqual({ at: all[2], percent: share(topOf(all[2]) - 100) });
             // Further down the place moves on again.
             scrollTo(topOf(all[4]));
-            expect(saved(app).learn.seen[FIRST.id]).toEqual({ at: all[4], percent: share(5) });
+            const furthest = share(topOf(all[4]));
+            expect(saved(app).learn.seen[FIRST.id]).toEqual({ at: all[4], percent: furthest });
             scrollTo(0);
             // Reading is no proof of knowing: the lesson is not done.
             expect(saved(app).learn.read).toEqual({});
             click("learn-back");
-            expect(textIn(`#lesson-${FIRST.id} .lesson-state`)).toBe(`${share(5)}% read`);
+            expect(textIn(`#lesson-${FIRST.id} .lesson-state`)).toBe(`${furthest}% read`);
             expect(find(`#lesson-${FIRST.id} .lesson-state`).className).toBe("tag lesson-state is-started");
             expect((document.getElementById(`done-${FIRST.id}`) as HTMLInputElement).checked).toBe(false);
         });
@@ -1391,7 +1425,10 @@ describe("App: the Learn tab", () =>
             layOut();
             const all = sections();
             scrollTo(topOf("check"));
-            expect(saved(app).learn.seen[FIRST.id]).toEqual({ at: "check", percent: Math.floor((all.length / (all.length + 1)) * 100) });
+            // The check is the last section: what of it lies above the line at 80% of the window counts, not the whole of it.
+            const length = all.length * STEP;
+            expect(saved(app).learn.seen[FIRST.id]).toEqual({ at: "check", percent: Math.floor(((HEIGHT * 0.8 - FIRST_TOP + topOf("check")) / length) * 100) });
+            expect(saved(app).learn.seen[FIRST.id].percent).toBeLessThan(100);
             scrollTo(topOf("check") + STEP - HEIGHT + 1);
             expect(saved(app).learn.seen[FIRST.id].percent).toBe(100);
             expect(saved(app).learn.read).toEqual({});
@@ -2178,6 +2215,14 @@ describe("App: the Learn tab", () =>
          */
         function expectExplained(number: number, label = String(number)): void
         {
+            if (number > app.LAST_GENERAL_NUMBER)
+            {
+                // A question of the user's state, which training and exams mix in: the lesson about the state explains it.
+                expect(textOf("modal-title")).toMatch(/^Question BE \d+: why$/);
+                expect(textIn("#modal-root .why-from")).toBe("From the lesson “Your state: Berlin”");
+                expect(find("#why-lesson").getAttribute("href")).toMatch(/^#learn\/land-berlin\/[a-z-]+$/);
+                return;
+            }
             const { lesson, unit } = placeOf(number);
             expect(textOf("modal-title")).toBe(`Question ${label}: why`);
             expect(textIn("#modal-root .why-from")).toBe(`From the lesson “${titleOf(lesson)}”`);
@@ -2315,25 +2360,27 @@ describe("App: the Learn tab", () =>
             const items = Array.from(document.querySelectorAll<HTMLElement>(".review-item"));
             expect(items).toHaveLength(33);
             expect(items.every((item) => item.querySelector(".learn-why") !== null)).toBe(true);
-            const first = items[0];
-            expect(first.className).toBe("card review-item is-right");
-            const number = Number((first.querySelector(".qno")?.textContent as string).replace(/\D/g, ""));
-            (first.querySelector(".learn-why") as HTMLButtonElement).click();
+            expect(items[0].className).toBe("card review-item is-right");
+            // A general question: the questions of the state are mixed in, and are explained below.
+            const general = items.find((item) => /^Q\d+$/.test(item.querySelector(".qno")?.textContent ?? "")) as HTMLElement;
+            const number = Number((general.querySelector(".qno")?.textContent as string).replace(/\D/g, ""));
+            (general.querySelector(".learn-why") as HTMLButtonElement).click();
             await settle();
             expectExplained(number);
             expect(document.querySelector("[role=tab][aria-selected=true]")?.id).toBe("tab-exam");
             click("why-close");
             // A question of the user's state is explained by the lesson about that state. The page was drawn again when the course arrived.
-            const state = document.querySelectorAll<HTMLElement>(".review-item")[32];
-            const label = state.querySelector(".qno")?.textContent as string;
-            const why = find("#why-32");
+            const drawn = Array.from(document.querySelectorAll<HTMLElement>(".review-item"));
+            const position = drawn.findIndex((item) => /^BE \d+$/.test(item.querySelector(".qno")?.textContent ?? ""));
+            const label = drawn[position].querySelector(".qno")?.textContent as string;
+            const why = find(`#why-${position}`);
             why.focus();
             why.click();
             expect(textOf("modal-title")).toBe(`Question ${label}: why`);
             expect(textIn("#modal-root .why-from")).toBe("From the lesson “Your state: Berlin”");
             expect(find("#why-lesson").getAttribute("href")).toMatch(/^#learn\/land-berlin\//);
             click("why-close");
-            expect(document.activeElement?.id).toBe("why-32");
+            expect(document.activeElement?.id).toBe(`why-${position}`);
         });
 
         it("counts an exam that was passed towards being ready", async () =>

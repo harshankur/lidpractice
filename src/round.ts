@@ -79,7 +79,8 @@ export class Round
         this.order = order;
         this.present = present;
         this.lock = lock;
-        const sorted = [...numbers].sort((first, second) => first - second);
+        // A number named twice is one question: it gets one place in the round.
+        const sorted = [...new Set(numbers)].sort((first, second) => first - second);
         if (order === "booklet")
         {
             this.slots.push(...sorted.map((n): RoundSlot => ({ n, outcome: "open", item: null, selected: null })));

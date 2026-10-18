@@ -599,7 +599,27 @@ describe("App: practice mode", () =>
                 expect(arrow.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
                 expect(arrow.textContent).toBe("");
             }
-            expect(left.disabled).toBe(true);
+            expect(left.getAttribute("aria-disabled")).toBe("true");
+        });
+
+        it("checks its arrows again when a scroll ends, and when the pointer or the keyboard comes to them, whatever was missed", () =>
+        {
+            startRound({ scope: "berlin", order: "booklet" });
+            const strip = document.querySelector(".timeline-strip") as HTMLElement;
+            const left = document.querySelector("button[aria-label='Earlier questions']") as HTMLButtonElement;
+            Object.defineProperty(strip, "clientWidth", { configurable: true, value: 100 });
+            Object.defineProperty(strip, "scrollWidth", { configurable: true, value: 400 });
+            // The strip moved, and no scroll event was seen.
+            strip.scrollLeft = 150;
+            expect(left.getAttribute("aria-disabled")).toBe("true");
+            strip.dispatchEvent(new Event("scrollend"));
+            expect(left.getAttribute("aria-disabled")).toBe("false");
+            strip.scrollLeft = 0;
+            (document.querySelector(".timeline-body") as HTMLElement).dispatchEvent(new Event("pointerover", { bubbles: true }));
+            expect(left.getAttribute("aria-disabled")).toBe("true");
+            strip.scrollLeft = 200;
+            (document.querySelector(".timeline-body button") as HTMLElement).dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+            expect(left.getAttribute("aria-disabled")).toBe("false");
         });
 
         it("turns an arrow on when the strip can be scrolled that way, and off at the ends", () =>
@@ -612,15 +632,15 @@ describe("App: practice mode", () =>
             Object.defineProperty(strip, "scrollWidth", { configurable: true, value: 400 });
             strip.scrollLeft = 150;
             strip.dispatchEvent(new Event("scroll"));
-            expect(left.disabled).toBe(false);
-            expect(right.disabled).toBe(false);
+            expect(left.getAttribute("aria-disabled")).toBe("false");
+            expect(right.getAttribute("aria-disabled")).toBe("false");
             strip.scrollLeft = 300;
             strip.dispatchEvent(new Event("scroll"));
-            expect(right.disabled).toBe(true);
+            expect(right.getAttribute("aria-disabled")).toBe("true");
             strip.scrollLeft = 0;
             strip.dispatchEvent(new Event("scroll"));
-            expect(left.disabled).toBe(true);
-            expect(right.disabled).toBe(false);
+            expect(left.getAttribute("aria-disabled")).toBe("true");
+            expect(right.getAttribute("aria-disabled")).toBe("false");
         });
 
         it("explains the resume mark in the legend too", () =>
@@ -1055,6 +1075,10 @@ describe("App: practice mode", () =>
             clickButton("Answer skipped questions (1)");
             expect(shownNumber()).toBe(321);
             expect(document.querySelector(".end-card")).toBeNull();
+            // The timeline marks the question that shows as the current one, also now that the round has ended once.
+            const current = document.querySelector(".slot[aria-current=step]") as HTMLElement;
+            expect(current.getAttribute("aria-label")).toBe("Question BE 1, current question");
+            expect(current.className).toContain("is-current");
             answerRight();
             expect(visibleText(nextButton())).toBe("To the result");
             nextButton().click();
@@ -2081,7 +2105,7 @@ describe("App: practice mode", () =>
             window.localStorage.setItem(app.STORAGE_KEY, "<<corrupt>>");
             app = await mountApp();
             expect(document.getElementById("toast")?.hidden).toBe(false);
-            expect(document.getElementById("toast")?.textContent).toMatch(/^Something went wrong: /);
+            expect(document.getElementById("toast")?.textContent).toBe("Your saved progress could not be read, so the page starts fresh.");
             expect(statValue("Seen")).toBe("0 of 310");
             expect(document.querySelector("article.card")).not.toBeNull();
         });
@@ -2115,6 +2139,28 @@ describe("App: practice mode", () =>
             option().click();
             expect(option().disabled).toBe(true);
             expect(document.activeElement).toBe(document.querySelector("[data-focus]"));
+        });
+
+        it("tells once, in words, that nothing can be kept when the browser blocks the storage", async () =>
+        {
+            vi.spyOn(Storage.prototype, "setItem").mockImplementation(() =>
+            {
+                throw new DOMException("blocked", "SecurityError");
+            });
+            answerRight();
+            const toast = document.getElementById("toast") as HTMLElement;
+            expect(toast.textContent).toBe("This browser does not let the page keep anything: your progress is lost when you leave.");
+            toast.hidden = true;
+            nextButton().click();
+            answerRight();
+            expect(toast.hidden).toBe(true);
+        });
+
+        it("tells it in the language of the site when the save cannot be read on the way in", async () =>
+        {
+            window.localStorage.setItem(app.STORAGE_KEY, "<<corrupt>>");
+            app = await mountApp(undefined, { locale: "de" });
+            expect(document.getElementById("toast")?.textContent).toBe("Dein gespeicherter Fortschritt ließ sich nicht lesen, die Seite beginnt neu.");
         });
 
         it("still works when localStorage is unavailable", async () =>

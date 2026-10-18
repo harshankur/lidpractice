@@ -57,18 +57,13 @@ export function routeHash(route: LearnRoute): string
  */
 export function parseRoute(hash: string): LearnRoute | null
 {
-    const parts = hash.replace(/^#/, "").split("/");
+    // An address typed by hand may have capitals or a doubled slash: the names are lower case, and an empty name names nothing.
+    const parts = hash.replace(/^#/, "").toLowerCase().split("/").filter((part, index) => index === 0 || part !== "");
     if (parts[0] !== LEARN_ROOT)
     {
         return null;
     }
-    const names = parts.slice(1);
-    if (names[names.length - 1] === "")
-    {
-        // A slash at the end names nothing more.
-        names.pop();
-    }
-    const [first, section, ...more] = names;
+    const [first, section, ...more] = parts.slice(1);
     if (first === undefined || more.length > 0 || !SLUG.test(first) || (section !== undefined && !SLUG.test(section)))
     {
         return { page: "home" };

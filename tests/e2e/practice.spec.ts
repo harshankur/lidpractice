@@ -106,18 +106,17 @@ test.describe("rounds", () =>
         expect(await strip.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
         await page.getByRole("button", { name: "Later questions" }).click();
         await expect.poll(() => strip.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
-        // The scroll is animated, so keep pressing until it is back at the start. An arrow that stays off before the start
-        // would make this fail: it must be on again once the strip stands still.
+        // The scroll is animated, so keep pressing until it is back at the start. The arrow is a button that can always be
+        // pressed: it only shows that an end was reached, so a press never waits for its state.
         const left = page.getByRole("button", { name: "Earlier questions" });
         await expect.poll(async () =>
         {
-            if (await left.isEnabled())
-            {
-                await left.click();
-            }
+            await left.click({ force: true });
             return strip.evaluate((element) => element.scrollLeft);
         }, { timeout: 15000 }).toBeLessThan(1);
-        await expect(left).toBeDisabled();
+        // At the start it says so, at the latest when the pointer comes to it.
+        await left.hover();
+        await expect(left).toHaveAttribute("aria-disabled", "true");
     });
 
     test("keep the current question in view in the timeline while going through a long round", async ({ page }) =>
@@ -636,7 +635,7 @@ test.describe("progress", () =>
         await page.addInitScript((key) => window.localStorage.setItem(key, "{broken"), STORAGE_KEY);
         await page.goto("/?lang=en");
         await expect(page.locator("#toast")).toBeVisible();
-        await expect(page.locator("#toast")).toContainText("Something went wrong");
+        await expect(page.locator("#toast")).toHaveText("Your saved progress could not be read, so the page starts fresh.");
         await expect(page.locator("button.option")).toHaveCount(4);
     });
 });

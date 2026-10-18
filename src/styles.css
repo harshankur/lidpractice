@@ -338,7 +338,7 @@ button:disabled { cursor: not-allowed; }
 .listbox-button .clamp { flex: 1; min-width: 0; }
 .listbox-prefix { color: var(--fg-muted); font-weight: 400; white-space: nowrap; }
 .listbox-prefix::after { content: ":"; }
-.listbox-chevron { flex: none; display: inline-flex; color: var(--fg-muted); transition: transform 0.15s; }
+.listbox-chevron { flex: none; display: inline-flex; color: var(--fg-muted); }
 .listbox-chevron .icon { width: 16px; height: 16px; }
 .listbox-button[aria-expanded="true"] .listbox-chevron { transform: rotate(180deg); }
 .listbox-up .listbox-list { top: auto; bottom: calc(100% + 4px); }
@@ -445,8 +445,8 @@ button:disabled { cursor: not-allowed; }
     color: var(--fg);
 }
 .timeline-scroll .icon { width: 18px; height: 18px; stroke-width: 2; }
-.timeline-scroll:hover:not(:disabled) { border-color: var(--fg-muted); }
-.timeline-scroll:disabled { opacity: 0.4; }
+.timeline-scroll:hover:not([aria-disabled="true"]) { border-color: var(--fg-muted); }
+.timeline-scroll[aria-disabled="true"] { opacity: 0.4; cursor: default; }
 .timeline-strip {
     position: relative;
     flex: 1;
@@ -1286,6 +1286,7 @@ body.modal-open { overflow: hidden; }
 @media (prefers-reduced-motion: no-preference) {
     .option, .tab, .slot, .nav-dot, .lesson-row, .map-entry { transition: background-color 0.12s, border-color 0.12s, color 0.12s; }
     .section-link { transition: opacity 0.12s; }
+    .listbox-chevron { transition: transform 0.15s; }
 }
 
 /* ----- other scripts: Arabic and Hindi are never spaced out or put in capitals, and need more room between the lines ----- */

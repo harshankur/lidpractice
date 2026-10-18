@@ -48,7 +48,7 @@ export function placeOf(hash: string): Place
     {
         return { mode: "learn", route };
     }
-    const name = hash.replace(/^#/, "").split("/")[0];
+    const name = hash.replace(/^#/, "").split("/")[0].toLowerCase();
     return { mode: MODES.find((mode) => mode === name) ?? START_MODE, route: null };
 }
 

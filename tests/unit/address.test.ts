@@ -29,10 +29,17 @@ describe("the addresses of the tabs", () =>
     it("stand for the tab the page opens with when they name no tab: practice", () =>
     {
         expect(START_MODE).toBe("practice");
-        for (const hash of ["", "#", "#somewhere", "#Train", "#training", "#exams", "# exam", "#/train", "#1", "#toString", "#constructor"])
+        for (const hash of ["", "#", "#somewhere", "#training", "#exams", "# exam", "#/train", "#1", "#toString", "#constructor"])
         {
             expect(placeOf(hash), hash).toEqual({ mode: "practice", route: null });
         }
+    });
+
+    it("read a name typed with capitals as the name it is", () =>
+    {
+        expect(placeOf("#Train")).toEqual({ mode: "train", route: null });
+        expect(placeOf("#EXAM")).toEqual({ mode: "exam", route: null });
+        expect(placeOf("#Learn/Wuerde")).toEqual({ mode: "learn", route: { page: "lesson", lesson: "wuerde" } });
     });
 
     it("let the first name decide: what follows the name of a tab that has one page is not looked at", () =>

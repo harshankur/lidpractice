@@ -170,8 +170,9 @@ describe("Store", () =>
             window.localStorage.setItem(app.STORAGE_KEY, "{not json");
             store.load();
             expect(store.state).toEqual({ uiLanguage: "en", translation: "off", translationLanguage: "auto", theme: "auto", topics: null, state: "berlin", includeState: true, setupDone: false, clockMode: "up", clockMinutes: 30, examMinutes: 60, lockAnswers: false, order: "booklet", records: {}, learn: { read: {}, seen: {}, cards: {}, last: null }, exams: [], lastPlace: "" });
-            expect(reporter).toHaveBeenCalledTimes(1);
-            expect(reporter.mock.calls[0][0]).toMatch(/JSON/);
+            // The store tells the page, which says it in words in the user's language; the error itself is only logged.
+            expect(reporter).not.toHaveBeenCalled();
+            expect([...store.problems]).toEqual(["unreadable"]);
         });
 
         it("survives storage that throws on read", () =>
@@ -182,9 +183,12 @@ describe("Store", () =>
             {
                 throw new Error("storage blocked");
             });
+            const told = vi.fn();
+            store.onProblem = told;
             store.load();
             expect(store.state.records).toEqual({});
-            expect(reporter).toHaveBeenCalledWith("storage blocked");
+            expect(reporter).not.toHaveBeenCalled();
+            expect(told).toHaveBeenCalledWith("unsaved");
         });
     });
 
@@ -806,9 +810,15 @@ describe("Store", () =>
             {
                 throw new Error("quota exceeded");
             });
+            const told = vi.fn();
+            store.onProblem = told;
             store.recordAnswer(7, false);
-            expect(store.weakNumbers).toEqual([7]);
-            expect(reporter).toHaveBeenCalledWith("quota exceeded");
+            store.recordAnswer(8, false);
+            expect(store.weakNumbers).toEqual([7, 8]);
+            expect(reporter).not.toHaveBeenCalled();
+            // Told once, however often the save fails.
+            expect(told).toHaveBeenCalledTimes(1);
+            expect(told).toHaveBeenCalledWith("unsaved");
         });
     });
 });
