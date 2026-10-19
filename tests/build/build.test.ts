@@ -185,11 +185,15 @@ describe("build.mjs", () =>
             expect(PRIVACY_NOTICE_URL_ENGLISH).toBe("https://harshankur.com/datenschutz#en-lidpractice");
         });
 
-        it("deploys dist to Cloudflare as static assets, with the 404 page and without usage reports", () =>
+        it("deploys dist to Cloudflare as static assets, with the 404 page, without usage reports and without a workers.dev or preview copy", () =>
         {
-            const config = JSON.parse(readFileSync("wrangler.jsonc", "utf8").replace(/^\s*\/\/.*$/gm, "")) as { name: string; send_metrics: boolean; assets: Record<string, string> };
+            const config = JSON.parse(readFileSync("wrangler.jsonc", "utf8").replace(/^\s*\/\/.*$/gm, "")) as { name: string; send_metrics: boolean; workers_dev: boolean; preview_urls: boolean; assets: Record<string, string> };
             expect(config.name).toBe("lidpractice");
             expect(config.send_metrics).toBe(false);
+            // Only the custom domains serve the site: no second address for search engines to index.
+            expect(config.workers_dev).toBe(false);
+            expect(config.preview_urls).toBe(false);
+            expect(Object.keys(config)).not.toContain("routes");
             expect(config.assets).toEqual({ directory: "./dist", not_found_handling: "404-page" });
             expect(existsSync("netlify.toml")).toBe(false);
         });
@@ -242,10 +246,10 @@ describe("build.mjs", () =>
                 expect(rules.get(path), path).toEqual(["Cache-Control: public, max-age=31536000, immutable"]);
             }
             // Replaced in place by a new edition of the catalogue, and the rule also covers a 404 there: a day only.
-            for (const path of ["/images/*", "/catalogue/*"])
-            {
-                expect(rules.get(path), path).toEqual(["Cache-Control: public, max-age=86400"]);
-            }
+            expect(rules.get("/images/*")).toEqual(["Cache-Control: public, max-age=86400"]);
+            // The official catalogue is served for the page's links, but kept out of search results.
+            expect(rules.get("/catalogue/*")).toEqual(["Cache-Control: public, max-age=86400", "X-Robots-Tag: noindex"]);
+            expect([...rules.values()].flat().filter((header) => header.startsWith("X-Robots-Tag"))).toHaveLength(1);
             expect(rules.get("/catalogue/SOURCE.md")).toEqual(["Content-Type: text/markdown; charset=utf-8"]);
             // The counter is the only other server the file names, in the two directives above.
             expect([...text.matchAll(/https?:\/\/[^\s;]+/g)].map((match) => match[0])).toEqual([counter, counter]);

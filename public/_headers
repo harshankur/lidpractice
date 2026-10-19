@@ -26,6 +26,9 @@
 # The language and course files carry a fingerprint in their address, and the fonts never change, so they are kept for a
 # year. The pictures and the catalogue keep their names when a new edition of the catalogue replaces them, and a rule
 # here also covers the 404 page sent for a name that does not exist, so they are kept for a day only.
+#
+# The catalogue is the BAMF's own document and pictures, linked from the page as the original of a question. It stays
+# served, but out of search results, which should lead to the BAMF's page and to this site, not to a copy of the PDF.
 /locales/*
   Cache-Control: public, max-age=31536000, immutable
 /teach/*
@@ -36,6 +39,7 @@
   Cache-Control: public, max-age=86400
 /catalogue/*
   Cache-Control: public, max-age=86400
+  X-Robots-Tag: noindex
 
 # A text file with German letters: without a charset a browser may read it in another one.
 /catalogue/SOURCE.md
