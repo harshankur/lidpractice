@@ -1,7 +1,7 @@
 {
     "app.description": "Kostenlose Übungsseite für den Einbürgerungstest und den Test „Leben in Deutschland“: alle Fragen des offiziellen BAMF-Katalogs, mit Prüfungsmodus.",
     "app.noscript": "Diese Seite braucht JavaScript.",
-    "header.subtitle": "Leben in Deutschland · {count} Fragen",
+    "header.subtitle": "Einbürgerungstest · Leben in Deutschland · {count} Fragen",
     "tabs.label": "Modus",
     "tabs.practice": "Üben",
     "tabs.train": "Trainieren",

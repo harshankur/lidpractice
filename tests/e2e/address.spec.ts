@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { chooseFromListbox, expect, finishAnyway, openApp, pressOption, test } from "./fixtures";
+import { appDrawn, chooseFromListbox, expect, finishAnyway, openApp, pressOption, SEARCH_TITLE, test } from "./fixtures";
 
 /** The tabs that have one page each, with the name on their tab and something only their page shows. */
 const TABS = [
@@ -48,10 +48,10 @@ test.describe("the addresses of the tabs", () =>
         await expectTab(page, "train");
     });
 
-    test("name what shows in the title of the browser tab: the tab or the lesson, and the plain name of the site at its plain address", async ({ page }) =>
+    test("name what shows in the title of the browser tab: the tab or the lesson, and the title of the start page at its plain address", async ({ page }) =>
     {
         await openApp(page);
-        await expect(page).toHaveTitle("LiD Practice");
+        await expect(page).toHaveTitle(SEARCH_TITLE);
         await page.getByRole("tab", { name: "Train" }).click();
         await expect(page).toHaveTitle("Train | LiD Practice");
         await page.getByRole("tab", { name: "Exam (33)" }).click();
@@ -73,7 +73,7 @@ test.describe("the addresses of the tabs", () =>
         await page.goBack();
         await expect(page).toHaveTitle("Train | LiD Practice");
         await page.goBack();
-        await expect(page).toHaveTitle("LiD Practice");
+        await expect(page).toHaveTitle(SEARCH_TITLE);
     });
 
     test("name the lesson in the title when the page is opened by a link to a lesson, in the language of the site", async ({ page }) =>
@@ -117,7 +117,7 @@ test.describe("the addresses of the tabs", () =>
             await expectTab(page, tab.name);
             await expect(page).toHaveURL(new RegExp(`/#${tab.name}$`));
             await page.reload();
-            await expect(page.locator("h1")).toHaveText("LiD Practice");
+            await appDrawn(page);
             await expectTab(page, tab.name);
             await expect(page).toHaveURL(new RegExp(`/#${tab.name}$`));
         });

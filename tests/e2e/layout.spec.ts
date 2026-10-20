@@ -29,8 +29,50 @@ async function expectNoHorizontalScroll(page: Page, where: string): Promise<void
     expect(overflow, `${where} overflows horizontally by ${overflow}px`).toBeLessThanOrEqual(0);
 }
 
+/** The address of the page itself, with or without a query. */
+const PAGE_ADDRESS = /\/(\?.*)?$/;
+
+/**
+ * Where the heading and its two parts are, and what the heading holds.
+ * @param page Playwright page.
+ * @returns The boxes, rounded to a hundredth of a pixel, and the markup of the heading.
+ */
+async function headingPlace(page: Page): Promise<unknown>
+{
+    await page.evaluate(() => document.fonts.ready);
+    return page.evaluate(() =>
+    {
+        const box = (selector: string): number[] =>
+        {
+            const rect = (document.querySelector(selector) as HTMLElement).getBoundingClientRect();
+            return [rect.x, rect.y, rect.width, rect.height].map((value) => Math.round(value * 100) / 100);
+        };
+        return { heading: box("h1"), name: box("h1 .brand-name"), line: box("h1 .brand-sub"), markup: (document.querySelector(".brand") as HTMLElement).outerHTML };
+    });
+}
+
 test.describe("layout", () =>
 {
+    test("draws the heading where the built page has it: the heading does not move from the first paint to the drawn page", async ({ page }) =>
+    {
+        // The page as it is painted before its script has run: the built page without the script of the app.
+        await page.route(PAGE_ADDRESS, async (route) =>
+        {
+            const response = await route.fetch();
+            const html = await response.text();
+            await route.fulfill({ response, body: html.replace(/<script>\n[\s\S]*?\n<\/script>\n<\/body>/, "</body>") });
+        });
+        await page.goto("/");
+        const first = await headingPlace(page);
+        await expect(page.locator("#tab-practice")).toHaveCount(0);
+        await page.unroute(PAGE_ADDRESS);
+        await openApp(page, { locale: null });
+        expect(await headingPlace(page)).toEqual(first);
+        // One heading, which carries the name and what the site is for.
+        await expect(page.locator("h1")).toHaveCount(1);
+        await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName("LiD Practice Einbürgerungstest · Leben in Deutschland · 310 questions");
+    });
+
     test("uses the device width on phones", async ({ page, isMobile }) =>
     {
         test.skip(!isMobile, "phone only");
@@ -187,12 +229,16 @@ test.describe("buttons that keep their box when their words change", () =>
     test("Skip, Next question and Change selection keep their size and place, and push nothing", async ({ page }) =>
     {
         await openApp(page);
-        const before = { next: await boxOf(page, "#round-next"), back: await boxOf(page, "#round-back"), change: await boxOf(page, "#change-selection") };
+        const before = { next: await boxOf(page, "#round-next"), back: await boxOf(page, "#round-back") };
         await page.locator("button.option").first().click();
         expect(await boxOf(page, "#round-next")).toEqual(before.next);
         expect(await boxOf(page, "#round-back")).toEqual(before.back);
+        // On a phone the first option can sit under the row of buttons at the bottom edge, so clicking it scrolled the
+        // page: Change selection is measured from the top of the page, right before it is pressed.
+        await page.evaluate(() => window.scrollTo(0, 0));
+        const change = await boxOf(page, "#change-selection");
         await page.locator("#change-selection").click();
-        expect(await boxOf(page, "#change-selection")).toEqual(before.change);
+        expect(await boxOf(page, "#change-selection")).toEqual(change);
     });
 });
 

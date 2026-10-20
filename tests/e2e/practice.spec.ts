@@ -322,7 +322,7 @@ test.describe("your state", () =>
         await chooseFromListbox(page, "state", "bayern");
         await expect(page.locator(".footer-state-note")).toHaveText("Your 310 questions: 300 general ones and the 10 for Bavaria.");
         await expect(stat(page, "Seen")).toHaveText("0 of 310");
-        await expect(page.locator(".brand-sub")).toHaveText("Leben in Deutschland · 310 questions");
+        await expect(page.locator(".brand-sub")).toHaveText("Einbürgerungstest · Leben in Deutschland · 310 questions");
         await startRound(page, { scope: "all", order: "booklet" });
         await expect(page.locator(".timeline-list button.slot").nth(300).locator(".slot-number")).toHaveText("BY 1");
         await page.reload();

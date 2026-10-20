@@ -12,6 +12,19 @@ export const APP_NAME: string = identity.name;
 /** Short display name, for the home screen icon. */
 export const APP_SHORT_NAME: string = identity.shortName;
 
+/** What stands between the name of a page and the name of the site in the title of the page, as on the pages of the legal notice. */
+export const TITLE_SEPARATOR: string = identity.titleSeparator;
+
+/**
+ * The title of the start page: what the page is for, in the words people search for, then the name of the site. It is the
+ * same in every language of the interface, because the counter reads the title and must not learn the visitor's language
+ * from it. The build writes the same title into the page.
+ */
+export const SEARCH_TITLE = `${identity.searchTitlePrefix}${TITLE_SEPARATOR}${APP_NAME}`;
+
+/** The space between two words that are put together from two texts, such as two spans of one heading or one button. */
+export const WORD_SPACE = " ";
+
 /** Storage key. The slug is the namespace, bump `storageVersion` in identity.json when the saved format changes. */
 export const STORAGE_KEY = `${identity.slug}-v${identity.storageVersion}`;
 

@@ -1,7 +1,7 @@
 import { readFileSync, statSync } from "node:fs";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
-import { APP_NAME, APP_SHORT_NAME } from "../../src/constants";
+import { APP_NAME, APP_SHORT_NAME, SEARCH_TITLE, TITLE_SEPARATOR } from "../../src/constants";
 import de from "../../src/locales/de.json";
 import en from "../../src/locales/en.json";
 import identity from "../../src/identity.json";
@@ -35,6 +35,22 @@ describe("product identity", () =>
         expect(identity.defaultUiLocale).toBe("en");
     });
 
+    it("gives the start page one title in every language: what it is for, in the German words people search for, then the name", () =>
+    {
+        expect(SEARCH_TITLE).toBe("Einbürgerungstest üben: Test Leben in Deutschland | LiD Practice");
+        expect(SEARCH_TITLE).toBe(`${identity.searchTitlePrefix}${TITLE_SEPARATOR}${APP_NAME}`);
+        expect(TITLE_SEPARATOR).toBe(" | ");
+        // Built from its parts, so the name is still written once.
+        expect(identity.searchTitlePrefix).not.toContain(identity.name);
+    });
+
+    it("names the site for search engines by the words people search for, and never by a federal state", () =>
+    {
+        expect(identity.searchAlternateNames).toEqual(["Einbürgerungstest üben", "Test Leben in Deutschland"]);
+        expect(identity.searchKeywords[0]).toBe("Einbürgerungstest");
+        expect([...identity.searchAlternateNames, ...identity.searchKeywords].filter((text) => /Berlin/i.test(text))).toEqual([]);
+    });
+
     it("does not name a federal state: the site covers all of them", () =>
     {
         const shown = [identity.name, identity.shortName, manifest.name, manifest.short_name, manifest.description, template, de["app.description"], en["app.description"], de["header.subtitle"], en["header.subtitle"], de["about.intro"], en["about.intro"]];
@@ -43,7 +59,7 @@ describe("product identity", () =>
 
     it("is not typed a second time in the source or the language files", () =>
     {
-        const sources = ["app", "views", "content", "modal", "links", "listbox"].map((name) => readFileSync(`src/${name}.ts`, "utf8")).join("\n");
+        const sources = [...["app", "views", "content", "modal", "links", "listbox", "constants"].map((name) => `src/${name}.ts`), "build.mjs"].map((path) => readFileSync(path, "utf8")).join("\n");
         expect(sources).not.toContain(identity.name);
         expect(Object.values(de).some((value) => value.includes(identity.name))).toBe(false);
         expect(template).not.toContain(identity.name);
@@ -129,7 +145,12 @@ describe("the page template", () =>
         expect(template).toContain("<html lang=\"__LANG__\" dir=\"__DIR__\">");
         expect(template).toContain("content=\"__DESCRIPTION__\"");
         expect(template).toContain("<noscript>__NOSCRIPT__</noscript>");
-        expect(template).toContain("<title>__APP_NAME__</title>");
+        expect(template).toContain("<title>__SEARCH_TITLE__</title>");
+        expect(template).toContain("<meta property=\"og:title\" content=\"__SEARCH_TITLE__\">");
+        expect(template).toContain("<meta property=\"og:site_name\" content=\"__APP_NAME__\">");
+        // The heading is built into the page, and the text for visitors without JavaScript comes after it.
+        expect(template.indexOf("<div id=\"app\">__HEADER__</div>")).toBeGreaterThan(0);
+        expect(template.indexOf("<noscript>")).toBeGreaterThan(template.indexOf("<div id=\"app\">"));
     });
 
     it("loads nothing from another server", () =>

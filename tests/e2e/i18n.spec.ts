@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { answerExam, chooseFromListbox, correctOptionIndex, expect, openApp, pressOption, nameOfNumber, QUESTIONS, shownNumber, stat, test, pressFinishExam } from "./fixtures";
+import { answerExam, chooseFromListbox, correctOptionIndex, expect, openApp, pressOption, nameOfNumber, QUESTIONS, SEARCH_TITLE, shownNumber, stat, test, pressFinishExam } from "./fixtures";
 
 /** Text of the exam result headline in German. */
 const GERMAN_PASSED = "Bestanden";
@@ -13,7 +13,7 @@ test.describe("interface language", () =>
         await expect(page.getByRole("tab", { name: "Practice" })).toBeVisible();
         await expect(page.getByRole("tab", { name: "Exam (33)" })).toBeVisible();
         await expect(page.getByRole("button", { name: "Skip" })).toBeVisible();
-        await expect(page.locator(".brand-sub")).toHaveText("Leben in Deutschland · 310 questions");
+        await expect(page.locator(".brand-sub")).toHaveText("Einbürgerungstest · Leben in Deutschland · 310 questions");
         await expect(stat(page, "Seen")).toHaveText("0 of 310");
         await expect(page.locator(".question .bi-main")).toHaveAttribute("lang", "de");
         await expect(page.locator(".bi-sub")).toHaveCount(0);
@@ -28,7 +28,7 @@ test.describe("interface language", () =>
         await expect(page.getByRole("tab", { name: "Üben" })).toBeVisible();
         await expect(page.getByRole("tab", { name: "Prüfung (33)" })).toBeVisible();
         await expect(page.getByRole("button", { name: "Überspringen" })).toBeVisible();
-        await expect(page.locator(".brand-sub")).toHaveText("Leben in Deutschland · 310 Fragen");
+        await expect(page.locator(".brand-sub")).toHaveText("Einbürgerungstest · Leben in Deutschland · 310 Fragen");
         await expect(stat(page, "Gesehen")).toHaveText("0 von 310");
     });
 
@@ -74,18 +74,22 @@ test.describe("interface language", () =>
         await expect(page.locator(".bi-sub")).toHaveCount(0);
     });
 
-    test("keeps the page title as the product name in both languages", async ({ page }) =>
+    test("keeps the title of the start page the same in every language", async ({ page }) =>
     {
         await openApp(page, { locale: null });
-        await expect(page).toHaveTitle("LiD Practice");
+        await expect(page).toHaveTitle(SEARCH_TITLE);
         await chooseFromListbox(page, "site-language", "de");
-        await expect(page).toHaveTitle("LiD Practice");
+        await expect(page).toHaveTitle(SEARCH_TITLE);
+        await chooseFromListbox(page, "site-language", "ar");
+        await expect(page).toHaveTitle(SEARCH_TITLE);
     });
 
-    test("describes the page in English in the head, for search engines and link previews", async ({ page }) =>
+    test("describes the page in German in the head, for search engines and link previews, while the page is English", async ({ page }) =>
     {
         await openApp(page, { locale: null });
-        await expect(page.locator("meta[name=description]")).toHaveAttribute("content", /citizenship test/);
+        await expect(page.locator("html")).toHaveAttribute("lang", "en");
+        await expect(page.locator("meta[name=description]")).toHaveAttribute("content", /^Kostenlose Übungsseite für den Einbürgerungstest/);
+        await expect(page.locator("meta[property='og:title']")).toHaveAttribute("content", SEARCH_TITLE);
     });
 
     test("runs a whole exam in German", async ({ page }) =>

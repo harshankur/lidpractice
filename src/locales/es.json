@@ -1,7 +1,7 @@
 {
-    "app.description": "Sitio gratuito de práctica para el examen de nacionalización alemán y el examen \"Leben in Deutschland\": todas las preguntas del catálogo oficial del BAMF, con modo examen.",
+    "app.description": "Sitio gratuito de práctica para el examen de nacionalización alemán (Einbürgerungstest) y el examen \"Leben in Deutschland\": todas las preguntas del catálogo oficial del BAMF, con modo examen.",
     "app.noscript": "Esta página necesita JavaScript.",
-    "header.subtitle": "Leben in Deutschland · {count} preguntas",
+    "header.subtitle": "Einbürgerungstest · Leben in Deutschland · {count} preguntas",
     "tabs.label": "Modo",
     "tabs.practice": "Practicar",
     "tabs.train": "Entrenar",

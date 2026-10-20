@@ -1,6 +1,22 @@
 {
     "name": "LiD Practice",
     "shortName": "LiD Practice",
+    "searchTitlePrefix": "Einbürgerungstest üben: Test Leben in Deutschland",
+    "titleSeparator": " | ",
+    "searchAlternateNames": [
+        "Einbürgerungstest üben",
+        "Test Leben in Deutschland"
+    ],
+    "searchKeywords": [
+        "Einbürgerungstest",
+        "Einbürgerungstest üben",
+        "Einbürgerungstest Fragen",
+        "Test Leben in Deutschland",
+        "LiD-Test",
+        "Fragenkatalog",
+        "Orientierungskurs",
+        "Prüfungssimulation"
+    ],
     "slug": "lidpractice",
     "siteUrl": "https://lidpractice.de/",
     "author": "Harsh Ankur",

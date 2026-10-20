@@ -121,5 +121,12 @@ test.describe("without JavaScript", () =>
         await expect(noscript.locator(".noscript-text span[lang=de]")).toBeVisible();
         // English first, as the page is.
         await expectLegalFooter(noscript, ["Legal notice / Impressum", "Privacy / Datenschutz"]);
+        // The heading the page is built with comes first, then what the site is for, the note, and the copyright line last.
+        const heading = page.getByRole("heading", { level: 1 });
+        await expect(heading).toHaveAccessibleName("LiD Practice Einbürgerungstest · Leben in Deutschland · 310 questions");
+        await expect(noscript.locator(".noscript-intro")).toContainText("A free study aid for the German citizenship test (Einbürgerungstest)");
+        const tops = await Promise.all([heading, noscript.locator(".noscript-intro"), noscript.locator(".noscript-text"), noscript.locator(".site-copyright")]
+            .map(async (part) => (await part.boundingBox())?.y ?? Number.NaN));
+        expect([...tops].sort((first, second) => first - second)).toEqual(tops);
     });
 });

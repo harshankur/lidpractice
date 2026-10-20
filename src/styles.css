@@ -238,8 +238,9 @@ body::before {
 }
 
 #app { max-width: 1040px; margin-inline: auto; }
-/* Without JavaScript the page shows only its note, the legal links and the copyright line, in the column of the app. */
+/* Without JavaScript the page shows the heading it is built with, then what the site is for, its note, the legal links and the copyright line, in the column of the app. */
 noscript > p[class] { max-width: 1040px; margin-inline: auto; }
+noscript > .noscript-intro { margin-block: 24px 0; }
 noscript > .noscript-text { margin-block: 24px 16px; }
 noscript a { color: inherit; text-underline-offset: 3px; }
 
@@ -262,7 +263,9 @@ button:disabled { cursor: not-allowed; }
 }
 .brand { min-width: 0; }
 .brand h1 { font-size: 1.75rem; line-height: 1.1; letter-spacing: -0.01em; }
-.brand-sub { margin: 4px 0 0; color: var(--fg-muted); font-size: 0.875rem; }
+/* The heading holds the name and the line under it, which looks like body text: it takes nothing from the heading. */
+.brand-name { display: block; }
+.brand-sub { display: block; margin: 4px 0 0; color: var(--fg-muted); font-family: var(--font-body); font-size: 0.875rem; font-weight: 400; line-height: 1.5; letter-spacing: normal; text-wrap: wrap; }
 .header-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
 /* Tabs: underlined, one row under the header. */
@@ -1344,7 +1347,7 @@ body.modal-open { overflow: hidden; }
 
 /* ----- other scripts: Arabic and Hindi are never spaced out or put in capitals, and need more room between the lines ----- */
 :root:lang(ar), :root:lang(hi) { --label-case: none; --label-track: 0em; }
-:root:lang(ar) body, :root:lang(hi) body { line-height: 1.7; }
+:root:lang(ar) body, :root:lang(hi) body, :root:lang(ar) .brand-sub, :root:lang(hi) .brand-sub { line-height: 1.7; }
 :root:lang(ar) .question, :root:lang(hi) .question, :root:lang(ar) .modal-title, :root:lang(hi) .modal-title { line-height: 1.55; }
 :root:lang(ar), .bi-sub:lang(ar) { font-synthesis: none; }
 /* A translation in Arabic or Hindi is set a little larger than a Latin one at the same size, and needs the room for its marks above and below the line. */

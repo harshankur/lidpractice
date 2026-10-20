@@ -2,7 +2,7 @@
 // @vitest-environment-options {"url": "https://lidpractice.de/"}
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CONSENT_EVENT, type ConsentStatus } from "../../src/consent";
-import { CONSENT_SCRIPT_URL, PRIVACY_NOTICE_URL, PRIVACY_NOTICE_URL_ENGLISH } from "../../src/constants";
+import { CONSENT_SCRIPT_URL, PRIVACY_NOTICE_URL, PRIVACY_NOTICE_URL_ENGLISH, SEARCH_TITLE } from "../../src/constants";
 import {
     chooseFromListbox, clickButton, finishAnyway, mountApp, optionButtons, pressFinishExam, pressKey, settle, startExam, type AppExports, type MountOptions,
 } from "../helpers/appHarness";
@@ -194,7 +194,7 @@ describe("App on the live site: counting in detail, only with consent", () =>
         expect(document.querySelector("[role=tab][aria-selected=true]")?.id).toBe("tab-train");
     });
 
-    it("keeps what the visitor chose out of the title while the page is counted in detail: the title is the plain name", async () =>
+    it("keeps what the visitor chose out of the title while the page is counted in detail: the title is that of the start page", async () =>
     {
         await openLive({ place: "#train", locale: "de" });
         arrive();
@@ -202,14 +202,14 @@ describe("App on the live site: counting in detail, only with consent", () =>
         (document.getElementById("consent-allow") as HTMLElement).click();
         expect(calls).toEqual(["grant"]);
         // The counter sends the title with every page: it must not tell the language of the site or anything chosen.
-        expect(document.title).toBe("LiD Practice");
+        expect(document.title).toBe(SEARCH_TITLE);
         clickButton("Prüfung (33)");
-        expect(document.title).toBe("LiD Practice");
+        expect(document.title).toBe(SEARCH_TITLE);
         await openLive({ place: "#learn/land", locale: "de" });
         arrive("granted");
         await settle();
         expect(document.querySelector(".lesson-head h2")?.textContent).toBe("Dein Bundesland: Berlin");
-        expect(document.title).toBe("LiD Practice");
+        expect(document.title).toBe(SEARCH_TITLE);
         expect(window.location.hash).toBe("#learn/land");
         // Taken back: the page is named again, in the language of the site.
         (document.getElementById("privacy-settings") as HTMLElement).click();
@@ -218,7 +218,7 @@ describe("App on the live site: counting in detail, only with consent", () =>
         expect(document.title).toBe("Dein Bundesland: Berlin | LiD Practice");
     });
 
-    it("keeps the title plain from the moment the counter's script is added until the answer is known not to be yes", async () =>
+    it("keeps the title of the start page from the moment the counter's script is added until the answer is known not to be yes", async () =>
     {
         const appended: string[] = [];
         const append = HTMLHeadElement.prototype.append;
@@ -229,23 +229,23 @@ describe("App on the live site: counting in detail, only with consent", () =>
         });
         document.title = "Something else";
         await openLive({ place: "#train", locale: "de" });
-        // The page set its title right after it added the script, before the script could run: the plain name.
-        expect(document.title).toBe("LiD Practice");
+        // The page set its title right after it added the script, before the script could run: the title of the start page.
+        expect(document.title).toBe(SEARCH_TITLE);
         // The script runs, and for an earlier yes loads the counter, which reads the title, before the page hears of it.
         installApi("granted");
         const readByCounter = document.title;
         scripts()[0].dispatchEvent(new Event("load"));
-        expect(readByCounter).toBe("LiD Practice");
-        expect(document.title).toBe("LiD Practice");
+        expect(readByCounter).toBe(SEARCH_TITLE);
+        expect(document.title).toBe(SEARCH_TITLE);
         expect(appended).toHaveLength(1);
         // Known to be unset: the page is named again.
         await openLive({ place: "#train", locale: "de" });
-        expect(document.title).toBe("LiD Practice");
+        expect(document.title).toBe(SEARCH_TITLE);
         arrive();
         expect(document.title).toBe("Trainieren | LiD Practice");
         // The script did not arrive: nothing counts, and the page is named.
         await openLive({ place: "#train", locale: "de" });
-        expect(document.title).toBe("LiD Practice");
+        expect(document.title).toBe(SEARCH_TITLE);
         scripts()[0].dispatchEvent(new Event("error"));
         expect(document.title).toBe("Trainieren | LiD Practice");
     });
@@ -298,7 +298,7 @@ describe("App on the live site: counting in detail, only with consent", () =>
     {
         await openLive({ place: "#exam" });
         arrive("granted");
-        expect(document.title).toBe("LiD Practice");
+        expect(document.title).toBe(SEARCH_TITLE);
         answer = "denied";
         window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: { status: "denied" } }));
         expect(document.title).toBe("Exam (33) | LiD Practice");

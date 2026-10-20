@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { SEARCH_TITLE } from "../../src/constants";
 import { I18n } from "../../src/i18n";
 import { DEFAULT_LOCALE, LOCALES, UI_LOCALES, directionOf, type Locale } from "../../src/types";
 import {
@@ -43,12 +44,14 @@ describe("languages of the site and of the translation", () =>
             expect(new I18n("hi").dir).toBe("ltr");
         });
 
-        it.each(UI_LOCALES)("sets the direction of the page from the site language, %s", async (locale) =>
+        it.each(UI_LOCALES)("sets the direction of the page from the site language, and keeps the one title of the start page, %s", async (locale) =>
         {
             app = await mountApp(undefined, { locale });
             expect(document.documentElement.lang).toBe(locale);
             expect(document.documentElement.dir).toBe(directionOf(locale));
-            expect(document.querySelector("h1")?.textContent).toBe("LiD Practice");
+            expect(document.querySelector("h1 .brand-name")?.textContent).toBe("LiD Practice");
+            // The title of the start page is the same in every language: the counter reads it, and must not learn the language from it.
+            expect(document.title).toBe(SEARCH_TITLE);
         });
 
         it("mirrors the page for Arabic and puts it back when another language is chosen", async () =>

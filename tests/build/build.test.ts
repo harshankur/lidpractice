@@ -4,8 +4,9 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { JSDOM } from "jsdom";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import catalogueSource from "../../data/catalogue-source.json";
 import { readBundle } from "../../scripts/lib/data.mjs";
-import { CONSENT_SCRIPT_URL, LEGAL_NOTICE_URL, PRIVACY_NOTICE_URL, PRIVACY_NOTICE_URL_ENGLISH } from "../../src/constants";
+import { CONSENT_SCRIPT_URL, LEGAL_NOTICE_URL, PRIVACY_NOTICE_URL, PRIVACY_NOTICE_URL_ENGLISH, SEARCH_TITLE } from "../../src/constants";
 import identity from "../../src/identity.json";
 import de from "../../src/locales/de.json";
 import en from "../../src/locales/en.json";
@@ -28,8 +29,8 @@ const INTERFACE_FILES = 5;
 /** The languages the course of the Learn tab is written in. */
 const COURSE_LOCALES = ["de", "en", "ar", "uk", "tr", "es", "hi"];
 
-/** The most characters the page may have. It holds the German questions, two interface languages, the styles and the code; everything else is fetched. */
-const PAGE_BUDGET = 440000;
+/** The most characters the page may have. It holds the German questions, two interface languages, the styles, the code, its heading and the description for search engines; everything else is fetched. */
+const PAGE_BUDGET = 450000;
 
 /** Every sandbox and output folder created by this file, removed at the end. */
 const workDirs: string[] = [];
@@ -282,8 +283,72 @@ describe("build.mjs", () =>
             expect(document.characterSet.toLowerCase()).toBe("utf-8");
             expect(document.querySelector("meta[name=viewport]")?.getAttribute("content")).toBe("width=device-width, initial-scale=1");
             expect(document.documentElement.getAttribute("lang")).toBe(identity.defaultUiLocale);
-            expect(document.title).toBe(identity.name);
-            expect(document.querySelector("meta[name=description]")?.getAttribute("content")).toBe(en["app.description"]);
+            expect(document.title).toBe("Einbürgerungstest üben: Test Leben in Deutschland | LiD Practice");
+            expect(document.title).toBe(SEARCH_TITLE);
+            // The description is the German one, the language of the test and of what people search for, while the page stays English.
+            expect(document.querySelector("meta[name=description]")?.getAttribute("content")).toBe(de["app.description"]);
+            expect(de["app.description"]).toContain("Einbürgerungstest");
+        });
+
+        it("gives the share tags the title of the start page, the plain name of the site and the German description", () =>
+        {
+            const document = new JSDOM(defaultHtml).window.document;
+            const content = (property: string): string | null | undefined => document.querySelector(`meta[property='${property}']`)?.getAttribute("content");
+            expect(content("og:title")).toBe(SEARCH_TITLE);
+            expect(content("og:site_name")).toBe(identity.name);
+            expect(content("og:description")).toBe(de["app.description"]);
+            expect(document.querySelectorAll("meta[name=keywords]")).toHaveLength(0);
+        });
+
+        it("describes the site and the app for search engines in a data block that is never run", () =>
+        {
+            const document = new JSDOM(defaultHtml).window.document;
+            const blocks = [...document.querySelectorAll("script[type='application/ld+json']")];
+            expect(blocks).toHaveLength(1);
+            expect(blocks[0].parentElement?.tagName).toBe("HEAD");
+            const text = blocks[0].textContent as string;
+            expect(text).not.toContain("<");
+            const data = JSON.parse(text) as { "@context": string; "@graph": Record<string, unknown>[] };
+            expect(data["@context"]).toBe("https://schema.org");
+            const alternateName = ["Einbürgerungstest üben", "Test Leben in Deutschland"];
+            expect(data["@graph"][0]).toEqual({ "@type": "WebSite", name: identity.name, alternateName, url: identity.siteUrl });
+            const app = data["@graph"][1];
+            expect({ ...app, inLanguage: undefined }).toEqual({
+                "@type": "WebApplication",
+                name: identity.name,
+                alternateName,
+                url: identity.siteUrl,
+                applicationCategory: "EducationalApplication",
+                operatingSystem: "Any",
+                browserRequirements: "Requires JavaScript",
+                inLanguage: undefined,
+                isAccessibleForFree: true,
+                description: de["app.description"],
+                keywords: "Einbürgerungstest, Einbürgerungstest üben, Einbürgerungstest Fragen, Test Leben in Deutschland, LiD-Test, Fragenkatalog, Orientierungskurs, Prüfungssimulation",
+                author: { "@type": "Person", name: identity.author, url: identity.authorUrl },
+            });
+            // Every language of the interface, German first.
+            expect(app.inLanguage).toEqual(["de", "ar", "en", "es", "hi", "tr", "uk"]);
+            expect(Object.keys(app)).not.toContain("offers");
+        });
+
+        it("builds the heading the app draws first into the page, in the language of the page, so a search engine without JavaScript sees it", () =>
+        {
+            const document = new JSDOM(defaultHtml).window.document;
+            const app = document.getElementById("app") as HTMLElement;
+            expect(app.children).toHaveLength(1);
+            const headings = [...document.querySelectorAll("h1")];
+            expect(headings).toHaveLength(1);
+            expect(app.querySelector("header.top > .brand > h1")).toBe(headings[0]);
+            expect(headings[0].textContent).toContain("Einbürgerungstest");
+            expect([...headings[0].children].map((part) => [part.className, part.textContent])).toEqual([
+                ["brand-name", identity.name],
+                ["brand-sub", en["header.subtitle"].replace("{count}", "310")],
+            ]);
+            expect(headings[0].textContent).toBe(`${identity.name} Einbürgerungstest · Leben in Deutschland · 310 questions`);
+            // The page is English, so is its heading; a German page would take the German texts.
+            expect(document.documentElement.lang).toBe("en");
+            expect(document.documentElement.dir).toBe("ltr");
         });
 
         it("tells visitors without JavaScript in every language", () =>
@@ -301,13 +366,17 @@ describe("build.mjs", () =>
         {
             const document = new JSDOM(defaultHtml).window.document;
             const noscript = document.querySelector("noscript") as Element;
-            expect([...noscript.children].map((child) => child.className)).toEqual(["noscript-text", "site-legal", "site-copyright"]);
+            expect([...noscript.children].map((child) => child.className)).toEqual(["noscript-intro", "noscript-text", "site-legal", "site-copyright"]);
             expectLegalFooter(noscript, "en");
+            // It starts with what the site is for, in the language of the page, and stands below the heading the page is built with.
+            expect(noscript.querySelector(".noscript-intro")?.textContent).toBe(en["about.intro"].replace("{stand}", catalogueSource.stand));
+            expect(noscript.querySelector(".noscript-intro")?.textContent).toContain("Einbürgerungstest");
+            expect(noscript.previousElementSibling?.id).toBe("app");
         });
 
         it("replaces every template placeholder", () =>
         {
-            for (const placeholder of ["/*__CSS__*/", "/*__DATA__*/", "/*__JS__*/", "__LANG__", "__APP_NAME__", "__DESCRIPTION__", "__NOSCRIPT__"])
+            for (const placeholder of ["/*__CSS__*/", "/*__DATA__*/", "/*__JS__*/", "/*__STRUCTURED_DATA__*/", "__LANG__", "__APP_NAME__", "__SEARCH_TITLE__", "__DESCRIPTION__", "__HEADER__", "__NOSCRIPT__"])
             {
                 expect(defaultHtml, placeholder).not.toContain(placeholder);
             }
@@ -318,8 +387,8 @@ describe("build.mjs", () =>
             expect(defaultHtml).toContain(".card");
             expect(defaultHtml).toContain("id=\"question-data\"");
             const dom = new JSDOM(defaultHtml);
-            // The code, the questions, the list of the other language files and the sizes of the pictures.
-            expect(dom.window.document.querySelectorAll("script")).toHaveLength(4);
+            // The description for search engines, the code, the questions, the list of the other language files and the sizes of the pictures.
+            expect(dom.window.document.querySelectorAll("script")).toHaveLength(5);
             expect(dom.window.document.querySelectorAll("script[src]")).toHaveLength(0);
         });
 
@@ -537,6 +606,10 @@ describe("build.mjs", () =>
             const document = dom.window.document;
             await started();
             expect(document.querySelector(".original-btn")?.textContent).toMatch(/^Original, p\. \d+$/);
+            // The heading the page is built with is the one the app draws, to the letter, so nothing changes when the app has drawn itself.
+            const built = new JSDOM(defaultHtml).window.document.querySelector("#app .brand") as HTMLElement;
+            expect(document.querySelector("#app header.top > .brand")?.outerHTML).toBe(built.outerHTML);
+            expect(document.title).toBe(SEARCH_TITLE);
             expect(document.querySelector("footer.site-footer")?.textContent).toContain("Stand 07.05.2025");
             expect(document.documentElement.lang).toBe("en");
             expect(document.querySelector(".question .bi-main")?.getAttribute("lang")).toBe("de");
@@ -596,7 +669,7 @@ describe("build.mjs", () =>
         it("cannot close the data script early or add scripts", () =>
         {
             const dom = new JSDOM(buildHostile());
-            expect(dom.window.document.querySelectorAll("script")).toHaveLength(4);
+            expect(dom.window.document.querySelectorAll("script")).toHaveLength(5);
         });
 
         it("round trips the text exactly, including replacement patterns", () =>
@@ -618,7 +691,15 @@ describe("build.mjs", () =>
             const sandbox = makeSandbox();
             writeFileSync(join(sandbox, "src", "identity.json"), JSON.stringify({ ...identity, name: "A \"B\" <i>&" }));
             const html = runBuild(sandbox, makeWorkDir("identity"));
-            expect(html).toContain("<title>A &quot;B&quot; &lt;i&gt;&amp;</title>");
+            expect(html).toContain("<title>Einbürgerungstest üben: Test Leben in Deutschland | A &quot;B&quot; &lt;i&gt;&amp;</title>");
+            expect(html).toContain("<meta property=\"og:site_name\" content=\"A &quot;B&quot; &lt;i&gt;&amp;\">");
+            expect(html).toContain("<span class=\"brand-name\">A &quot;B&quot; &lt;i&gt;&amp;</span>");
+            const document = new JSDOM(html).window.document;
+            expect(document.querySelectorAll("#app i")).toHaveLength(0);
+            // The data block for search engines cannot be closed early either.
+            const block = document.querySelector("script[type='application/ld+json']") as HTMLElement;
+            expect(block.textContent).not.toContain("<");
+            expect((JSON.parse(block.textContent as string) as { "@graph": { name: string }[] })["@graph"][0].name).toBe("A \"B\" <i>&");
         });
     });
 
@@ -638,7 +719,8 @@ describe("build.mjs", () =>
             const document = dom.window.document;
             await started();
             expect(errors).toEqual([]);
-            expect(document.querySelector("h1")?.textContent).toBe(identity.name);
+            expect(document.querySelectorAll("h1")).toHaveLength(1);
+            expect(document.querySelector("h1 .brand-name")?.textContent).toBe(identity.name);
             expect(document.querySelectorAll("button.option")).toHaveLength(4);
             expect((document.getElementById("toast") as HTMLElement).hidden).toBe(true);
         });

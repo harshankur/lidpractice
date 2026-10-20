@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { SEARCH_TITLE } from "../../src/constants";
 import { buttonByText, chooseFromListbox, clickButton, finishAnyway, mountApp, optionButtons, pressKey, settle, startExam, wrongIndex } from "../helpers/appHarness";
 
 /** The tabs that have one page each. The Learn tab has an address for every page of it, see appLearn.test.ts. */
@@ -151,11 +152,11 @@ describe("App: the addresses of the tabs", () =>
         await settle();
     });
 
-    it("names the tab in the title of the page, in front of the name of the site, and keeps the plain name at the plain address", () =>
+    it("names the tab in the title of the page, in front of the name of the site, and keeps the title of the start page at the plain address", () =>
     {
-        expect(document.title).toBe("LiD Practice");
+        expect(document.title).toBe(SEARCH_TITLE);
         openByTab("practice");
-        expect(document.title).toBe("LiD Practice");
+        expect(document.title).toBe(SEARCH_TITLE);
         openByTab("train");
         expect(document.title).toBe("Train | LiD Practice");
         openByTab("exam");
@@ -164,13 +165,13 @@ describe("App: the addresses of the tabs", () =>
         expect(document.title).toBe("Practice | LiD Practice");
         // The title goes with the address, also when only the address changes and the tab stays.
         browserGoesTo("/");
-        expect(document.title).toBe("LiD Practice");
+        expect(document.title).toBe(SEARCH_TITLE);
         browserGoesTo("#practice");
         expect(document.title).toBe("Practice | LiD Practice");
         browserGoesTo("#train");
         expect(document.title).toBe("Train | LiD Practice");
         browserGoesTo("/");
-        expect(document.title).toBe("LiD Practice");
+        expect(document.title).toBe(SEARCH_TITLE);
     });
 
     it.each([

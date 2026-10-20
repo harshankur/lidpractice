@@ -1,7 +1,7 @@
 {
-    "app.description": "Almanya vatandaşlık sınavı ve \"Leben in Deutschland\" testi için ücretsiz alıştırma sitesi: resmi BAMF kataloğunun tüm soruları, sınav moduyla birlikte.",
+    "app.description": "Almanya vatandaşlık sınavı (Einbürgerungstest) ve \"Leben in Deutschland\" testi için ücretsiz alıştırma sitesi: resmi BAMF kataloğunun tüm soruları, sınav moduyla birlikte.",
     "app.noscript": "Bu sayfa için JavaScript gerekiyor.",
-    "header.subtitle": "Leben in Deutschland · {count} soru",
+    "header.subtitle": "Einbürgerungstest · Leben in Deutschland · {count} soru",
     "tabs.label": "Mod",
     "tabs.practice": "Alıştırma",
     "tabs.train": "Çalışma",

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { SEARCH_TITLE } from "../../src/constants";
 import de from "../../src/locales/de.json";
 import en from "../../src/locales/en.json";
 import {
@@ -85,7 +86,7 @@ describe("App: language, theme and tabs", () =>
             app = await mountApp(undefined, { locale: null });
             expect(document.documentElement.lang).toBe("en");
             expect([...document.querySelectorAll("[role=tab]")].map((tab) => tab.textContent)).toEqual(["Learn", "Practice", "Train", "Exam (33)"]);
-            expect(document.querySelector(".brand-sub")?.textContent).toBe("Leben in Deutschland · 310 questions");
+            expect(document.querySelector(".brand-sub")?.textContent).toBe("Einbürgerungstest · Leben in Deutschland · 310 questions");
             expect(visibleText(nextButton())).toBe("Skip");
             expect(document.querySelector("footer")?.textContent).toContain("Independent study aid");
             expect(document.querySelectorAll(".bi-sub")).toHaveLength(0);
@@ -100,7 +101,7 @@ describe("App: language, theme and tabs", () =>
             app = await mountApp(undefined, { locale: "de" });
             expect(document.documentElement.lang).toBe("de");
             expect([...document.querySelectorAll("[role=tab]")].map((tab) => tab.textContent)).toEqual(["Lernen", "Üben", "Trainieren", "Prüfung (33)"]);
-            expect(document.querySelector(".brand-sub")?.textContent).toBe("Leben in Deutschland · 310 Fragen");
+            expect(document.querySelector(".brand-sub")?.textContent).toBe("Einbürgerungstest · Leben in Deutschland · 310 Fragen");
             expect(visibleText(nextButton())).toBe("Überspringen");
             expect(document.querySelector("footer")?.textContent).toContain("Unabhängiges Lernangebot");
             expectNoRawKeys("German practice");
@@ -164,7 +165,7 @@ describe("App: language, theme and tabs", () =>
             expect(JSON.parse(window.localStorage.getItem(app.STORAGE_KEY) as string).uiLanguage).toBe("en");
         });
 
-        it("switches with the list in the header, and the page title stays the product name", async () =>
+        it("switches with the list in the header, and the title of the page and the name in the heading stay as they are", async () =>
         {
             app = await mountApp(undefined, { locale: null });
             expect(document.getElementById("site-language-button")?.textContent).toContain("English");
@@ -173,8 +174,9 @@ describe("App: language, theme and tabs", () =>
             expect(document.getElementById("site-language-button")?.textContent).toContain("Deutsch");
             expect(buttonByText("Practice")).toBeUndefined();
             expect(document.getElementById("tab-practice")?.textContent).toBe("Üben");
-            expect(document.title).toBe("LiD Practice");
-            expect(document.querySelector("h1")?.textContent).toBe("LiD Practice");
+            // The counter reads the title: it must not tell the language of the site.
+            expect(document.title).toBe(SEARCH_TITLE);
+            expect(document.querySelector("h1 .brand-name")?.textContent).toBe("LiD Practice");
             await chooseFromListbox("site-language", "en");
             expect(document.getElementById("tab-practice")?.textContent).toBe("Practice");
             expectNoRawKeys("after switching");

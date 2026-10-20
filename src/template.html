@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>__APP_NAME__</title>
+<title>__SEARCH_TITLE__</title>
 <meta name="description" content="__DESCRIPTION__">
 <link rel="canonical" href="__SITE_URL__">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="__APP_NAME__">
-<meta property="og:title" content="__APP_NAME__">
+<meta property="og:title" content="__SEARCH_TITLE__">
 <meta property="og:description" content="__DESCRIPTION__">
 <meta property="og:url" content="__SITE_URL__">
 <meta property="og:image" content="__SITE_URL__icon-512.png">
@@ -18,14 +18,15 @@
 <link rel="manifest" href="site.webmanifest">
 <meta name="theme-color" content="#f2f3f6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101319" media="(prefers-color-scheme: dark)">
+<script type="application/ld+json">/*__STRUCTURED_DATA__*/</script>
 <style>
 /*__CSS__*/
 </style>
 </head>
 <body>
 
+<div id="app">__HEADER__</div>
 <noscript>__NOSCRIPT__</noscript>
-<div id="app"></div>
 <div id="modal-root"></div>
 <div id="consent-root"></div>
 <div id="toast" role="alert" hidden></div>

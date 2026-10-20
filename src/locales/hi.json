@@ -1,7 +1,7 @@
 {
-    "app.description": "जर्मन नागरिकता परीक्षा और \"Leben in Deutschland\" परीक्षा के लिए मुफ़्त अभ्यास साइट: BAMF की आधिकारिक प्रश्न सूची के सभी प्रश्न, परीक्षा मोड के साथ।",
+    "app.description": "जर्मन नागरिकता परीक्षा (Einbürgerungstest) और \"Leben in Deutschland\" परीक्षा के लिए मुफ़्त अभ्यास साइट: BAMF की आधिकारिक प्रश्न सूची के सभी प्रश्न, परीक्षा मोड के साथ।",
     "app.noscript": "इस पेज के लिए JavaScript ज़रूरी है।",
-    "header.subtitle": "Leben in Deutschland · {count} प्रश्न",
+    "header.subtitle": "Einbürgerungstest · Leben in Deutschland · {count} प्रश्न",
     "tabs.label": "मोड",
     "tabs.practice": "अभ्यास",
     "tabs.train": "ट्रेनिंग",

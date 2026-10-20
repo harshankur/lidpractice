@@ -20,6 +20,22 @@ export interface RawQuestion
 /** localStorage key used by the app. */
 export const STORAGE_KEY = "lidpractice-v4";
 
+/**
+ * The title of the start page, the same in every language of the interface (the counter reads it). The same value as
+ * SEARCH_TITLE in src/constants.ts, written out here so a change of it is seen.
+ */
+export const SEARCH_TITLE = "Einbürgerungstest üben: Test Leben in Deutschland | LiD Practice";
+
+/**
+ * Waits until the app has drawn itself. The heading is part of the built page, so the row of tabs is what says it.
+ * @param page Playwright page.
+ */
+export async function appDrawn(page: Page): Promise<void>
+{
+    await expect(page.locator("#tab-practice")).toBeAttached();
+    await expect(page.locator("h1 .brand-name")).toHaveText("LiD Practice");
+}
+
 /** Number of questions in an exam. */
 export const EXAM_SIZE = 33;
 
@@ -188,7 +204,7 @@ export async function openApp(page: Page, saved?: string | OpenOptions): Promise
     }
     const locale = options.locale === undefined ? "en" : options.locale;
     await page.goto(`${locale === null ? "/" : `/?lang=${locale}`}${options.place ?? ""}`);
-    await expect(page.locator("h1")).toHaveText("LiD Practice");
+    await appDrawn(page);
 }
 
 /**

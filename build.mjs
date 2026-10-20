@@ -29,8 +29,26 @@ function escapeHtml(text)
     return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+/**
+ * Fills the `{name}` placeholders of a message, the way the app does for the values the build knows.
+ * @param {string} text Message.
+ * @param {Record<string, string>} params Values by placeholder name.
+ * @returns {string} The text.
+ */
+function fill(text, params)
+{
+    return text.replace(/\{(\w+)\}/g, (placeholder, name) => params[name] ?? placeholder);
+}
+
 const identity = JSON.parse(readFileSync("src/identity.json", "utf8"));
+// The page is in the default language of the interface (its lang attribute), so what it shows before the app has drawn
+// itself is in that language too. The description for search engines is German, the language the test and the words people
+// search for are in, whatever the language of the interface.
 const ui = JSON.parse(readFileSync(`src/locales/${identity.defaultUiLocale}.json`, "utf8"));
+const base = JSON.parse(readFileSync(`src/locales/${identity.defaultLocale}.json`, "utf8"));
+const catalogueSource = JSON.parse(readFileSync("data/catalogue-source.json", "utf8"));
+// The title of the start page, the same in every language (the app sets the same, see SEARCH_TITLE in src/constants.ts).
+const searchTitle = `${identity.searchTitlePrefix}${identity.titleSeparator}${identity.name}`;
 // The text for visitors without JavaScript cannot depend on a language setting, so it holds every language, each in its own span with its language and direction.
 const noscriptText = readdirSync("src/locales")
     .map((name) => name.replace(/\.json$/, ""))
@@ -58,8 +76,10 @@ function legalFooter(locales)
         + `${link(locales[0] === "de" ? identity.privacyNoticeUrl : identity.privacyNoticeUrlEnglish, label("footer.privacy"))}</p>\n`
         + `<p class="site-copyright">${escapeHtml(identity.name)} &copy; ${identity.copyrightYear} ${link(identity.authorUrl, escapeHtml(identity.author))}</p>`;
 }
-// The text for visitors without JavaScript leads with the default language of the site; the 404 page leads with German.
-const noscript = `<p class="noscript-text">${noscriptText}</p>\n${legalFooter([identity.defaultUiLocale, identity.defaultLocale])}`;
+// The text for visitors without JavaScript leads with the default language of the site; the 404 page leads with German. It
+// stands below the heading the page is built with, and starts with what the site is for.
+const noscript = `<p class="noscript-intro">${escapeHtml(fill(ui["about.intro"], { stand: catalogueSource.stand }))}</p>\n`
+    + `<p class="noscript-text">${noscriptText}</p>\n${legalFooter([identity.defaultUiLocale, identity.defaultLocale])}`;
 const js = bundle.outputFiles[0].text.replace(/<\/script/gi, "<\\/script");
 const css = readFileSync("src/styles.css", "utf8");
 // Escape "<" so the JSON can never close its script tag early.
@@ -79,9 +99,44 @@ for (const folder of ["images", "catalogue"])
     }
 }
 
+// Every question, in every language.
+const full = readBundle();
+
+// The heading the app draws first (renderHeader in src/app.ts), already in the page: search engines that run no script see
+// it, and it stands where it will stay before the app has drawn itself. The count is the user's questions, the general ones
+// and those of one state (every state has the same number).
+const stateIds = JSON.parse(readFileSync("data/states.json", "utf8")).map((state) => state.id);
+const userCount = full.questions.filter((question) => !stateIds.includes(question.k) || question.k === stateIds[0]).length;
+const header = `<header class="top"><div class="brand"><h1><span class="brand-name">${escapeHtml(identity.name)}</span> `
+    + `<span class="brand-sub">${escapeHtml(fill(ui["header.subtitle"], { count: new Intl.NumberFormat(`${identity.defaultUiLocale}-u-nu-latn`).format(userCount) }))}</span>`
+    + "</h1></div></header>";
+
+// What the site is, for search engines: the site and the app, with the names people search for. A data block, never run.
+const alternateName = identity.searchAlternateNames;
+const structuredData = JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+        { "@type": "WebSite", name: identity.name, alternateName, url: identity.siteUrl },
+        {
+            "@type": "WebApplication",
+            name: identity.name,
+            alternateName,
+            url: identity.siteUrl,
+            applicationCategory: "EducationalApplication",
+            operatingSystem: "Any",
+            browserRequirements: "Requires JavaScript",
+            inLanguage: [identity.defaultLocale, ...readdirSync("src/locales").map((name) => name.replace(/\.json$/, "")).filter((code) => code !== identity.defaultLocale).sort()],
+            isAccessibleForFree: true,
+            description: base["app.description"],
+            keywords: identity.searchKeywords.join(", "),
+            // The operator, whom the copyright line at the end of every page names and links already.
+            author: { "@type": "Person", name: identity.author, url: identity.authorUrl },
+        },
+    ],
+}).replace(/</g, "\\u003c");
+
 // The page holds the German questions and the messages of German and English. Every other language is a file next to the page that
 // is fetched when it is asked for; the page only keeps the name and the category names of each language, and where its files are.
-const full = readBundle();
 const pageBundle = {
     questions: full.questions,
     locales: Object.fromEntries(Object.entries(full.locales).map(([code, file]) => [code, code === identity.defaultLocale ? file : { ...file, questions: [] }])),
@@ -133,10 +188,13 @@ if (existsSync(`${TEACH}/course.json`))
 const html = readFileSync("src/template.html", "utf8")
     .replace(/__LANG__/g, () => identity.defaultUiLocale)
     .replace(/__DIR__/g, () => (identity.rtlLocales.includes(identity.defaultUiLocale) ? "rtl" : "ltr"))
+    .replace(/__SEARCH_TITLE__/g, () => escapeHtml(searchTitle))
     .replace(/__APP_NAME__/g, () => escapeHtml(identity.name))
-    .replace(/__DESCRIPTION__/g, () => escapeHtml(ui["app.description"]))
+    .replace(/__DESCRIPTION__/g, () => escapeHtml(base["app.description"]))
     .replace(/__SITE_URL__/g, () => escapeHtml(identity.siteUrl))
+    .replace(/__HEADER__/g, () => header)
     .replace(/__NOSCRIPT__/g, () => noscript)
+    .replace("/*__STRUCTURED_DATA__*/", () => structuredData)
     .replace("/*__CSS__*/", () => css)
     .replace("/*__DATA__*/", () => data)
     .replace("/*__LANGUAGES__*/", () => JSON.stringify(languageFiles))

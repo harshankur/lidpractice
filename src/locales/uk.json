@@ -1,7 +1,7 @@
 {
-    "app.description": "Безкоштовний сайт для підготовки до тесту на отримання німецького громадянства та до тесту «Leben in Deutschland»: усі питання з офіційного каталогу BAMF, з режимом іспиту.",
+    "app.description": "Безкоштовний сайт для підготовки до тесту на отримання німецького громадянства (Einbürgerungstest) та до тесту «Leben in Deutschland»: усі питання з офіційного каталогу BAMF, з режимом іспиту.",
     "app.noscript": "Цій сторінці потрібен JavaScript.",
-    "header.subtitle": "Leben in Deutschland · питань: {count}",
+    "header.subtitle": "Einbürgerungstest · Leben in Deutschland · питань: {count}",
     "tabs.label": "Режим",
     "tabs.practice": "Практика",
     "tabs.train": "Тренування",

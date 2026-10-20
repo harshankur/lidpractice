@@ -58,7 +58,14 @@ describe("App: practice mode", () =>
     {
         it("shows the title, four mode tabs with Practice chosen, and the two lists of the site in the header", () =>
         {
-            expect(document.querySelector("h1")?.textContent).toBe("LiD Practice");
+            // The heading is the name and the line under it, so it says what the site is for.
+            const heading = document.querySelector("h1") as HTMLElement;
+            expect(document.querySelectorAll("h1")).toHaveLength(1);
+            expect([...heading.children].map((part) => [part.className, part.textContent])).toEqual([
+                ["brand-name", "LiD Practice"],
+                ["brand-sub", "Einbürgerungstest · Leben in Deutschland · 310 questions"],
+            ]);
+            expect(heading.textContent).toBe("LiD Practice Einbürgerungstest · Leben in Deutschland · 310 questions");
             const tabs = Array.from(document.querySelectorAll("[role=tab]")).map((tab) => tab.textContent);
             expect(tabs).toEqual(["Learn", "Practice", "Train", "Exam (33)"]);
             expect(document.querySelector("[role=tab][aria-selected=true]")?.textContent).toBe("Practice");
@@ -132,7 +139,7 @@ describe("App: practice mode", () =>
             expect(document.getElementById("state-button")?.textContent).toContain("Your state");
             expect(document.getElementById("state-button")?.textContent).toContain("Berlin");
             expect(document.querySelector(".footer-state-note")?.textContent).toBe("Your 310 questions: 300 general ones and the 10 for Berlin.");
-            expect(document.querySelector(".brand-sub")?.textContent).toBe("Leben in Deutschland · 310 questions");
+            expect(document.querySelector(".brand-sub")?.textContent).toBe("Einbürgerungstest · Leben in Deutschland · 310 questions");
             expect(statValue("Seen")).toBe("0 of 310");
         });
     });

@@ -19,7 +19,7 @@
 import { START_MODE, modeHash, pageOf, placeOf } from "./address";
 import { QuestionBank } from "./bank";
 import {
-    APP_NAME, AUTHOR_NAME, LEGAL_NOTICE_URL, privacyNoticeUrl, AUTHOR_URL, COPYRIGHT_YEAR, BAMF_CATALOGUE_PAGE_URL, CATALOGUE_STAND, EXAM_DURATION_MINUTES, EXAM_GENERAL_COUNT, MAX_COUNTDOWN_MINUTES, EXAM_PASS_MARK,
+    APP_NAME, AUTHOR_NAME, LEGAL_NOTICE_URL, SEARCH_TITLE, TITLE_SEPARATOR, WORD_SPACE, privacyNoticeUrl, AUTHOR_URL, COPYRIGHT_YEAR, BAMF_CATALOGUE_PAGE_URL, CATALOGUE_STAND, EXAM_DURATION_MINUTES, EXAM_GENERAL_COUNT, MAX_COUNTDOWN_MINUTES, EXAM_PASS_MARK,
     EXAM_STATE_COUNT, CONFIRM_GUARD_MS, LAST_GENERAL_NUMBER, MS_PER_SECOND, SECONDS_PER_MINUTE, OPTION_LETTERS, TOAST_DURATION_MS, TWO_STEP_TIMEOUT_MS,
 } from "./constants";
 import { Clock, type ClockLevel } from "./clock";
@@ -110,9 +110,6 @@ const STORAGE_MESSAGES: Record<StorageProblem, MessageKey> = { unreadable: msg("
 
 /** Id of the result card of the exam, which takes the keyboard focus when the result appears. */
 const RESULT_ID = "exam-result";
-
-/** What stands between the name of a page and the name of the site in the title of the page, as on the pages of the legal notice. */
-const TITLE_SEPARATOR = " | ";
 
 /** The modes that run rounds. */
 type RoundMode = "practice";
@@ -530,17 +527,18 @@ export class App
     /**
      * The title of the page, which the browser shows on its tab, in its history and in a bookmark: the name of what
      * shows (a lesson, a page of the Learn tab, or else the tab) in front of the name of the site. The plain address
-     * of the site keeps the plain name of the site, as it keeps its plain address. While the page may be counted in
-     * detail it is the plain name everywhere: the counter sends the title with every page, and the name of a page is in
-     * the language the visitor chose and names the state in the lesson about it. Which page is open is in its address.
-     * On the live site that holds from the moment the counter's script is added until the answer is known to be no, so
-     * the counter can never read a name (see Consent.mayCount).
+     * of the site keeps the title of the start page, which the built page carries too and search engines show: what the
+     * site is for, in German words people search for, then its name, the same in every language. While the page may be
+     * counted in detail it is that title everywhere: the counter sends the title with every page, and the name of a page
+     * is in the language the visitor chose and names the state in the lesson about it. Which page is open is in its
+     * address. On the live site that holds from the moment the counter's script is added until the answer is known to be
+     * no, so the counter can never read a name or a language (see Consent.mayCount).
      */
     private title(): string
     {
         if (window.location.hash === "" || this.consent.mayCount)
         {
-            return APP_NAME;
+            return SEARCH_TITLE;
         }
         const page = (this.mode === "learn" ? this.learn.title() : null) ?? this.tabLabel(this.mode);
         return `${page}${TITLE_SEPARATOR}${APP_NAME}`;
@@ -2170,9 +2168,13 @@ export class App
             }, this.tabLabel(mode))));
 
         return el("header", { class: "top" },
+            // The line under the name is part of the heading, so the heading says what the site is for. The page is
+            // built with the same heading in it (build.mjs), so it stands where it will stay before this is drawn.
             el("div", { class: "brand" },
-                el("h1", {}, APP_NAME),
-                el("p", { class: "brand-sub" }, t("header.subtitle", { count: this.pool().size }))),
+                el("h1", {},
+                    el("span", { class: "brand-name" }, APP_NAME),
+                    document.createTextNode(WORD_SPACE),
+                    el("span", { class: "brand-sub" }, t("header.subtitle", { count: this.pool().size })))),
             el("div", { class: "header-tools" }, this.siteLanguageBox(), this.themeBox()),
             tabs);
     }

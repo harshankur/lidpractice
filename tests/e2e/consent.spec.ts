@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import type { Locator, Page, Route } from "@playwright/test";
-import { expect, openApp, STORAGE_KEY, test } from "./fixtures";
+import { appDrawn, expect, openApp, SEARCH_TITLE, STORAGE_KEY, test } from "./fixtures";
 
 /**
  * The question about counting in detail, in a real browser. The page asks it on the live site only, so these tests open
@@ -89,7 +89,7 @@ async function openLive(page: Page, allowedErrors: RegExp[], options: LiveOption
         }
     }, [STORAGE_KEY, JSON.stringify({ setupDone: true, theme: options.theme ?? "light" }), ANSWER_KEY, options.answer ?? ""]);
     await page.goto(`${LIVE}/?lang=${options.locale ?? "en"}`);
-    await expect(page.locator("h1")).toHaveText("LiD Practice");
+    await appDrawn(page);
 }
 
 /**
@@ -217,12 +217,12 @@ test.describe("the question about counting in detail, on the live site", () =>
         await expect(page.locator("#consent")).toHaveCount(0);
         expect(await page.evaluate(() => (window as unknown as { consentCalls: string[] }).consentCalls)).toEqual(["grant"]);
         await page.locator("#tab-train").click();
-        // The counter sends the title: while it counts, the title is the plain name, in no language.
-        await expect(page).toHaveTitle("LiD Practice");
+        // The counter sends the title: while it counts, the title is that of the start page, the same in every language.
+        await expect(page).toHaveTitle(SEARCH_TITLE);
         await page.reload();
-        await expect(page.locator("h1")).toHaveText("LiD Practice");
+        await appDrawn(page);
         await expect(page.locator("#consent")).toHaveCount(0);
-        await expect(page).toHaveTitle("LiD Practice");
+        await expect(page).toHaveTitle(SEARCH_TITLE);
         const settings = page.locator("#privacy-settings");
         await expect(settings).toHaveText("Datenschutz-Einstellungen");
         await settings.focus();
@@ -256,7 +256,7 @@ test.describe("the question about counting in detail, on the live site", () =>
         await page.locator("#lesson-land-berlin").click();
         await expect(page.locator(".lesson-head h2")).toHaveText("Your state: Berlin");
         await expect(page).toHaveURL(`${LIVE}/#learn/land`);
-        await expect(page).toHaveTitle("LiD Practice");
+        await expect(page).toHaveTitle(SEARCH_TITLE);
     });
 });
 

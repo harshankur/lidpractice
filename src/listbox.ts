@@ -1,3 +1,4 @@
+import { WORD_SPACE } from "./constants";
 import { clampedText, el, icon, type Child } from "./dom";
 import { i18n } from "./i18n";
 
@@ -82,9 +83,6 @@ const TYPE_AHEAD_MS = 600;
 
 /** Arrow shown on the button. */
 const CHEVRON_ICON = "chevronDown";
-
-/** The space between two words of the text of a button. */
-const WORD_SPACE = " ";
 
 /**
  * A choice list that replaces the browser's own select: a button that opens a
