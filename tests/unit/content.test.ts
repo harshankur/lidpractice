@@ -18,7 +18,7 @@ describe("FAQ content", () =>
     {
         const ids = FAQ_ENTRIES.map((entry) => entry.id);
         expect(new Set(ids).size).toBe(ids.length);
-        expect(ids).toEqual(["official", "edition", "authentic", "answers", "translations", "exam", "privacy", "changes", "report", "license"]);
+        expect(ids).toEqual(["useful", "official", "edition", "authentic", "answers", "translations", "exam", "privacy", "changes", "report", "license"]);
     });
 
     it.each(Object.keys(CATALOGS))("has a question that ends with a question mark and filled paragraphs in %s", (code) =>
@@ -95,6 +95,30 @@ describe("FAQ content", () =>
             expect(catalog["faq.privacy.a2"], code).toContain("{settings}");
             expect(catalog["faq.privacy.a2"], code).toContain("{author}");
             expect(catalog["consent.always"], code).toContain("{author}");
+        }
+    });
+
+    it("says first when the site helps: the two tests with their rules as the BAMF states them, and what it does not replace", () =>
+    {
+        const text = (catalog: Record<string, string>): string => (FAQ_ENTRIES.find((entry) => entry.id === "useful")?.answers ?? []).map((key) => catalog[key]).join(" ");
+        expect(FAQ_ENTRIES[0].id).toBe("useful");
+        expect(text(en)).toContain("Einbürgerungstest, the citizenship test you need to become a German citizen: 33 questions, 60 minutes, passed with at least 17 correct answers");
+        expect(text(en)).toContain("the final test of the orientation course in the integration course: it is passed with at least 15 of 33 correct answers, and with at least 17 it also counts as proof for naturalisation");
+        expect(text(en)).toContain("settlement permit (Niederlassungserlaubnis)");
+        expect(text(en)).toContain("which you take at a BAMF test centre");
+        expect(text(de)).toContain("33 Fragen, 60 Minuten, bestanden mit mindestens 17 richtigen Antworten");
+        expect(text(de)).toContain("Er ist mit mindestens 15 von 33 richtigen Antworten bestanden, und mit mindestens 17 gilt er auch als Nachweis für die Einbürgerung");
+        expect(text(de)).toContain("Du legst ihn bei einer Prüfstelle des BAMF ab");
+        expect(text(de)).toContain("Deutsch-Test für Zuwanderer");
+        // The tabs are named by their labels, so the answer never says another word than the tab does.
+        for (const code of ["de", "en", "ar", "uk", "tr", "es", "hi"])
+        {
+            const catalog = JSON.parse(readFileSync(`src/locales/${code}.json`, "utf8")) as Record<string, string>;
+            expect(catalog["faq.useful.a2"], code).toMatch(/\{learn\}.*\{practice\}.*\{train\}/);
+            for (const number of ["33", "60", "17", "15"])
+            {
+                expect(catalog["faq.useful.a1"], `${code} ${number}`).toContain(number);
+            }
         }
     });
 

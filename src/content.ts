@@ -16,6 +16,7 @@ export interface FaqEntry
 
 /** Frequently asked questions. Keep the ids stable, tests and links rely on them. */
 export const FAQ_ENTRIES: FaqEntry[] = [
+    { id: "useful", question: msg("faq.useful.q"), answers: [msg("faq.useful.a1"), msg("faq.useful.a2"), msg("faq.useful.a3")] },
     { id: "official", question: msg("faq.official.q"), answers: [msg("faq.official.a1")] },
     { id: "edition", question: msg("faq.edition.q"), answers: [msg("faq.edition.a1")] },
     { id: "authentic", question: msg("faq.authentic.q"), answers: [msg("faq.authentic.a1"), msg("faq.authentic.a2")] },

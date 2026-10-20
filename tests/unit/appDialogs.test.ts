@@ -464,11 +464,20 @@ describe("App: original question, report and About dialog", () =>
             clickButton("About and FAQ");
             const items = Array.from(dialog()?.querySelectorAll<HTMLDetailsElement>("details.faq-item") ?? []);
             expect(items.map((item) => item.id)).toEqual([
-                "faq-official", "faq-edition", "faq-authentic", "faq-answers", "faq-translations", "faq-exam", "faq-privacy",
+                "faq-useful", "faq-official", "faq-edition", "faq-authentic", "faq-answers", "faq-translations", "faq-exam", "faq-privacy",
                 "faq-changes", "faq-report", "faq-license",
             ]);
             expect(items.every((item) => !item.open)).toBe(true);
             expect(items.every((item) => item.querySelector("summary")?.textContent?.endsWith("?"))).toBe(true);
+        });
+
+        it("names the tabs in the answer about who the site is for by their labels", () =>
+        {
+            clickButton("About and FAQ");
+            const answer = dialog()?.querySelector("#faq-useful") as HTMLElement;
+            expect(answer.querySelectorAll("p")).toHaveLength(3);
+            expect(answer.textContent).toContain("\"Learn\" explains the topics, \"Practice\" and \"Train\" fix the questions in memory");
+            expect(answer.textContent).not.toMatch(/\{\w+\}/);
         });
 
         it("renders links inside answers as real links", () =>
