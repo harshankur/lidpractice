@@ -86,7 +86,7 @@ describe("App: language, theme and tabs", () =>
             app = await mountApp(undefined, { locale: null });
             expect(document.documentElement.lang).toBe("en");
             expect([...document.querySelectorAll("[role=tab]")].map((tab) => tab.textContent)).toEqual(["Learn", "Practice", "Train", "Exam (33)"]);
-            expect(document.querySelector(".brand-sub")?.textContent).toBe("Einbürgerungstest · Leben in Deutschland · 310 questions");
+            expect(document.querySelector(".brand-sub")?.textContent).toBe("Einbürgerungstest · Leben in Deutschland · 310\u00a0questions");
             expect(visibleText(nextButton())).toBe("Skip");
             expect(document.querySelector("footer")?.textContent).toContain("Independent study aid");
             expect(document.querySelectorAll(".bi-sub")).toHaveLength(0);
@@ -101,7 +101,7 @@ describe("App: language, theme and tabs", () =>
             app = await mountApp(undefined, { locale: "de" });
             expect(document.documentElement.lang).toBe("de");
             expect([...document.querySelectorAll("[role=tab]")].map((tab) => tab.textContent)).toEqual(["Lernen", "Üben", "Trainieren", "Prüfung (33)"]);
-            expect(document.querySelector(".brand-sub")?.textContent).toBe("Einbürgerungstest · Leben in Deutschland · 310 Fragen");
+            expect(document.querySelector(".brand-sub")?.textContent).toBe("Einbürgerungstest · Leben in Deutschland · 310\u00a0Fragen");
             expect(visibleText(nextButton())).toBe("Überspringen");
             expect(document.querySelector("footer")?.textContent).toContain("Unabhängiges Lernangebot");
             expectNoRawKeys("German practice");

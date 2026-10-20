@@ -13,7 +13,7 @@ test.describe("interface language", () =>
         await expect(page.getByRole("tab", { name: "Practice" })).toBeVisible();
         await expect(page.getByRole("tab", { name: "Exam (33)" })).toBeVisible();
         await expect(page.getByRole("button", { name: "Skip" })).toBeVisible();
-        await expect(page.locator(".brand-sub")).toHaveText("Einbürgerungstest · Leben in Deutschland · 310 questions");
+        await expect(page.locator(".brand-sub")).toHaveText("Einbürgerungstest · Leben in Deutschland · 310\u00a0questions");
         await expect(stat(page, "Seen")).toHaveText("0 of 310");
         await expect(page.locator(".question .bi-main")).toHaveAttribute("lang", "de");
         await expect(page.locator(".bi-sub")).toHaveCount(0);
@@ -28,7 +28,7 @@ test.describe("interface language", () =>
         await expect(page.getByRole("tab", { name: "Üben" })).toBeVisible();
         await expect(page.getByRole("tab", { name: "Prüfung (33)" })).toBeVisible();
         await expect(page.getByRole("button", { name: "Überspringen" })).toBeVisible();
-        await expect(page.locator(".brand-sub")).toHaveText("Einbürgerungstest · Leben in Deutschland · 310 Fragen");
+        await expect(page.locator(".brand-sub")).toHaveText("Einbürgerungstest · Leben in Deutschland · 310\u00a0Fragen");
         await expect(stat(page, "Gesehen")).toHaveText("0 von 310");
     });
 

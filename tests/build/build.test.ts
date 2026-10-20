@@ -345,7 +345,7 @@ describe("build.mjs", () =>
                 ["brand-name", identity.name],
                 ["brand-sub", en["header.subtitle"].replace("{count}", "310")],
             ]);
-            expect(headings[0].textContent).toBe(`${identity.name} Einbürgerungstest · Leben in Deutschland · 310 questions`);
+            expect(headings[0].textContent).toBe(`${identity.name} Einbürgerungstest · Leben in Deutschland · 310\u00a0questions`);
             // The page is English, so is its heading; a German page would take the German texts.
             expect(document.documentElement.lang).toBe("en");
             expect(document.documentElement.dir).toBe("ltr");

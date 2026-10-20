@@ -1,7 +1,7 @@
 {
     "app.description": "Free practice site for the German citizenship test (Einbürgerungstest) and the test \"Leben in Deutschland\": all questions of the official BAMF catalogue, with an exam mode.",
     "app.noscript": "This page needs JavaScript.",
-    "header.subtitle": "Einbürgerungstest · Leben in Deutschland · {count} questions",
+    "header.subtitle": "Einbürgerungstest · Leben in Deutschland · {count} questions",
     "tabs.label": "Mode",
     "tabs.practice": "Practice",
     "tabs.train": "Train",

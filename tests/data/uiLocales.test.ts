@@ -214,6 +214,17 @@ describe("interface language files", () =>
         }
     });
 
+    it("keeps the number of questions in the subtitle on one line with its word, in every language", () =>
+    {
+        const noBreak = String.fromCharCode(0xa0);
+        for (const [code, catalog] of Object.entries(catalogs))
+        {
+            const subtitle = catalog["header.subtitle"];
+            // After the number where the word follows it, before it where the word comes first (uk).
+            expect(subtitle.includes(`{count}${noBreak}`) || subtitle.includes(`${noBreak}{count}`), code).toBe(true);
+        }
+    });
+
     it("writes no long dashes", () =>
     {
         const longDash = new RegExp(`[${String.fromCharCode(0x2014)}${String.fromCharCode(0x2013)}]`);

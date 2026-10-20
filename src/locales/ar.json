@@ -1,7 +1,7 @@
 {
     "app.description": "موقع مجاني للتدرّب على اختبار التجنيس الألماني (⁨Einbürgerungstest⁩) واختبار \"⁨Leben in Deutschland⁩\": جميع أسئلة الكتالوج الرسمي الصادر عن ⁨BAMF⁩، مع وضع للامتحان.",
     "app.noscript": "تحتاج هذه الصفحة إلى ⁨JavaScript⁩.",
-    "header.subtitle": "⁨Einbürgerungstest⁩ · ⁨Leben in Deutschland⁩ · {count} سؤال",
+    "header.subtitle": "⁨Einbürgerungstest⁩ · ⁨Leben in Deutschland⁩ · {count} سؤال",
     "tabs.label": "الوضع",
     "tabs.practice": "تمرين",
     "tabs.train": "تدريب",

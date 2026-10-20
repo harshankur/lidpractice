@@ -63,9 +63,9 @@ describe("App: practice mode", () =>
             expect(document.querySelectorAll("h1")).toHaveLength(1);
             expect([...heading.children].map((part) => [part.className, part.textContent])).toEqual([
                 ["brand-name", "LiD Practice"],
-                ["brand-sub", "Einbürgerungstest · Leben in Deutschland · 310 questions"],
+                ["brand-sub", "Einbürgerungstest · Leben in Deutschland · 310\u00a0questions"],
             ]);
-            expect(heading.textContent).toBe("LiD Practice Einbürgerungstest · Leben in Deutschland · 310 questions");
+            expect(heading.textContent).toBe("LiD Practice Einbürgerungstest · Leben in Deutschland · 310\u00a0questions");
             const tabs = Array.from(document.querySelectorAll("[role=tab]")).map((tab) => tab.textContent);
             expect(tabs).toEqual(["Learn", "Practice", "Train", "Exam (33)"]);
             expect(document.querySelector("[role=tab][aria-selected=true]")?.textContent).toBe("Practice");
@@ -139,7 +139,7 @@ describe("App: practice mode", () =>
             expect(document.getElementById("state-button")?.textContent).toContain("Your state");
             expect(document.getElementById("state-button")?.textContent).toContain("Berlin");
             expect(document.querySelector(".footer-state-note")?.textContent).toBe("Your 310 questions: 300 general ones and the 10 for Berlin.");
-            expect(document.querySelector(".brand-sub")?.textContent).toBe("Einbürgerungstest · Leben in Deutschland · 310 questions");
+            expect(document.querySelector(".brand-sub")?.textContent).toBe("Einbürgerungstest · Leben in Deutschland · 310\u00a0questions");
             expect(statValue("Seen")).toBe("0 of 310");
         });
     });
