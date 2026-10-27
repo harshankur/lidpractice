@@ -218,9 +218,10 @@ describe("build.mjs", () =>
             }
             expect([...rules.keys()]).toEqual(["/*", "/", "/index.html", "/locales/*", "/teach/*", "/fonts/*", "/images/*", "/catalogue/*", "/catalogue/SOURCE.md"]);
             const all = rules.get("/*") ?? [];
-            expect(all.map((header) => header.split(":")[0])).toEqual(["X-Content-Type-Options", "Referrer-Policy", "X-Frame-Options", "Permissions-Policy", "Content-Security-Policy", "Strict-Transport-Security"]);
+            expect(all.map((header) => header.split(":")[0])).toEqual(["X-Content-Type-Options", "Referrer-Policy", "Permissions-Policy", "Content-Security-Policy", "Strict-Transport-Security"]);
             expect(all).toContain("Strict-Transport-Security: max-age=31536000; includeSubDomains");
             // The policy allows the site itself, and the operator's view counter for its scripts and what it sends, nothing more.
+            // Only harshankur.com, whose Safari app opens the site inside the page, may frame it.
             const counter = new URL(CONSENT_SCRIPT_URL).origin;
             expect(counter).toBe("https://views.harshankur.com");
             const policy = (all.find((header) => header.startsWith("Content-Security-Policy")) ?? "").replace(/^Content-Security-Policy:\s*/, "");
@@ -235,7 +236,7 @@ describe("build.mjs", () =>
                 "object-src": ["'none'"],
                 "base-uri": ["'self'"],
                 "form-action": ["'none'"],
-                "frame-ancestors": ["'none'"],
+                "frame-ancestors": ["https://harshankur.com"],
             });
             expect(all.some((header) => header.startsWith("Cache-Control"))).toBe(false);
             for (const path of ["/", "/index.html"])
@@ -252,8 +253,8 @@ describe("build.mjs", () =>
             expect(rules.get("/catalogue/*")).toEqual(["Cache-Control: public, max-age=86400", "X-Robots-Tag: noindex"]);
             expect([...rules.values()].flat().filter((header) => header.startsWith("X-Robots-Tag"))).toHaveLength(1);
             expect(rules.get("/catalogue/SOURCE.md")).toEqual(["Content-Type: text/markdown; charset=utf-8"]);
-            // The counter is the only other server the file names, in the two directives above.
-            expect([...text.matchAll(/https?:\/\/[^\s;]+/g)].map((match) => match[0])).toEqual([counter, counter]);
+            // The counter, in the two directives above, and harshankur.com, which may frame the site, are the only other servers the file names.
+            expect([...text.matchAll(/https?:\/\/[^\s;]+/g)].map((match) => match[0])).toEqual([counter, counter, "https://harshankur.com"]);
         });
 
         it("writes a page for an address that does not exist: German and English, a way home, the legal links and the copyright line", () =>
