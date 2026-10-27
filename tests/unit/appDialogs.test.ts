@@ -4,6 +4,8 @@ import {
     buttonByText, chooseFromListbox, clickButton, finishAnyway, makeQuestion, mountApp, numberOfLabel, optionButtons, pressKey, REAL_QUESTIONS, shownNumber,
     startExam, startRound, statValue, pressFinishExam,
 } from "../helpers/appHarness";
+import { LAST_GENERAL_NUMBER } from "../../src/constants";
+import { questionName } from "../../src/states";
 
 /** The dialog on screen, or null. */
 function dialog(): HTMLElement | null
@@ -178,11 +180,20 @@ describe("App: original question, report and About dialog", () =>
             }
             pressFinishExam();
             finishAnyway();
-            const buttons = document.querySelectorAll(".review-item .original-btn");
-            expect(buttons).toHaveLength(33);
-            (buttons[4] as HTMLButtonElement).click();
-            const number = numberOfLabel(document.querySelectorAll(".review-item .qno")[4].textContent as string);
-            expect(title()).toBe(`Question ${number} as printed in the catalogue`);
+            const items = document.querySelectorAll(".review-item");
+            expect(items).toHaveLength(33);
+            // Every row, not one: the exam mixes its three state questions in at random places, and a state question is
+            // named "BE 5" where a general one is named by its number, so each run checks both kinds.
+            let stateQuestions = 0;
+            for (const item of items)
+            {
+                const number = numberOfLabel(item.querySelector(".qno")?.textContent as string);
+                stateQuestions += number > LAST_GENERAL_NUMBER ? 1 : 0;
+                (item.querySelector(".original-btn") as HTMLButtonElement).click();
+                expect(title()).toBe(`Question ${questionName(number)} as printed in the catalogue`);
+                escape();
+            }
+            expect(stateQuestions).toBe(3);
         });
 
         it("leaves the question on screen when the dialog is closed", () =>
